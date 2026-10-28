@@ -30,7 +30,7 @@ export function Footer() {
             <span className="p-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20">
               <PhoneCall className="w-4 h-4 animate-pulse" />
             </span>
-            <span className="text-slate-300">
+            <span className="text-slate-300" suppressHydrationWarning>
               {isBn ? "বাংলাদেশ জরুরি কৃষি ও ভেটেরিনারি হটলাইন:" : "Bangladesh Agro-Vet Emergency Helplines:"}
             </span>
             <a

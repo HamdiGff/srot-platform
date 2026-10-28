@@ -12,54 +12,73 @@ interface SrotLogoProps {
 
 export function SrotLogo({ className = "", size = "md", showTagline = true }: SrotLogoProps) {
   const { language } = useLanguageStore();
-  const iconSize = size === "sm" ? "w-8 h-8" : size === "lg" ? "w-12 h-12" : "w-10 h-10";
-  const titleSize = size === "sm" ? "text-lg" : size === "lg" ? "text-2xl" : "text-xl";
+  const isBn = language === "bn";
+
+  const iconSizes = {
+    sm: "w-8 h-8",
+    md: "w-10 h-10",
+    lg: "w-12 h-12",
+  };
+
+  const titleSizes = {
+    sm: "text-lg",
+    md: "text-xl",
+    lg: "text-2xl",
+  };
 
   return (
-    <Link href="/" className={`flex items-center gap-3 group ${className}`}>
-      {/* High-Tech Vector Logo Emblem with Ambient Glow */}
-      <div className={`relative ${iconSize} shrink-0`}>
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500 rounded-xl blur-[6px] opacity-60 group-hover:opacity-100 transition-opacity" />
-        <div className="relative w-full h-full rounded-xl bg-gradient-to-br from-[#0c1622] to-[#060b12] border border-emerald-500/40 p-2 flex items-center justify-center shadow-lg shadow-emerald-950/40 group-hover:scale-105 group-hover:rotate-1 transition-all duration-300">
+    <Link
+      href="/"
+      className={`inline-flex items-center gap-3 group select-none transition-transform duration-200 active:scale-[0.98] ${className}`}
+      aria-label="SROT Digital Health Platform"
+    >
+      {/* Precision Agritech & Veterinary Vector Mark */}
+      <div className={`relative ${iconSizes[size]} shrink-0`}>
+        {/* Ambient Emerald-Cyan Glow */}
+        <div className="absolute -inset-0.5 bg-gradient-to-tr from-emerald-500 to-cyan-500 rounded-xl blur-[5px] opacity-50 group-hover:opacity-90 transition-opacity duration-300" />
+
+        <div className="relative w-full h-full rounded-xl bg-gradient-to-b from-[#0e1724] to-[#070c14] border border-emerald-400/30 p-2 flex items-center justify-center shadow-md group-hover:border-emerald-400/60 transition-colors">
           <svg
             viewBox="0 0 32 32"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             className="w-full h-full"
           >
-            {/* Agritech Sprouting Leaf (Left) */}
+            {/* Agritech Leaf Core */}
             <path
-              d="M8 24C8 17.3726 13.3726 12 20 12C20 18.6274 14.6274 24 8 24Z"
-              fill="url(#srot-leaf-grad)"
+              d="M7 23C7 16.5 12.5 11 19 11C19 17.5 13.5 23 7 23Z"
+              fill="url(#srot-leaf-fill)"
             />
-            {/* Veterinary Cross / Pulse Heart Shield (Right) */}
+            {/* Diagnostic Pulse Arc */}
             <path
-              d="M14 6C17.3137 6 20 8.68629 20 12C20 15.3137 17.3137 18 14 18C10.6863 18 8 15.3137 8 12C8 8.68629 10.6863 6 14 6Z"
-              stroke="#06b6d4"
+              d="M13 7C16.31 7 19 9.69 19 13C19 16.31 16.31 19 13 19"
+              stroke="#38bdf8"
               strokeWidth="1.8"
-              strokeDasharray="2 2"
+              strokeLinecap="round"
+              strokeDasharray="2.5 2.5"
             />
-            {/* Center Growth Core */}
-            <circle cx="15" cy="15" r="2.5" fill="#34d399" />
+            {/* Center Vitality Point */}
+            <circle cx="15" cy="15" r="2.2" fill="#34d399" />
+            {/* Sprouting Axis */}
             <path
-              d="M8 24L24 8"
-              stroke="url(#srot-stem-grad)"
-              strokeWidth="2.2"
+              d="M8 23L23 8"
+              stroke="url(#srot-axis-grad)"
+              strokeWidth="2"
               strokeLinecap="round"
             />
-            {/* Micro Cross indicator for veterinary */}
+            {/* Clinical Cross */}
             <path
-              d="M22 17V23M19 20H25"
-              stroke="#38bdf8"
+              d="M21 16V22M18 19H24"
+              stroke="#06b6d4"
               strokeWidth="1.8"
               strokeLinecap="round"
             />
             <defs>
-              <linearGradient id="srot-leaf-grad" x1="8" y1="12" x2="20" y2="24" gradientUnits="userSpaceOnUse">
+              <linearGradient id="srot-leaf-fill" x1="7" y1="11" x2="19" y2="23" gradientUnits="userSpaceOnUse">
                 <stop stopColor="#34d399" />
                 <stop offset="1" stopColor="#059669" />
               </linearGradient>
-              <linearGradient id="srot-stem-grad" x1="8" y1="24" x2="24" y2="8" gradientUnits="userSpaceOnUse">
+              <linearGradient id="srot-axis-grad" x1="8" y1="23" x2="23" y2="8" gradientUnits="userSpaceOnUse">
                 <stop stopColor="#059669" />
                 <stop offset="0.5" stopColor="#10b981" />
                 <stop offset="1" stopColor="#38bdf8" />
@@ -69,23 +88,27 @@ export function SrotLogo({ className = "", size = "md", showTagline = true }: Sr
         </div>
       </div>
 
-      {/* Typography */}
-      <div>
-        <div className="flex items-center gap-1.5">
-          <span className={`${titleSize} font-black tracking-tight text-white font-sans group-hover:text-emerald-400 transition-colors`}>
-            {language === "bn" ? "উৎস" : "SROT"}
+      {/* Brand Typography & Status Pill */}
+      <div className="flex flex-col justify-center">
+        <div className="flex items-center gap-2">
+          <span
+            className={`${titleSizes[size]} font-black tracking-tight text-white group-hover:text-emerald-400 transition-colors flex items-center gap-1.5`}
+          >
+            <span>{isBn ? "উৎস" : "SROT"}</span>
+            <span className="text-emerald-400 text-xs font-semibold tracking-normal hidden sm:inline">
+              {isBn ? "প্ল্যাটফর্ম" : "Platform"}
+            </span>
           </span>
-          <span className="text-[10px] uppercase font-extrabold tracking-widest px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-            {language === "bn" ? "প্ল্যাটফর্ম" : "Platform"}
-          </span>
-          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/30 hidden sm:inline-flex items-center gap-1">
-            <span>🇧🇩</span>
-            <span>বাংলাদেশ</span>
+
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-semibold text-emerald-300">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <span>BD</span>
           </span>
         </div>
+
         {showTagline && (
-          <p className="text-[10px] text-slate-400 font-medium tracking-wide uppercase font-mono -mt-0.5">
-            {language === "bn" ? "ডিজিটাল কৃষি ও প্রাণিসম্পদ স্বাস্থ্য" : "Agri & Animal Health BD"}
+          <p className="text-[11px] text-slate-400 font-medium tracking-wide">
+            {isBn ? "ডিজিটাল কৃষি ও প্রাণিসম্পদ স্বাস্থ্য" : "Agri & Animal Health Network"}
           </p>
         )}
       </div>

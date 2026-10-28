@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useLanguageStore } from "@/lib/store/languageStore";
-import { AlertTriangle, ArrowRight, X, Bell, PhoneCall } from "lucide-react";
+import { AlertCircle, ArrowRight, X } from "lucide-react";
 
 export function OutbreakAlertBanner() {
   const [isVisible, setIsVisible] = useState(true);
@@ -13,42 +13,45 @@ export function OutbreakAlertBanner() {
   if (!isVisible) return null;
 
   return (
-    <div className="w-full bg-gradient-to-r from-red-950/95 via-[#130707] to-red-950/95 border-y border-red-500/40 px-4 py-2.5 text-xs shadow-lg">
-      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <span className="p-1 rounded-lg bg-red-500/20 text-red-400 border border-red-500/40 shrink-0 animate-pulse">
-            <Bell className="w-4 h-4" />
+    <div
+      role="alert"
+      className="w-full bg-gradient-to-r from-red-950/60 via-[#160a0d] to-red-950/60 border-b border-red-500/25 px-4 py-2 text-xs transition-all duration-300"
+    >
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+        {/* Left: Outbreak Advisory Text */}
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="flex h-2 w-2 relative shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
           </span>
-          <div className="text-slate-200">
-            <strong className="text-red-400 font-bold uppercase tracking-wider text-[11px] mr-2">
-              {isBn ? "🚨 জাতীয় মহামারি ও বালাই সতর্কতা:" : "🚨 Active BD Outbreak Alert:"}
-            </strong>
-            <span className="text-slate-300">
+
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 truncate text-[11px] sm:text-xs">
+            <span className="font-bold text-red-300 uppercase tracking-wider shrink-0">
+              {isBn ? "সতর্কতা বার্তা:" : "Active Outbreak Alert:"}
+            </span>
+            <span className="text-slate-300 truncate">
               {isBn
-                ? "বোরো ধানে শীষ ব্লাস্ট ও খোলপচা এবং ডেইরি খামারে ল্যাম্পি স্কিন ডিজিজ (LSD) প্রাদুর্ভাবের বিরুদ্ধে সতর্কতা জারি।"
-                : "Active Neck Blast in Boro Rice & Lumpy Skin Disease (LSD) outbreak reported in Eastern & Northern livestock clusters."}
+                ? "বোরো ধানে শীষ ব্লাস্ট ও খোলপচা এবং ডেইরিতে লাম্পি স্কিন ডিজিজ (LSD) প্রাদুর্ভাব সংক্রান্ত জরুরি নির্দেশনা।"
+                : "Neck Blast in Boro Rice & Lumpy Skin Disease (LSD) in cattle reported in active agricultural clusters."}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0 text-xs">
-          <a
-            href="tel:16123"
-            className="hidden md:inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-900/60 hover:bg-red-800 text-red-200 border border-red-600/50 font-bold text-[11px] transition"
-          >
-            <PhoneCall className="w-3 h-3" />
-            <span>১৬১২৩</span>
-          </a>
+        {/* Right: Clean Single CTA & Dismiss */}
+        <div className="flex items-center gap-2 shrink-0">
           <Link
             href="/consult?priority=emergency"
-            className="px-3.5 py-1 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold text-[11px] transition shadow-md shadow-red-950/60 hover:scale-105 active:scale-95"
+            className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-300 hover:text-white transition group px-2 py-0.5 rounded-md hover:bg-red-500/10"
           >
-            {isBn ? "জরুরি পরামর্শ নিন →" : "Emergency Advisory →"}
+            <span>{isBn ? "প্রতিরোধ গাইড" : "Advisory Protocol"}</span>
+            <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
           </Link>
+
           <button
             onClick={() => setIsVisible(false)}
-            className="text-slate-400 hover:text-white p-1 ml-1"
+            className="p-1 text-slate-400 hover:text-white transition rounded-md hover:bg-white/[0.05]"
             aria-label="Dismiss alert"
+            title={isBn ? "সতর্কতা বন্ধ করুন" : "Dismiss"}
           >
             <X className="w-3.5 h-3.5" />
           </button>
