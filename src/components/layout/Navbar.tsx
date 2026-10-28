@@ -7,6 +7,7 @@ import { useUserStore } from "@/lib/store/userStore";
 import { SrotLogo } from "./SrotLogo";
 import { RoleSwitcherModal } from "./RoleSwitcherModal";
 import { EmergencySosModal } from "./EmergencySosModal";
+import { DosageCalculatorModal } from "@/components/features/DosageCalculatorModal";
 import {
   CalendarCheck,
   AlertTriangle,
@@ -14,9 +15,7 @@ import {
   X,
   LayoutDashboard,
   ChevronDown,
-  Sparkles,
-  PhoneCall,
-  Search,
+  Calculator,
   ShieldCheck,
 } from "lucide-react";
 
@@ -25,6 +24,7 @@ export function Navbar() {
   const { currentRole, currentUser, openRoleModal } = useUserStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false);
+  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
 
   // Dynamic portal link based on active persona
   const portalPath =
@@ -70,6 +70,15 @@ export function Navbar() {
             </div>
 
             <div className="flex items-center gap-3 text-[11px] sm:text-xs">
+              {/* Dosage Calc Button */}
+              <button
+                onClick={() => setIsCalculatorOpen(true)}
+                className="hidden sm:flex items-center gap-1 text-slate-300 hover:text-white transition px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800"
+              >
+                <Calculator className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Dosage Calculator</span>
+              </button>
+
               <button
                 onClick={() => setIsEmergencyModalOpen(true)}
                 className="flex items-center gap-1.5 text-amber-400 hover:text-amber-300 font-bold transition px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20"
@@ -127,6 +136,14 @@ export function Navbar() {
 
             {/* Right Quick Actions */}
             <div className="hidden lg:flex items-center gap-3">
+              <button
+                onClick={() => setIsCalculatorOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold transition"
+              >
+                <Calculator className="w-4 h-4 text-emerald-400" />
+                <span>Dosage Calc</span>
+              </button>
+
               <Link
                 href={portalPath}
                 className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-slate-200 text-xs font-bold transition hover:border-emerald-500/40"
@@ -172,6 +189,17 @@ export function Navbar() {
               </Link>
             ))}
 
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                setIsCalculatorOpen(true);
+              }}
+              className="w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-semibold text-emerald-400 hover:bg-slate-900 flex items-center gap-2"
+            >
+              <Calculator className="w-4 h-4" />
+              <span>Open Dosage Calculator</span>
+            </button>
+
             <div className="pt-4 border-t border-slate-800/80 flex flex-col gap-2">
               <Link
                 href={portalPath}
@@ -200,6 +228,10 @@ export function Navbar() {
       <EmergencySosModal
         isOpen={isEmergencyModalOpen}
         onClose={() => setIsEmergencyModalOpen(false)}
+      />
+      <DosageCalculatorModal
+        isOpen={isCalculatorOpen}
+        onClose={() => setIsCalculatorOpen(false)}
       />
     </>
   );

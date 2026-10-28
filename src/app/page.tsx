@@ -12,6 +12,16 @@ import { KnowledgeCard } from "@/components/cards/KnowledgeCard";
 import { ConsultationCard } from "@/components/cards/ConsultationCard";
 import { useUserStore } from "@/lib/store/userStore";
 import { generatePrescriptionPdf } from "@/lib/prescriptionGenerator";
+import { AiSymptomScanner } from "@/components/features/AiSymptomScanner";
+import { AgroWeatherRadar } from "@/components/features/AgroWeatherRadar";
+import { OutbreakAlertBanner } from "@/components/features/OutbreakAlertBanner";
+import { PricingComparisonTable } from "@/components/features/PricingComparisonTable";
+import { VerifiedTestimonials } from "@/components/features/VerifiedTestimonials";
+import { DosageCalculatorModal } from "@/components/features/DosageCalculatorModal";
+import { HeroVisualGraphic } from "@/components/features/HeroVisualGraphic";
+import { CropLivestockCalendar } from "@/components/features/CropLivestockCalendar";
+import { SoilHealthInterpreter } from "@/components/features/SoilHealthInterpreter";
+import { AccreditationBadges } from "@/components/features/AccreditationBadges";
 import {
   Wheat,
   Milk,
@@ -36,11 +46,16 @@ import {
   ChevronDown,
   PhoneCall,
   HelpCircle,
+  Calculator,
+  Activity,
+  Scan,
 } from "lucide-react";
 
 export default function HomePage() {
   const [activeCategory, setActiveCategory] = useState<ServiceCategory | "all">("all");
   const [heroSector, setHeroSector] = useState<"agri" | "livestock" | "pet">("agri");
+  const [heroRightTab, setHeroRightTab] = useState<"graphic" | "triage">("graphic");
+  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const { openRoleModal, currentUser } = useUserStore();
 
   const filteredServices =
@@ -89,10 +104,13 @@ export default function HomePage() {
 
   return (
     <div className="w-full srot-grid-pattern srot-ambient-glow pb-24">
+      {/* 1. Live Disease & Pest Outbreak Warning Ticker */}
+      <OutbreakAlertBanner />
+
       {/* ================= HERO SECTION ================= */}
-      <section className="relative pt-10 pb-16 md:pt-16 md:pb-24 overflow-hidden border-b border-white/[0.05]">
+      <section className="relative pt-8 pb-14 md:pt-14 md:pb-20 overflow-hidden border-b border-white/[0.05]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             {/* Left 7 Cols: Headline & Sector Selector */}
             <div className="lg:col-span-7 space-y-6">
               {/* Trust Badge */}
@@ -113,7 +131,7 @@ export default function HomePage() {
               </p>
 
               {/* Sector Switcher Pills in Hero */}
-              <div className="pt-2">
+              <div className="pt-1">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
                   Choose Your Sector to Preview Live Triage:
                 </span>
@@ -149,19 +167,20 @@ export default function HomePage() {
                   <ArrowRight className="w-4 h-4" />
                 </Link>
 
-                <Link
-                  href="/services"
-                  className="px-6 py-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700 font-bold text-sm transition"
+                <button
+                  onClick={() => setIsCalculatorOpen(true)}
+                  className="flex items-center gap-2 px-5 py-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-emerald-400 border border-emerald-500/40 font-bold text-sm transition"
                 >
-                  Explore All Services
-                </Link>
+                  <Calculator className="w-4 h-4" />
+                  <span>Dosage Calculator</span>
+                </button>
 
                 <button
                   onClick={openRoleModal}
                   className="flex items-center gap-2 px-4 py-3.5 rounded-xl bg-slate-900/60 hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs font-semibold transition"
                 >
                   <Users className="w-4 h-4 text-cyan-400" />
-                  <span>Switch Persona ({currentUser.name.split(" ")[0]})</span>
+                  <span>Persona: {currentUser.name.split(" ")[0]}</span>
                 </button>
               </div>
 
@@ -182,73 +201,131 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right 5 Cols: Live Interactive Triage Simulation Card */}
-            <div className="lg:col-span-5">
-              <div className={`srot-glass-card rounded-3xl p-6 sm:p-7 border ${currentPreset.color} shadow-2xl relative transition-all duration-300`}>
-                <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-                  <div className="flex items-center gap-2">
-                    <span className="p-2 rounded-xl bg-slate-800/90 border border-slate-700">
-                      {currentPreset.icon}
-                    </span>
-                    <div>
-                      <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                        Live Case Triage Preview
-                      </span>
-                      <h4 className="text-xs font-bold text-white">{currentPreset.tag}</h4>
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                    Doctor Active
-                  </span>
-                </div>
-
-                <div className="py-4 space-y-3">
-                  <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                    <span className="text-[10px] uppercase text-slate-400 block">Reported Symptoms:</span>
-                    <p className="text-xs text-slate-200 font-medium mt-0.5">{currentPreset.symptom}</p>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                    <span className="text-[10px] uppercase text-slate-400 block">Pathology / Clinical Diagnosis:</span>
-                    <p className="text-xs font-bold text-emerald-300 mt-0.5">{currentPreset.title}</p>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                    <span className="text-[10px] uppercase text-slate-400 block">Prescribed Action & Spray / Medicine:</span>
-                    <p className="text-xs text-white font-semibold mt-0.5">{currentPreset.solution}</p>
-                    <span className="text-[10px] text-amber-400 block mt-1 font-mono">
-                      Safety Protocol: {currentPreset.safety}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2.5 pt-1 text-xs text-slate-400">
-                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span className="text-[11px] truncate">{currentPreset.doctor}</span>
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
-                  <Link
-                    href={`/consult/${currentPreset.sampleCaseId}`}
-                    className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold text-center transition shadow-lg shadow-emerald-950/60"
+            {/* Right 5 Cols: Switchable Diagnostic Graphic & Case Triage Preview */}
+            <div className="lg:col-span-5 space-y-3">
+              {/* Tab Selector on Top of Card */}
+              <div className="flex items-center justify-between px-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
+                  Interactive Tele-Deck:
+                </span>
+                <div className="inline-flex p-1 rounded-xl bg-slate-900 border border-slate-800 gap-1 text-[11px] font-bold">
+                  <button
+                    onClick={() => setHeroRightTab("graphic")}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition ${
+                      heroRightTab === "graphic"
+                        ? "bg-emerald-600 text-white shadow-sm"
+                        : "text-slate-400 hover:text-white"
+                    }`}
                   >
-                    Open Live Case Room &rarr;
-                  </Link>
-                  <Link
-                    href={`/consult?category=${heroSector === "pet" ? "pet" : heroSector === "livestock" ? "veterinary" : "agri"}`}
-                    className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition"
+                    <Scan className="w-3.5 h-3.5" />
+                    <span>Spectral Telemetry</span>
+                  </button>
+                  <button
+                    onClick={() => setHeroRightTab("triage")}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition ${
+                      heroRightTab === "triage"
+                        ? "bg-cyan-600 text-white shadow-sm"
+                        : "text-slate-400 hover:text-white"
+                    }`}
                   >
-                    Book New
-                  </Link>
+                    <Activity className="w-3.5 h-3.5" />
+                    <span>Live Case Triage</span>
+                  </button>
                 </div>
               </div>
+
+              {heroRightTab === "graphic" ? (
+                <HeroVisualGraphic />
+              ) : (
+                <div className={`srot-glass-card rounded-3xl p-6 sm:p-7 border ${currentPreset.color} shadow-2xl relative transition-all duration-300`}>
+                  <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+                    <div className="flex items-center gap-2">
+                      <span className="p-2 rounded-xl bg-slate-800/90 border border-slate-700">
+                        {currentPreset.icon}
+                      </span>
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                          Live Case Triage Preview
+                        </span>
+                        <h4 className="text-xs font-bold text-white">{currentPreset.tag}</h4>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                      Doctor Active
+                    </span>
+                  </div>
+
+                  <div className="py-4 space-y-3">
+                    <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                      <span className="text-[10px] uppercase text-slate-400 block">Reported Symptoms:</span>
+                      <p className="text-xs text-slate-200 font-medium mt-0.5">{currentPreset.symptom}</p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                      <span className="text-[10px] uppercase text-slate-400 block">Pathology / Clinical Diagnosis:</span>
+                      <p className="text-xs font-bold text-emerald-300 mt-0.5">{currentPreset.title}</p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                      <span className="text-[10px] uppercase text-slate-400 block">Prescribed Action & Spray / Medicine:</span>
+                      <p className="text-xs text-white font-semibold mt-0.5">{currentPreset.solution}</p>
+                      <span className="text-[10px] text-amber-400 block mt-1 font-mono">
+                        Safety Protocol: {currentPreset.safety}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2.5 pt-1 text-xs text-slate-400">
+                      <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span className="text-[11px] truncate">{currentPreset.doctor}</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
+                    <Link
+                      href={`/consult/${currentPreset.sampleCaseId}`}
+                      className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold text-center transition shadow-lg shadow-emerald-950/60"
+                    >
+                      Open Live Case Room &rarr;
+                    </Link>
+                    <Link
+                      href={`/consult?category=${heroSector === "pet" ? "pet" : heroSector === "livestock" ? "veterinary" : "agri"}`}
+                      className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition"
+                    >
+                      Book New
+                    </Link>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* ================= ARCHITECTURAL DESIGN SPOTLIGHT ================= */}
+      {/* ================= 2. CERTIFIED ACCREDITATIONS & SECURITY RIBBON ================= */}
+      <AccreditationBadges />
+
+      {/* ================= 3. LIVE AI SYMPTOM SCANNER ================= */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <AiSymptomScanner />
+      </section>
+
+      {/* ================= 4. SEASONAL SPRAY & VACCINATION PROTOCOL CALENDAR ================= */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <CropLivestockCalendar />
+      </section>
+
+      {/* ================= 5. AGRO-CLIMATIC & LIVESTOCK THI RADAR ================= */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <AgroWeatherRadar />
+      </section>
+
+      {/* ================= 6. SOIL HEALTH & N-P-K NUTRIENT BIOAVAILABILITY ================= */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <SoilHealthInterpreter />
+      </section>
+
+      {/* ================= 7. ARCHITECTURAL DESIGN SPOTLIGHT ================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="srot-glass-card rounded-3xl p-6 sm:p-10 border border-white/[0.08] bg-gradient-to-b from-slate-900/70 to-slate-950/90 shadow-2xl">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-8 border-b border-white/[0.06]">
@@ -407,7 +484,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ================= HOW IT WORKS (4 STEPS) ================= */}
+      {/* ================= 8. HOW IT WORKS (4 STEPS) ================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
@@ -462,7 +539,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ================= MODULAR SERVICES CATALOG ================= */}
+      {/* ================= 9. MODULAR SERVICES CATALOG ================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
           <div>
@@ -504,7 +581,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ================= FEATURED PRACTITIONERS ================= */}
+      {/* ================= 10. PRICING & VALUE COMPARISON ================= */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <PricingComparisonTable />
+      </section>
+
+      {/* ================= 11. VERIFIED PRACTITIONERS ================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="flex items-end justify-between mb-10">
           <div>
@@ -534,7 +616,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ================= DOWNLOADABLE OFFICIAL RX SHOWCASE ================= */}
+      {/* ================= 12. VERIFIED CLIENT TESTIMONIALS ================= */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <VerifiedTestimonials />
+      </section>
+
+      {/* ================= 13. DOWNLOADABLE OFFICIAL RX SHOWCASE ================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="srot-glass-card rounded-3xl p-6 sm:p-10 border border-emerald-500/30 bg-gradient-to-r from-emerald-950/30 via-slate-900 to-slate-950">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 pb-6 border-b border-slate-800">
@@ -567,7 +654,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ================= KNOWLEDGE HUB ARTICLES ================= */}
+      {/* ================= 14. KNOWLEDGE HUB ARTICLES ================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="flex items-end justify-between mb-10">
           <div>
@@ -594,7 +681,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ================= INTERACTIVE FAQ (ACCESSIBLE DETAILS ACCORDION) ================= */}
+      {/* ================= 15. INTERACTIVE FAQ (ACCESSIBLE DETAILS ACCORDION) ================= */}
       <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center mb-10">
           <span className="text-xs font-bold uppercase tracking-wider text-cyan-400">
@@ -651,7 +738,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ================= FINAL CALL TO ACTION ================= */}
+      {/* ================= 16. FINAL CALL TO ACTION ================= */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 text-center">
         <div className="p-8 sm:p-14 rounded-3xl bg-gradient-to-r from-emerald-950 via-[#0a141f] to-teal-950 border border-emerald-500/30 shadow-2xl relative overflow-hidden">
           <div className="relative z-10 space-y-4">
@@ -672,16 +759,23 @@ export default function HomePage() {
               >
                 Book Advisory Consultation
               </Link>
-              <Link
-                href="/services"
-                className="px-6 py-4 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 font-bold text-sm hover:bg-slate-800 transition"
+              <button
+                onClick={() => setIsCalculatorOpen(true)}
+                className="px-6 py-4 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 font-bold text-sm hover:bg-slate-800 transition flex items-center gap-2"
               >
-                Browse Service Directory
-              </Link>
+                <Calculator className="w-4 h-4 text-emerald-400" />
+                <span>Open Dosage Calculator</span>
+              </button>
             </div>
           </div>
         </div>
       </section>
+
+      {/* Global Dosage Calculator Modal on Homepage */}
+      <DosageCalculatorModal
+        isOpen={isCalculatorOpen}
+        onClose={() => setIsCalculatorOpen(false)}
+      />
     </div>
   );
 }
