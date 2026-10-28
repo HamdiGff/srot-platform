@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUserStore } from "@/lib/store/userStore";
@@ -30,6 +30,24 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false);
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // Auto-hide upper section of header on scroll down (reveals when returning to top)
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    // Initial check
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Dynamic portal link based on active persona
   const portalPath =
@@ -77,10 +95,17 @@ export function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-[#070b12]/90 backdrop-blur-xl">
-        {/* Top Ticker: Bangladesh Krishi Helpline & Tele-Health Network */}
-        <div className="bg-gradient-to-r from-emerald-950/80 via-[#0a141a] to-cyan-950/80 border-b border-white/[0.06] px-4 py-1.5 text-xs">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-[#070b12]/90 backdrop-blur-xl transition-all duration-300">
+        {/* UPPER SECTION: Bangladesh Krishi Helpline & Tele-Health Network */}
+        {/* Auto-hides with smooth slide-up and fade-out when user scrolls down */}
+        <div
+          className={`transition-all duration-300 ease-in-out overflow-hidden bg-gradient-to-r from-emerald-950/80 via-[#0a141a] to-cyan-950/80 border-b border-white/[0.06] ${
+            isScrolled
+              ? "max-h-0 opacity-0 py-0 border-b-0 -translate-y-2 pointer-events-none"
+              : "max-h-14 opacity-100 py-1.5 translate-y-0"
+          }`}
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between text-xs">
             <div className="flex items-center gap-2 sm:gap-3">
               <span className="flex h-2 w-2 relative">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
@@ -156,7 +181,7 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Main Header */}
+        {/* MIDDLE SECTION: Main Header Navigation Bar (Always docked) */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-18">
             {/* Logo */}
@@ -184,6 +209,16 @@ export function Navbar() {
 
             {/* Right Quick Actions */}
             <div className="hidden lg:flex items-center gap-3">
+              {/* Language switcher visible even when top bar is collapsed */}
+              <button
+                onClick={toggleLanguage}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-emerald-400 text-xs font-bold transition hover:border-emerald-500/40"
+                title="Switch Language"
+              >
+                <Languages className="w-3.5 h-3.5" />
+                <span>{language === "bn" ? "EN" : "বাংলা"}</span>
+              </button>
+
               <button
                 onClick={() => setIsCalculatorOpen(true)}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold transition hover-glow-emerald"
@@ -251,6 +286,17 @@ export function Navbar() {
             >
               <Calculator className="w-4 h-4" />
               <span>{language === "bn" ? "ডোজ ক্যালকুলেটর খুলুন" : "Open Dosage Calculator"}</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                setIsEmergencyModalOpen(true);
+              }}
+              className="w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-semibold text-amber-400 hover:bg-slate-900 flex items-center gap-2"
+            >
+              <AlertTriangle className="w-4 h-4" />
+              <span>{language === "bn" ? "জরুরি হটলাইন (২৪/৭)" : "24/7 SOS Helpline"}</span>
             </button>
 
             <div className="pt-4 border-t border-slate-800/80 flex flex-col gap-2">
