@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useLanguageStore } from "@/lib/store/languageStore";
 import {
   FlaskConical,
   Sprout,
@@ -16,28 +17,32 @@ import {
 } from "lucide-react";
 
 export function SoilHealthInterpreter() {
+  const { language } = useLanguageStore();
+  const isBn = language === "bn";
   const [pH, setPH] = useState<number>(6.5);
-  const [soilType, setSoilType] = useState<"alluvial" | "clay" | "sandy" | "laterite">("alluvial");
-  const [targetCrop, setTargetCrop] = useState<"rice" | "wheat" | "tomato" | "citrus">("rice");
 
-  // Determine pH Status & Scientific Interpretation
+  // Determine pH Status & Scientific Interpretation for Bangladesh Agro-Ecological Zones
   const getPHAnalysis = (val: number) => {
     if (val < 5.5) {
       return {
-        label: "Strongly Acidic (High Risk of Aluminum/Manganese Toxicity)",
+        label: isBn ? "তীব্র অম্লীয় / অ্যাসিডিক মাটি (সিলেট ও হাওর এলাকা)" : "Strongly Acidic (Haor & Hill Tracts Peat)",
         status: "acidic",
         color: "text-red-400",
         barColor: "bg-red-500",
-        pAvailability: 35, // % available
+        pAvailability: 35,
         nAvailability: 55,
         kAvailability: 60,
-        microAvailability: 90, // Iron/Al toxic
-        amendment: "Apply Dolomitic Limestone (CaCO3 + MgCO3) @ 1.5 - 2.5 Tons/Acre to raise pH to 6.5.",
-        impact: "Severe Phosphorus (P) fixation with iron and aluminum; root tip cell death.",
+        microAvailability: 90,
+        amendment: isBn
+          ? "প্রতি বিঘায় ৫০-৭০ কেজি ডলোমাইট চুন (CaCO3 + MgCO3) প্রয়োগ করে মাটির পিএইচ ৬.২-এ আনুন।"
+          : "Apply Dolomitic Limestone @ 1.5 - 2.5 Tons/Acre to neutralize aluminum toxicity and unlock phosphate.",
+        impact: isBn
+          ? "মাটিতে ফসফরাস আটকে যায় (Fixation), শেকড়ের বৃদ্ধি ব্যাহত হয় এবং গাছ হলুদ হয়ে খর্বাকৃতি ধারণ করে।"
+          : "Severe Phosphorus (P) fixation with iron and aluminum; root tip cell death.",
       };
     } else if (val < 6.2) {
       return {
-        label: "Moderately Acidic (Marginal Micronutrient Imbalance)",
+        label: isBn ? "হালকা অম্লীয় মাটি (বরেন্দ্র ও মধুপুর গড়)" : "Moderately Acidic (Barind Tract & Madhupur)",
         status: "mod-acidic",
         color: "text-amber-400",
         barColor: "bg-amber-500",
@@ -45,12 +50,16 @@ export function SoilHealthInterpreter() {
         nAvailability: 78,
         kAvailability: 80,
         microAvailability: 85,
-        amendment: "Broadcast 800 kg/Acre Agricultural Lime with organic farmyard manure before sowing.",
-        impact: "Slight restriction of phosphorus uptake; beneficial for tea and potatoes, sub-optimal for legumes.",
+        amendment: isBn
+          ? "জমি চাষের সময় প্রতি শতকে ১ কেজি চুন ও পর্যাপ্ত জৈব সার/ভার্মিকম্পোস্ট প্রয়োগ করুন।"
+          : "Broadcast 800 kg/Acre Agricultural Lime with organic farmyard manure before sowing.",
+        impact: isBn
+          ? "ফসফরাসের সামান্য ঘাটতি দেখা যায়; আলু ও চা চাষের জন্য উপযোগী হলেও ডাল ও তেলের জন্য চুন প্রয়োজন।"
+          : "Slight restriction of phosphorus uptake; beneficial for tea and potatoes, sub-optimal for legumes.",
       };
     } else if (val <= 7.3) {
       return {
-        label: "Optimal Neutral Agronomic Range (Peak Bioavailability)",
+        label: isBn ? "আদর্শ মধ্যম অম্ল-ক্ষার মাত্রা (পলি ও দোআঁশ মাটি)" : "Optimal Neutral Range (Alluvial Delta Soil)",
         status: "optimal",
         color: "text-emerald-400",
         barColor: "bg-emerald-500",
@@ -58,12 +67,16 @@ export function SoilHealthInterpreter() {
         nAvailability: 98,
         kAvailability: 95,
         microAvailability: 92,
-        amendment: "Soil is in prime chemical equilibrium. Maintain with bio-fertilizers and balanced N-P-K.",
-        impact: "Maximum nutrient absorption by root hairs; optimal soil microbial nitrogen fixation.",
+        amendment: isBn
+          ? "মাটি প্রাকৃতিক ভারসাম্য অবস্থায় আছে। সুষম এন-পি-কে ও জিংক সালফেট বজায় রাখুন।"
+          : "Soil is in prime chemical equilibrium. Maintain with bio-fertilizers and balanced N-P-K.",
+        impact: isBn
+          ? "গাছের শেকড় দ্বারা সর্বাধিক পুষ্টি উপাদান গ্রহণ এবং মাটিতে উপকারী ব্যাকটেরিয়ার সর্বোচ্চ কার্যকারিতা।"
+          : "Maximum nutrient absorption by root hairs; optimal soil microbial nitrogen fixation.",
       };
     } else if (val <= 8.2) {
       return {
-        label: "Moderately Alkaline / Calcareous (Nutrient Lockout)",
+        label: isBn ? "হালকা ক্ষারীয় / লোনাপানি প্রভাবিত মাটি (উপকূলীয় বলয়)" : "Moderately Alkaline (Coastal Saline Fringe)",
         status: "mod-alkaline",
         color: "text-amber-400",
         barColor: "bg-amber-500",
@@ -71,12 +84,16 @@ export function SoilHealthInterpreter() {
         nAvailability: 75,
         kAvailability: 85,
         microAvailability: 40,
-        amendment: "Incorporate Elemental Sulfur @ 150 kg/Acre or fermented compost to reduce soil pH.",
-        impact: "Zinc and Iron become insoluble carbonates, causing interveinal leaf chlorosis.",
+        amendment: isBn
+          ? "প্রতি বিঘায় ২০-২৫ কেজি জিপসাম বা গন্ধক (Sulfur) ও ট্রাইকোডার্মা মিশ্রিত জৈব সার প্রয়োগ করুন।"
+          : "Incorporate Elemental Sulfur @ 150 kg/Acre or fermented compost to reduce soil pH.",
+        impact: isBn
+          ? "জিংক ও আয়রন অদ্রবণীয় হয়ে যায়, ধানে খয়রা রোগ ও কচি পাতায় শিরার মাঝে হলুদ দাগ দেখা দেয়।"
+          : "Zinc and Iron become insoluble carbonates, causing interveinal leaf chlorosis.",
       };
     } else {
       return {
-        label: "Strongly Alkaline / Sodic (Severe Salinity Hazard)",
+        label: isBn ? "তীব্র ক্ষারীয় ও লবণাক্ত মাটি (খুলনা ও সাতক্ষীরা উপকূল)" : "Strongly Saline / Sodic (Coastal Sundarbans Belt)",
         status: "alkaline",
         color: "text-red-400",
         barColor: "bg-red-500",
@@ -84,8 +101,12 @@ export function SoilHealthInterpreter() {
         nAvailability: 60,
         kAvailability: 70,
         microAvailability: 20,
-        amendment: "Broadcast Agricultural Gypsum (CaSO4·2H2O) @ 2.0 - 4.0 Tons/Acre followed by flooding flush.",
-        impact: "Sodium disperses soil clay aggregates; water infiltration crashes, severe root asphyxiation.",
+        amendment: isBn
+          ? "প্রতি শতকে ২-৩ কেজি জিপসাম প্রয়োগের পর মিষ্টি পানিতে ধৌত (Leaching) করুন এবং লবন-সহিষ্ণু জাত চাষ করুন।"
+          : "Broadcast Agricultural Gypsum @ 2.0 - 4.0 Tons/Acre followed by fresh water flushing.",
+        impact: isBn
+          ? "সোডিয়ামের কারণে মাটির কাঠামো নষ্ট হয়, শিকড়ে বাতাস ঢুকতে পারে না এবং অঙ্কুরোদগম ব্যাহত হয়।"
+          : "Sodium disperses soil clay aggregates; water infiltration crashes, severe root asphyxiation.",
       };
     }
   };
@@ -93,28 +114,32 @@ export function SoilHealthInterpreter() {
   const analysis = getPHAnalysis(pH);
 
   return (
-    <div className="srot-glass-card rounded-3xl p-6 sm:p-10 border border-slate-800 bg-gradient-to-b from-slate-900/80 via-[#071318] to-slate-950 shadow-2xl relative overflow-hidden">
+    <div className="srot-glass-card hover-glow-emerald rounded-3xl p-6 sm:p-10 border border-slate-800 bg-gradient-to-b from-slate-900/85 via-[#071318] to-slate-950 shadow-2xl relative overflow-hidden group">
       {/* Background glow */}
-      <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-teal-500/15 transition-all" />
 
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-slate-800">
         <div>
           <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-teal-400 mb-1">
             <FlaskConical className="w-4 h-4" />
-            <span>Interactive Agronomic Engine</span>
+            <span>{isBn ? "বাংলাদেশ মৃত্তিকা সম্পদ ও সার নির্দেশিকা" : "Bangladesh Soil Chemistry Engine"}</span>
           </div>
           <h3 className="text-2xl sm:text-3xl font-black text-white">
-            Soil pH & N-P-K Nutrient Availability Interpreter
+            {isBn ? "মাটির পিএইচ (pH) ও এন-পি-কে পুষ্টি উপাদান বিশ্লেষণ" : "Soil pH & N-P-K Nutrient Availability Interpreter"}
           </h3>
           <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
-            Drag the pH slider or choose a soil type to see how chemical nutrient lockouts occur in root zones, and get verified lime/gypsum dosage formulas.
+            {isBn
+              ? "স্লাইডার ঘুরিয়ে আপনার মাটির পিএইচ নির্বাচন করুন এবং মাটিতে রাসায়নিক লকআউট ও চুন/জিপসামের সঠিক মাত্রা জেনে নিন।"
+              : "Drag the pH slider to see how chemical nutrient lockouts occur in root zones, and get verified lime/gypsum dosage formulas."}
           </p>
         </div>
 
-        {/* Quick presets */}
-        <div className="flex items-center gap-2 self-start lg:self-auto text-xs">
-          <span className="text-slate-400 text-[11px] font-mono hidden sm:inline">Presets:</span>
+        {/* Quick Bangladesh Presets */}
+        <div className="flex flex-wrap items-center gap-2 self-start lg:self-auto text-xs">
+          <span className="text-slate-400 text-[11px] font-mono hidden sm:inline">
+            {isBn ? "প্রিসেট:" : "Presets:"}
+          </span>
           <button
             onClick={() => setPH(5.0)}
             className={`px-3 py-1.5 rounded-xl border transition ${
@@ -123,7 +148,7 @@ export function SoilHealthInterpreter() {
                 : "bg-slate-900 text-slate-400 border-slate-800 hover:text-white"
             }`}
           >
-            Acidic (5.0)
+            {isBn ? "হাওর অম্লীয় (৫.০)" : "Acidic Haor (5.0)"}
           </button>
           <button
             onClick={() => setPH(6.8)}
@@ -133,7 +158,7 @@ export function SoilHealthInterpreter() {
                 : "bg-slate-900 text-slate-400 border-slate-800 hover:text-white"
             }`}
           >
-            Optimal (6.8)
+            {isBn ? "পলিমাটি স্বাভাবিক (৬.৮)" : "Alluvial (6.8)"}
           </button>
           <button
             onClick={() => setPH(8.3)}
@@ -143,7 +168,7 @@ export function SoilHealthInterpreter() {
                 : "bg-slate-900 text-slate-400 border-slate-800 hover:text-white"
             }`}
           >
-            Alkaline (8.3)
+            {isBn ? "উপকূলীয় ক্ষারীয় (৮.৩)" : "Coastal Saline (8.3)"}
           </button>
         </div>
       </div>
@@ -155,14 +180,18 @@ export function SoilHealthInterpreter() {
           <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-mono uppercase text-slate-400 font-bold">
-                Soil Reaction (pH Value):
+                {isBn ? "মাটির পিএইচ মান (pH Value):" : "Soil Reaction (pH Value):"}
               </span>
               <div className="flex items-center gap-2">
                 <span className="text-2xl font-black font-mono text-white px-3 py-0.5 rounded-xl bg-slate-950 border border-slate-700">
                   {pH.toFixed(1)}
                 </span>
                 <span className={`text-xs font-bold ${analysis.color}`}>
-                  {pH < 6.2 ? "Acidic" : pH <= 7.3 ? "Neutral" : "Alkaline"}
+                  {pH < 6.2
+                    ? isBn ? "অম্লীয়" : "Acidic"
+                    : pH <= 7.3
+                    ? isBn ? "নিরপেক্ষ (আদর্শ)" : "Neutral"
+                    : isBn ? "ক্ষারীয়" : "Alkaline"}
                 </span>
               </div>
             </div>
@@ -180,16 +209,16 @@ export function SoilHealthInterpreter() {
                 className="w-full h-3 bg-gradient-to-r from-red-600 via-emerald-500 to-purple-600 rounded-lg appearance-none cursor-pointer accent-white"
               />
               <div className="flex justify-between text-[10px] font-mono text-slate-400 mt-1.5">
-                <span>4.5 (Acidic)</span>
-                <span>6.5 - 7.0 (Agronomic Sweet Spot)</span>
-                <span>8.8 (Sodic / Calcareous)</span>
+                <span>৪.৫ (অম্লীয়)</span>
+                <span>৬.৫ – ৭.০ (কৃষির সোনালী মান)</span>
+                <span>৮.৮ (লবণাক্ত ক্ষারীয়)</span>
               </div>
             </div>
 
             {/* Status callout */}
             <div className="p-3 rounded-xl bg-slate-950 border border-slate-800/80">
               <span className="text-[10px] font-mono text-slate-400 block uppercase">
-                Chemical Classification:
+                {isBn ? "রাসায়নিক অবস্থা:" : "Chemical Classification:"}
               </span>
               <p className={`text-xs font-bold mt-0.5 ${analysis.color}`}>
                 {analysis.label}
@@ -200,13 +229,13 @@ export function SoilHealthInterpreter() {
           {/* Bioavailability Progress Bars */}
           <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
             <span className="text-xs font-mono uppercase text-slate-400 font-bold block mb-1">
-              Relative Nutrient Bioavailability (% In Soil Solution)
+              {isBn ? "মাটিতে পুষ্টি উপাদানের কার্যকারিতা (% Bioavailability)" : "Relative Nutrient Bioavailability (% In Soil Solution)"}
             </span>
 
             {/* Nitrogen */}
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-300 font-medium">Nitrogen (N) Nitrate / Ammonium:</span>
+                <span className="text-slate-300 font-medium">{isBn ? "নাইট্রোজেন (ইউরিয়া সার):" : "Nitrogen (N) Nitrate / Ammonium:"}</span>
                 <span className="font-mono font-bold text-white">{analysis.nAvailability}%</span>
               </div>
               <div className="h-2 w-full rounded-full bg-slate-950 overflow-hidden">
@@ -220,9 +249,9 @@ export function SoilHealthInterpreter() {
             {/* Phosphorus */}
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-300 font-medium">Phosphorus (P2O5) Bio-available:</span>
+                <span className="text-slate-300 font-medium">{isBn ? "ফসফরাস (টিএসপি / ডিএপি সার):" : "Phosphorus (P2O5) Available:"}</span>
                 <span className={`font-mono font-bold ${analysis.pAvailability < 60 ? "text-red-400" : "text-white"}`}>
-                  {analysis.pAvailability}% {analysis.pAvailability < 50 && "(High Fixation)"}
+                  {analysis.pAvailability}% {analysis.pAvailability < 50 && (isBn ? "(মাটিতে আটকে যায়)" : "(High Fixation)")}
                 </span>
               </div>
               <div className="h-2 w-full rounded-full bg-slate-950 overflow-hidden">
@@ -238,7 +267,7 @@ export function SoilHealthInterpreter() {
             {/* Potassium */}
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-300 font-medium">Potassium (K2O) Available:</span>
+                <span className="text-slate-300 font-medium">{isBn ? "পটাশিয়াম (এমওপি সার):" : "Potassium (K2O) Available:"}</span>
                 <span className="font-mono font-bold text-white">{analysis.kAvailability}%</span>
               </div>
               <div className="h-2 w-full rounded-full bg-slate-950 overflow-hidden">
@@ -252,9 +281,9 @@ export function SoilHealthInterpreter() {
             {/* Micronutrients */}
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span className="text-slate-300 font-medium">Micronutrients (Zinc, Iron, Manganese):</span>
+                <span className="text-slate-300 font-medium">{isBn ? "অণুখাদ্য (দস্তা ও বোরন):" : "Micronutrients (Zinc, Boron, Iron):"}</span>
                 <span className={`font-mono font-bold ${analysis.microAvailability < 50 ? "text-amber-400" : "text-white"}`}>
-                  {analysis.microAvailability}% {pH > 7.5 ? "(Severe Chlorosis Risk)" : ""}
+                  {analysis.microAvailability}% {pH > 7.5 ? (isBn ? "(ঘাটতি ও খয়রা রোগ ঝুঁকি)" : "(Chlorosis Risk)") : ""}
                 </span>
               </div>
               <div className="h-2 w-full rounded-full bg-slate-950 overflow-hidden">
@@ -274,7 +303,7 @@ export function SoilHealthInterpreter() {
           <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
             <div className="flex items-center gap-2 text-xs font-bold text-teal-400 uppercase tracking-wider">
               <Sprout className="w-4 h-4" />
-              <span>Agronomic Impact & Root Physiology</span>
+              <span>{isBn ? "ফসলের শারীরতত্ত্ব ও মাটির প্রভাব" : "Agronomic Impact & Root Physiology"}</span>
             </div>
             <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-normal">
               {analysis.impact}
@@ -282,7 +311,7 @@ export function SoilHealthInterpreter() {
 
             <div className="p-4 rounded-xl bg-slate-950/80 border border-teal-500/30">
               <span className="text-[10px] font-mono uppercase text-teal-400 block font-bold">
-                Recommended Scientific Amendment:
+                {isBn ? "প্রস্তাবিত বৈজ্ঞানিক সমাধান / সার প্রয়োগ:" : "Recommended Scientific Amendment:"}
               </span>
               <p className="text-xs sm:text-sm text-white font-semibold mt-1">
                 {analysis.amendment}
@@ -292,11 +321,11 @@ export function SoilHealthInterpreter() {
             <div className="space-y-2 pt-2 border-t border-slate-800 text-xs">
               <div className="flex items-center gap-2 text-slate-300">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Calibrated against ICAR Soil & Agricultural Chemistry guidelines.</span>
+                <span>{isBn ? "মৃত্তিকা সম্পদ উন্নয়ন ইনস্টিটিউট (SRDI) ও বিএআরআই নির্দেশিকা অনুযায়ী।" : "Calibrated against SRDI and BARI soil standards."}</span>
               </div>
               <div className="flex items-center gap-2 text-slate-300">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Prevents fertilizer wastage caused by applying urea or DAP into locked soils.</span>
+                <span>{isBn ? "অতিরিক্ত ইউরিয়া বা ডিএপি সারের অপচয় রোধ করে খরচের সুরক্ষা।" : "Prevents fertilizer wastage from unbalanced applications."}</span>
               </div>
             </div>
           </div>
@@ -305,17 +334,17 @@ export function SoilHealthInterpreter() {
           <div className="p-5 rounded-2xl bg-gradient-to-r from-teal-950/50 via-slate-900 to-slate-950 border border-teal-500/40 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
               <span className="text-xs font-bold text-white block">
-                Have an official soil laboratory test card?
+                {isBn ? "মাটি পরীক্ষার কার্ড বা স্বাস্থ্য কার্ড আছে?" : "Have an official soil test card?"}
               </span>
               <span className="text-[11px] text-slate-400">
-                Upload your soil card to receive an agronomist-certified custom fertilizer schedule.
+                {isBn ? "কার্ডের ছবি তুলে পাঠান, আমাদের মৃত্তিকা বিশেষজ্ঞ সুষম সার প্রয়োগ তালিকা দেবেন।" : "Upload your soil card to receive an agronomist-certified custom fertilizer schedule."}
               </span>
             </div>
             <Link
               href="/consult?service=fertilizer-advice"
-              className="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs transition shadow-lg shrink-0 flex items-center gap-1.5"
+              className="btn-shimmer px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs transition shadow-lg shrink-0 flex items-center gap-1.5"
             >
-              <span>Consult Soil Expert</span>
+              <span>{isBn ? "মৃত্তিকা বিশেষজ্ঞের পরামর্শ" : "Consult Soil Expert"}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>

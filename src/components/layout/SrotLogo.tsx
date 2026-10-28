@@ -1,5 +1,8 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
+import { useLanguageStore } from "@/lib/store/languageStore";
 
 interface SrotLogoProps {
   className?: string;
@@ -8,15 +11,16 @@ interface SrotLogoProps {
 }
 
 export function SrotLogo({ className = "", size = "md", showTagline = true }: SrotLogoProps) {
+  const { language } = useLanguageStore();
   const iconSize = size === "sm" ? "w-8 h-8" : size === "lg" ? "w-12 h-12" : "w-10 h-10";
   const titleSize = size === "sm" ? "text-lg" : size === "lg" ? "text-2xl" : "text-xl";
 
   return (
     <Link href="/" className={`flex items-center gap-3 group ${className}`}>
-      {/* High-Tech Vector Logo Emblem */}
+      {/* High-Tech Vector Logo Emblem with Ambient Glow */}
       <div className={`relative ${iconSize} shrink-0`}>
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500 rounded-xl blur-[5px] opacity-60 group-hover:opacity-100 transition-opacity" />
-        <div className="relative w-full h-full rounded-xl bg-gradient-to-br from-[#0c1622] to-[#060b12] border border-emerald-500/40 p-2 flex items-center justify-center shadow-lg shadow-emerald-950/40 group-hover:scale-105 transition-transform duration-200">
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-500 rounded-xl blur-[6px] opacity-60 group-hover:opacity-100 transition-opacity" />
+        <div className="relative w-full h-full rounded-xl bg-gradient-to-br from-[#0c1622] to-[#060b12] border border-emerald-500/40 p-2 flex items-center justify-center shadow-lg shadow-emerald-950/40 group-hover:scale-105 group-hover:rotate-1 transition-all duration-300">
           <svg
             viewBox="0 0 32 32"
             fill="none"
@@ -68,16 +72,20 @@ export function SrotLogo({ className = "", size = "md", showTagline = true }: Sr
       {/* Typography */}
       <div>
         <div className="flex items-center gap-1.5">
-          <span className={`${titleSize} font-black tracking-tight text-white font-sans`}>
-            SROT
+          <span className={`${titleSize} font-black tracking-tight text-white font-sans group-hover:text-emerald-400 transition-colors`}>
+            {language === "bn" ? "উৎস" : "SROT"}
           </span>
           <span className="text-[10px] uppercase font-extrabold tracking-widest px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-            Platform
+            {language === "bn" ? "প্ল্যাটফর্ম" : "Platform"}
+          </span>
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/30 hidden sm:inline-flex items-center gap-1">
+            <span>🇧🇩</span>
+            <span>বাংলাদেশ</span>
           </span>
         </div>
         {showTagline && (
           <p className="text-[10px] text-slate-400 font-medium tracking-wide uppercase font-mono -mt-0.5">
-            Agri & Animal Health
+            {language === "bn" ? "ডিজিটাল কৃষি ও প্রাণিসম্পদ স্বাস্থ্য" : "Agri & Animal Health BD"}
           </p>
         )}
       </div>

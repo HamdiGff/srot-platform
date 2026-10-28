@@ -1,58 +1,102 @@
+"use client";
+
 import React from "react";
-import { Check, X, ShieldCheck, Zap } from "lucide-react";
+import { useLanguageStore } from "@/lib/store/languageStore";
+import { Check, X, ShieldCheck, Zap, CreditCard } from "lucide-react";
 
 export function PricingComparisonTable() {
+  const { language } = useLanguageStore();
+  const isBn = language === "bn";
+
   const comparisonRows = [
     {
-      feature: "Response & Diagnosis Turnaround",
-      traditional: "2 to 5 Days (waiting for field agents or travelling to town)",
-      srot: "Under 20 Minutes (Instant visual triage & video visit)",
-      srotHighlight: true,
+      feature: isBn ? "পরামর্শ ও রোগ নির্ণয়ের সময়" : "Response & Diagnosis Turnaround",
+      traditional: isBn
+        ? "২ থেকে ৫ দিন (উপজেলা সদরে যাওয়া বা মাঠ কর্মকর্তার অপেক্ষা)"
+        : "2 to 5 Days (waiting for field agents or travelling to town)",
+      srot: isBn
+        ? "২০ মিনিটের মধ্যে (ছবি স্ক্যান করে তাৎক্ষণিক লাইভ ভিডিও কনসালটেশন)"
+        : "Under 20 Minutes (Instant visual triage & video visit)",
     },
     {
-      feature: "Practitioner Credentials",
-      traditional: "Local chemical sales agent / Uncertified shopkeeper",
-      srot: "Ph.D. Plant Pathologists & Council-Registered Veterinarians",
-      srotHighlight: true,
+      feature: isBn ? "বিশেষজ্ঞদের যোগ্যতা ও রেজিস্ট্রেশন" : "Practitioner Credentials",
+      traditional: isBn
+        ? "স্থানীয় সার-কীটনাশক দোকানদার বা হাতুড়ে চিকিৎসক"
+        : "Local chemical sales agent / Uncertified shopkeeper",
+      srot: isBn
+        ? "বিএআরআই/বিআরআরআই সার্টিফাইড কৃষিবিদ ও বিভিসি নিবন্ধিত ভেটেরিনারি সার্জন"
+        : "BARI/BRRI Agronomists & BVC Registered Veterinary Surgeons",
     },
     {
-      feature: "Biosecurity & Infection Control",
-      traditional: "High Risk (transporting sick animals spreads viral pathogens)",
-      srot: "Zero Transmission Risk (Remote HD video examination)",
-      srotHighlight: true,
+      feature: isBn ? "জীবাণু নিরাপত্তা (Biosecurity)" : "Biosecurity & Infection Control",
+      traditional: isBn
+        ? "অসুস্থ গরু বা ছাগল বাজারে নেওয়ায় অন্য খামারে ভাইরাস ছড়ানোর উচ্চ ঝুঁকি"
+        : "High Risk (transporting sick animals spreads viral pathogens)",
+      srot: isBn
+        ? "শূন্য সংক্রমণ ঝুঁকি (খামারে বসেই দূরবর্তী এইচডি ভিডিও ও ফটো ট্রায়াজ)"
+        : "Zero Transmission Risk (Remote HD video examination)",
     },
     {
-      feature: "Prescription Integrity & Legality",
-      traditional: "Verbal recommendation or handwritten note",
-      srot: "Cryptographically Signed A4 PDF with strict withholding dates",
-      srotHighlight: true,
+      feature: isBn ? "ডিজিটাল প্রেসক্রিপশন ও উইথহোল্ডিং" : "Prescription Integrity & Legality",
+      traditional: isBn
+        ? "কাগজে লেখা অস্পষ্ট নোট, অ্যান্টিবায়োটিকের যথেচ্ছ ব্যবহার"
+        : "Verbal recommendation or handwritten unverified note",
+      srot: isBn
+        ? "কিউআর কোড সিলসহ এ৪ সাইজ ডিজিটাল প্রেসক্রিপশন ও দুধ/মাংসের সেফটি সময়"
+        : "Cryptographically Signed A4 PDF with strict withholding dates",
     },
     {
-      feature: "Scope of Care",
-      traditional: "Fragmented (must find separate dealers and animal doctors)",
-      srot: "Unified Platform (Crops, Livestock, Dairy & Companion Pets)",
-      srotHighlight: true,
+      feature: isBn ? "এক প্ল্যাটফর্মে সমন্বিত সেবা" : "Scope of Care",
+      traditional: isBn
+        ? "ফসল, গরু, ছাগল ও পোষা প্রাণীর জন্য আলাদা আলাদা দ্বারে ঘুরতে হয়"
+        : "Fragmented (must find separate dealers and animal doctors)",
+      srot: isBn
+        ? "একটি অ্যাকাউন্টে ধান, আলু, ডেইরি গরু, ছাগল, মাছ ও পোষা কুকুর-বিড়াল"
+        : "Unified Platform (Crops, Livestock, Dairy & Companion Pets)",
     },
     {
-      feature: "Cost Transparency",
-      traditional: "Unpredictable markups + expensive travel and lost farm days",
-      srot: "Flat Transparent Fee from $15 with 100% Satisfaction Guarantee",
-      srotHighlight: true,
+      feature: isBn ? "খরচ ও ফি স্বচ্ছতা (বিকাশ / নগদ)" : "Cost Transparency & Payment",
+      traditional: isBn
+        ? "যাতায়াত ও অপচয়সহ ৳১,৫০০ – ৳৩,০০০+ অতিরিক্ত খরচ"
+        : "Unpredictable markups + expensive travel and lost farm days",
+      srot: isBn
+        ? "মাত্র ৳২৫০ থেকে শুরু (বিকাশ, নগদ, রকেটে সুরক্ষিত পেমেন্ট)"
+        : "Transparent fee starting from ৳250 ($2.50) via bKash / Nagad",
     },
   ];
 
   return (
-    <div className="srot-glass-card rounded-3xl p-6 sm:p-10 border border-white/[0.08] shadow-2xl">
+    <div className="srot-glass-card hover-glow-emerald rounded-3xl p-6 sm:p-10 border border-white/[0.08] shadow-2xl relative overflow-hidden group">
       <div className="text-center max-w-2xl mx-auto mb-10">
         <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-          The SROT Advantage
+          {isBn ? "কেন এসআরওটি প্ল্যাটফর্ম বেছে নিবেন" : "The SROT Advantage"}
         </span>
-        <h2 className="text-2xl sm:text-3xl font-black text-white mt-1">
-          Why Producers & Pet Owners Choose SROT
-        </h2>
+        <h3 className="text-2xl sm:text-3xl font-black text-white mt-1">
+          {isBn
+            ? "ঐতিহ্যবাহী পরামর্শ বনাম এসআরওটি ডিজিটাল টেলি-সেবা"
+            : "Traditional Farm Visits vs. SROT Tele-Health"}
+        </h3>
         <p className="text-xs sm:text-sm text-slate-400 mt-2">
-          Comparing traditional fragmented veterinary and agricultural advice with SROT Tele-Health.
+          {isBn
+            ? "কীটনাশকের দোকানদারের ধারণানির্ভর পরামর্শের পরিবর্তে বৈজ্ঞানিক প্রেসক্রিপশন নিন এবং সময় ও অর্থ সাশ্রয় করুন।"
+            : "Comparing traditional fragmented agricultural advice with SROT Council-Accredited Tele-Health."}
         </p>
+
+        {/* Bangladesh Payment Methods Strip */}
+        <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-900/90 border border-slate-700/80 text-xs">
+          <span className="text-slate-400 text-[11px] font-bold">
+            {isBn ? "পেমেন্ট মাধ্যম:" : "Accepted BD Payments:"}
+          </span>
+          <span className="font-bold text-pink-400 bg-pink-500/10 px-2 py-0.5 rounded border border-pink-500/20">
+            bKash (বিকাশ)
+          </span>
+          <span className="font-bold text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded border border-orange-500/20">
+            Nagad (নগদ)
+          </span>
+          <span className="font-bold text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">
+            Rocket (রকেট)
+          </span>
+        </div>
       </div>
 
       <div className="overflow-x-auto">
@@ -60,14 +104,15 @@ export function PricingComparisonTable() {
           <thead>
             <tr className="border-b border-slate-800">
               <th className="py-4 px-4 font-bold text-slate-400 uppercase text-[11px] w-1/3">
-                Key Comparison Metric
+                {isBn ? "মূল তুলনামূলক মানদণ্ড" : "Key Comparison Metric"}
               </th>
               <th className="py-4 px-4 font-bold text-slate-400 uppercase text-[11px] w-1/3">
-                Traditional Agricultural / Vet Visit
+                {isBn ? "প্রচলিত মাঠ বা দোকান ভিজিট" : "Traditional Agricultural / Vet Visit"}
               </th>
               <th className="py-4 px-4 font-bold text-emerald-400 uppercase text-[11px] w-1/3 bg-emerald-950/20 rounded-t-xl border-t border-x border-emerald-500/30">
                 <span className="flex items-center gap-1.5">
-                  <Zap className="w-4 h-4 text-emerald-400" /> SROT Digital Platform
+                  <Zap className="w-4 h-4 text-emerald-400" />
+                  {isBn ? "এসআরওটি (SROT) ডিজিটাল প্ল্যাটফর্ম" : "SROT Digital Platform"}
                 </span>
               </th>
             </tr>

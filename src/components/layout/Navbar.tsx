@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUserStore } from "@/lib/store/userStore";
+import { useLanguageStore } from "@/lib/store/languageStore";
 import { SrotLogo } from "./SrotLogo";
 import { RoleSwitcherModal } from "./RoleSwitcherModal";
 import { EmergencySosModal } from "./EmergencySosModal";
@@ -17,11 +18,15 @@ import {
   ChevronDown,
   Calculator,
   ShieldCheck,
+  Languages,
+  PhoneCall,
+  Sparkles,
 } from "lucide-react";
 
 export function Navbar() {
   const pathname = usePathname();
   const { currentRole, currentUser, openRoleModal } = useUserStore();
+  const { language, toggleLanguage } = useLanguageStore();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false);
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
@@ -35,7 +40,15 @@ export function Navbar() {
       : "/farmer-portal";
 
   const portalLabel =
-    currentRole === "admin"
+    language === "bn"
+      ? currentRole === "admin"
+        ? "অ্যাডমিন প্যানেল"
+        : currentRole.startsWith("expert_") || currentRole === "veterinarian"
+        ? "বিশেষজ্ঞ ডেস্ক"
+        : currentRole === "pet_owner"
+        ? "পেট পোর্টাল"
+        : "কৃষক পোর্টাল"
+      : currentRole === "admin"
       ? "Admin Panel"
       : currentRole.startsWith("expert_") || currentRole === "veterinarian"
       ? "Clinician Desk"
@@ -44,51 +57,87 @@ export function Navbar() {
       : "Farmer Portal";
 
   const navLinks = [
-    { label: "Services", href: "/services" },
-    { label: "Experts & Vets", href: "/experts" },
-    { label: "Knowledge Hub", href: "/knowledge" },
-    { label: "Consultation Room", href: "/consult/consult-agri-101" },
+    {
+      label: language === "bn" ? "সেবাসমূহ" : "Services",
+      href: "/services",
+    },
+    {
+      label: language === "bn" ? "বিশেষজ্ঞ ও চিকিৎসক" : "Experts & Vets",
+      href: "/experts",
+    },
+    {
+      label: language === "bn" ? "জ্ঞানকোষ" : "Knowledge Hub",
+      href: "/knowledge",
+    },
+    {
+      label: language === "bn" ? "লাইভ চেম্বার" : "Consultation Room",
+      href: "/consult/consult-agri-101",
+    },
   ];
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-[#070b12]/85 backdrop-blur-xl">
-        {/* Top Ticker & Persona Bar */}
-        <div className="bg-gradient-to-r from-emerald-950/70 via-[#0a111a] to-cyan-950/70 border-b border-white/[0.06] px-4 py-1.5 text-xs">
+      <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-[#070b12]/90 backdrop-blur-xl">
+        {/* Top Ticker: Bangladesh Krishi Helpline & Tele-Health Network */}
+        <div className="bg-gradient-to-r from-emerald-950/80 via-[#0a141a] to-cyan-950/80 border-b border-white/[0.06] px-4 py-1.5 text-xs">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 sm:gap-3">
               <span className="flex h-2 w-2 relative">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
-              <span className="font-semibold text-emerald-300 hidden sm:inline">
-                SROT Tele-Health Network:
+              <span className="font-bold text-emerald-300 hidden sm:inline">
+                {language === "bn" ? "বাংলাদেশ কৃষি ও ভেটেরিনারি নেটওয়ার্ক:" : "SROT BD Tele-Health:"}
               </span>
               <span className="text-slate-300 text-[11px] sm:text-xs">
-                142 Agronomists & Veterinary Surgeons On Duty
+                {language === "bn"
+                  ? "১৪২ জন নিবন্ধিত কৃষিবিদ ও ভেটেরিনারি সার্জন লাইভ"
+                  : "142 Council Agronomists & Vets Online"}
               </span>
+
+              {/* Bangladesh Government Krishi Call Center Direct Chip */}
+              <a
+                href="tel:16123"
+                className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/15 border border-red-500/30 text-[10px] text-red-300 font-bold hover:bg-red-500/25 transition"
+                title="Bangladesh Krishi Call Centre"
+              >
+                <PhoneCall className="w-2.5 h-2.5" />
+                <span>কৃষি কল সেন্টার: ১৬১২৩</span>
+              </a>
             </div>
 
-            <div className="flex items-center gap-3 text-[11px] sm:text-xs">
+            <div className="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-xs">
+              {/* Language Switcher */}
+              <button
+                onClick={toggleLanguage}
+                className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900 border border-emerald-500/30 text-emerald-300 hover:text-white hover:bg-slate-800 transition font-bold"
+                aria-label="Switch Language"
+              >
+                <Languages className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{language === "bn" ? "English" : "বাংলা"}</span>
+              </button>
+
               {/* Dosage Calc Button */}
               <button
                 onClick={() => setIsCalculatorOpen(true)}
-                className="hidden sm:flex items-center gap-1 text-slate-300 hover:text-white transition px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800"
+                className="hidden sm:flex items-center gap-1 text-slate-300 hover:text-white transition px-2 py-0.5 rounded-full bg-slate-900 border border-slate-800 hover:border-slate-700"
               >
                 <Calculator className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Dosage Calculator</span>
+                <span>{language === "bn" ? "ডোজ ক্যালকুলেটর" : "Dosage Calc"}</span>
               </button>
 
+              {/* SOS Helpline */}
               <button
                 onClick={() => setIsEmergencyModalOpen(true)}
-                className="flex items-center gap-1.5 text-amber-400 hover:text-amber-300 font-bold transition px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20"
+                className="flex items-center gap-1.5 text-amber-400 hover:text-amber-300 font-bold transition px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/25 animate-pulse"
               >
                 <AlertTriangle className="w-3.5 h-3.5" />
-                <span>24/7 SOS Helpline</span>
+                <span>{language === "bn" ? "জরুরি হটলাইন" : "24/7 SOS"}</span>
               </button>
 
               <span className="text-slate-700 hidden sm:inline">|</span>
 
+              {/* Persona Switcher Trigger */}
               <button
                 onClick={openRoleModal}
                 className="flex items-center gap-1.5 text-slate-300 hover:text-white transition px-2.5 py-0.5 rounded-full bg-slate-900 border border-slate-800 hover:border-slate-700"
@@ -98,9 +147,8 @@ export function Navbar() {
                   alt={currentUser.name}
                   className="w-4 h-4 rounded-full object-cover"
                 />
-                <span className="text-slate-400 text-[10px] hidden sm:inline">Active:</span>
-                <span className="text-emerald-400 font-bold text-[11px]">
-                  {currentUser.name.split(" ")[0]} ({currentUser.roleLabel.split(" ")[0]})
+                <span className="text-emerald-400 font-bold text-[11px] truncate max-w-[90px] sm:max-w-none">
+                  {currentUser.name.split(" ")[0]}
                 </span>
                 <ChevronDown className="w-3 h-3 text-slate-400" />
               </button>
@@ -115,17 +163,17 @@ export function Navbar() {
             <SrotLogo size="md" />
 
             {/* Desktop Navigation Links */}
-            <nav className="hidden md:flex items-center gap-1 bg-slate-900/60 p-1.5 rounded-2xl border border-white/[0.06] backdrop-blur-md">
+            <nav className="hidden md:flex items-center gap-1 bg-slate-900/70 p-1.5 rounded-2xl border border-white/[0.06] backdrop-blur-md">
               {navLinks.map((link) => {
                 const isActive = pathname === link.href || (link.href !== "/" && pathname.startsWith(link.href));
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
+                    className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${
                       isActive
                         ? "text-emerald-300 bg-emerald-950/60 border border-emerald-500/30 shadow-inner"
-                        : "text-slate-300 hover:text-white hover:bg-slate-800/60"
+                        : "text-slate-300 hover:text-white hover:bg-slate-800/70"
                     }`}
                   >
                     {link.label}
@@ -138,15 +186,15 @@ export function Navbar() {
             <div className="hidden lg:flex items-center gap-3">
               <button
                 onClick={() => setIsCalculatorOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold transition"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold transition hover-glow-emerald"
               >
                 <Calculator className="w-4 h-4 text-emerald-400" />
-                <span>Dosage Calc</span>
+                <span>{language === "bn" ? "ডোজ ক্যালক" : "Dosage Calc"}</span>
               </button>
 
               <Link
                 href={portalPath}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-slate-200 text-xs font-bold transition hover:border-emerald-500/40"
+                className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-slate-200 text-xs font-bold transition hover:border-emerald-500/50 hover:-translate-y-0.5"
               >
                 <LayoutDashboard className="w-4 h-4 text-emerald-400" />
                 <span>{portalLabel}</span>
@@ -154,16 +202,21 @@ export function Navbar() {
 
               <Link
                 href="/consult"
-                className="relative group overflow-hidden flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 text-white text-xs font-extrabold transition shadow-lg shadow-emerald-950/60 hover:shadow-emerald-900/80 hover:scale-[1.02]"
+                className="btn-shimmer relative flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 text-white text-xs font-extrabold transition shadow-lg shadow-emerald-950/60 hover:shadow-emerald-900/80 hover:scale-[1.03] active:scale-[0.98]"
               >
-                <span className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                <CalendarCheck className="w-4 h-4 relative z-10" />
-                <span className="relative z-10">Book Advisory & Rx</span>
+                <CalendarCheck className="w-4 h-4" />
+                <span>{language === "bn" ? "পরামর্শ ও প্রেসক্রিপশন" : "Book Advisory & Rx"}</span>
               </Link>
             </div>
 
             {/* Mobile menu trigger */}
             <div className="flex md:hidden items-center gap-2">
+              <button
+                onClick={toggleLanguage}
+                className="px-2.5 py-1.5 rounded-xl bg-slate-900 text-emerald-400 text-xs font-bold border border-slate-800"
+              >
+                {language === "bn" ? "EN" : "বাংলা"}
+              </button>
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="p-2 rounded-xl text-slate-300 hover:text-white bg-slate-900 border border-slate-800"
@@ -175,7 +228,7 @@ export function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Dropdown */}
+        {/* Mobile Dropdown Drawer */}
         {isMobileMenuOpen && (
           <div className="md:hidden border-b border-slate-800 bg-[#070b12]/98 px-4 pt-3 pb-6 space-y-2">
             {navLinks.map((link) => (
@@ -183,7 +236,7 @@ export function Navbar() {
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-200 hover:bg-slate-900"
+                className="block px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-200 hover:bg-slate-900 transition"
               >
                 {link.label}
               </Link>
@@ -197,7 +250,7 @@ export function Navbar() {
               className="w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-semibold text-emerald-400 hover:bg-slate-900 flex items-center gap-2"
             >
               <Calculator className="w-4 h-4" />
-              <span>Open Dosage Calculator</span>
+              <span>{language === "bn" ? "ডোজ ক্যালকুলেটর খুলুন" : "Open Dosage Calculator"}</span>
             </button>
 
             <div className="pt-4 border-t border-slate-800/80 flex flex-col gap-2">
@@ -216,7 +269,7 @@ export function Navbar() {
                 className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-extrabold shadow-lg"
               >
                 <CalendarCheck className="w-4 h-4" />
-                <span>Book Advisory Consultation</span>
+                <span>{language === "bn" ? "পরামর্শ বুক করুন" : "Book Advisory Consultation"}</span>
               </Link>
             </div>
           </div>
