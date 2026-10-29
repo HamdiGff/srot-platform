@@ -275,51 +275,69 @@ export function AiSymptomScanner() {
 
   return (
     <div className="w-full space-y-5">
-      {/* 1. COMPACT SPECIMEN SELECTOR BAR */}
-      <div className="flex items-center justify-between gap-3 overflow-x-auto pb-2 border-b border-white/[0.08]">
-        <div className="flex items-center gap-2">
-          {DIAGNOSTIC_SAMPLES.map((sample) => {
-            const isSelected = sample.id === currentSample.id && !uploadedPreview;
-            return (
-              <button
-                key={sample.id}
-                onClick={() => {
-                  setUploadedPreview(null);
-                  setActiveSampleId(sample.id);
-                  setIsScanningActive(true);
-                }}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-                  isSelected
-                    ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20 font-black"
-                    : "bg-slate-900/80 text-slate-400 hover:text-white hover:bg-slate-800 border border-white/[0.06]"
-                }`}
-              >
-                {sample.category === "agri" ? (
-                  <Wheat className="w-3.5 h-3.5" />
-                ) : sample.category === "veterinary" ? (
-                  <Milk className="w-3.5 h-3.5" />
-                ) : sample.category === "poultry" ? (
-                  <Egg className="w-3.5 h-3.5" />
-                ) : (
-                  <HeartHandshake className="w-3.5 h-3.5" />
-                )}
-                <span>{isBn ? sample.tabLabelBn : sample.tabLabelEn}</span>
-              </button>
-            );
-          })}
+      {/* 1. SCANNER SUBHEADER & SPECIMEN SELECTOR BAR */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
+        <div>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm sm:text-base font-black text-white tracking-tight">
+              {isBn ? "লাইভ এআই ভিশন প্যাথোলজি স্ক্যানার" : "Live AI Vision Pathology Scanner"}
+            </h3>
+            <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] font-bold">
+              v3.5 Live
+            </span>
+          </div>
+          <p className="text-xs text-slate-400 mt-0.5">
+            {isBn
+              ? "মাঠ ও খামারের রোগ শনাক্তকরণ এবং ডিজিটাল প্রেসক্রিপশন তৈরির জন্য নমুনা নির্বাচন করুন।"
+              : "Switch between real field samples below to test automated vision detection and verified prescription generation."}
+          </p>
         </div>
 
-        {/* Upload Custom Leaf / Symptom Image */}
-        <label className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-bold cursor-pointer transition shrink-0">
-          <Camera className="w-3.5 h-3.5 text-cyan-400" />
-          <span>{isBn ? "নিজের ছবি স্ক্যান করুন" : "Upload Live Photo"}</span>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleSimulateCustomUpload}
-            className="hidden"
-          />
-        </label>
+        {/* Specimen Category Selectors & Upload */}
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-950/70 border border-white/[0.06] overflow-x-auto">
+            {DIAGNOSTIC_SAMPLES.map((sample) => {
+              const isSelected = sample.id === currentSample.id && !uploadedPreview;
+              return (
+                <button
+                  key={sample.id}
+                  onClick={() => {
+                    setUploadedPreview(null);
+                    setActiveSampleId(sample.id);
+                    setIsScanningActive(true);
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+                    isSelected
+                      ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20 font-black"
+                      : "text-slate-400 hover:text-white hover:bg-slate-900"
+                  }`}
+                >
+                  {sample.category === "agri" ? (
+                    <Wheat className="w-3.5 h-3.5" />
+                  ) : sample.category === "veterinary" ? (
+                    <Milk className="w-3.5 h-3.5" />
+                  ) : sample.category === "poultry" ? (
+                    <Egg className="w-3.5 h-3.5" />
+                  ) : (
+                    <HeartHandshake className="w-3.5 h-3.5" />
+                  )}
+                  <span>{isBn ? sample.tabLabelBn : sample.tabLabelEn}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          <label className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-bold cursor-pointer transition shrink-0">
+            <Camera className="w-3.5 h-3.5 text-cyan-400" />
+            <span>{isBn ? "ছবি স্ক্যান করুন" : "Upload Live Photo"}</span>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleSimulateCustomUpload}
+              className="hidden"
+            />
+          </label>
+        </div>
       </div>
 
       {/* 2. MAIN 2-COLUMN CLINICAL DIAGNOSTIC WORKBENCH */}
@@ -447,33 +465,33 @@ export function AiSymptomScanner() {
           </div>
 
           {/* Prescribed Formulation & Withholding Safety */}
-          <div className="p-3.5 rounded-xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-teal-950/30 border border-emerald-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-            <div>
+          <div className="p-3.5 rounded-xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-teal-950/30 border border-emerald-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs overflow-hidden">
+            <div className="min-w-0 flex-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block font-mono">
                 {isBn ? "প্রস্তাবিত স্প্রে / চিকিৎসা ফর্মুলেশন:" : "Calibrated Chemical / Medical Formulation:"}
               </span>
-              <span className="text-xs sm:text-sm font-bold text-white mt-0.5 block">
+              <span className="text-xs sm:text-sm font-bold text-white mt-0.5 block truncate">
                 {isBn ? currentSample.recommendedRxBn : currentSample.recommendedRxEn}
               </span>
             </div>
 
             <div className="sm:text-right shrink-0">
-              <span className="text-[10px] text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2.5 py-1 rounded-md font-semibold block sm:inline-block">
+              <span className="text-[10px] text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2.5 py-1 rounded-md font-semibold block sm:inline-block whitespace-nowrap">
                 ⚠️ {isBn ? currentSample.withholdingSafetyBn : currentSample.withholdingSafetyEn}
               </span>
             </div>
           </div>
 
           {/* Attending Verified Doctor & One-Click Consult Bar */}
-          <div className="p-3 rounded-xl bg-slate-950/80 border border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
+          <div className="p-3.5 rounded-xl bg-slate-950/80 border border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3 overflow-hidden">
+            <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
               <img
                 src={currentSample.doctor.avatar}
                 alt={currentSample.doctor.name}
                 className="w-10 h-10 rounded-xl object-cover border border-emerald-400/40 shrink-0"
               />
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 min-w-0">
                   <span className="text-xs font-bold text-white truncate">{currentSample.doctor.name}</span>
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 </div>
@@ -486,10 +504,10 @@ export function AiSymptomScanner() {
 
             <Link
               href={`/consult?expert=${currentSample.doctor.id}&category=${currentSample.category}`}
-              className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs transition shadow-md shadow-emerald-500/20 shrink-0"
+              className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs transition shadow-md shadow-emerald-500/20 shrink-0 whitespace-nowrap self-stretch sm:self-auto"
             >
-              <span>{isBn ? `ডাক্তারের প্রেসক্রিপশন নিন (৳${currentSample.doctor.fee})` : `Consult Attending Doctor (৳${currentSample.doctor.fee})`}</span>
-              <ArrowRight className="w-3.5 h-3.5 text-slate-950" />
+              <span>{isBn ? `পরামর্শ নিন (৳${currentSample.doctor.fee})` : `Consult (৳${currentSample.doctor.fee})`}</span>
+              <ArrowRight className="w-3.5 h-3.5 text-slate-950 shrink-0" />
             </Link>
           </div>
         </div>

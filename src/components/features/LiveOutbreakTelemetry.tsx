@@ -300,22 +300,22 @@ export function LiveOutbreakTelemetry() {
           <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
             <Link
               href={`/consult?category=${selectedItem.sector}`}
-              className="flex-1 w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs transition shadow-md shadow-emerald-500/20"
+              className="flex-1 w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs transition shadow-md shadow-emerald-500/20"
             >
-              <Activity className="w-3.5 h-3.5 text-slate-950" />
-              <span>
+              <Activity className="w-3.5 h-3.5 text-slate-950 shrink-0" />
+              <span className="truncate">
                 {isBn
-                  ? "এই জোনের বিশেষজ্ঞের সাথে লাইভ ট্রায়াজ শুরু করুন (৳২০০)"
-                  : "Connect with On-Duty Specialist for This Zone (৳200)"}
+                  ? "জোনের অন-ডিউটি ডাক্তারের পরামর্শ নিন (৳২০০)"
+                  : "Consult Zone Specialist Doctor (৳200)"}
               </span>
-              <ArrowRight className="w-3.5 h-3.5 text-slate-950" />
+              <ArrowRight className="w-3.5 h-3.5 text-slate-950 shrink-0" />
             </Link>
 
             <a
               href="tel:16123"
-              className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/[0.08] text-xs font-bold transition"
+              className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/[0.08] text-xs font-bold transition shrink-0 whitespace-nowrap"
             >
-              <PhoneCall className="w-3.5 h-3.5 text-emerald-400" />
+              <PhoneCall className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
               <span>{isBn ? "হটলাইন ১৬১২৩" : "Hotline 16123"}</span>
             </a>
           </div>
