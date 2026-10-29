@@ -643,7 +643,9 @@ export default function HomePage() {
             {[
               { id: "all", label: isBn ? "সব সেবাসমূহ" : "All Services" },
               { id: "agri", label: isBn ? "কৃষি সেবা" : "Agriculture" },
-              { id: "veterinary", label: isBn ? "প্রাণিসম্পদ সেবা" : "Animal Health" },
+              { id: "veterinary", label: isBn ? "ডেইরি ও গবাদিপশু" : "Dairy & Cattle" },
+              { id: "poultry", label: isBn ? "পোল্ট্রি ও মুরগি" : "Poultry" },
+              { id: "fisheries", label: isBn ? "মৎস্য চাষ" : "Fisheries" },
               { id: "pet", label: isBn ? "পোষা প্রাণী" : "Pet Care" },
             ].map((tab) => (
               <button

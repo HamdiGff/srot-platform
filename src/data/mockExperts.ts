@@ -4,7 +4,7 @@ export interface PlatformExpert {
   id: string;
   name: string;
   title: string;
-  primaryCategory: "agri" | "veterinary" | "pet";
+  primaryCategory: "agri" | "veterinary" | "poultry" | "fisheries" | "pet";
   categoryBadge: string;
   qualification: string;
   registrationNumber: string;
@@ -40,7 +40,7 @@ export const PLATFORM_EXPERTS: PlatformExpert[] = [
     consultationCount: 2150,
     specialties: ["Cereal Rust & Blast", "Horticultural Fungal Blights", "Bio-pesticides", "Seed Pathology"],
     languages: ["English", "Hindi", "Gujarati"],
-    feePerConsultation: 20,
+    feePerConsultation: 200,
     availableToday: true,
     nextSlotTime: "Today at 02:30 PM",
     supportedChannels: ["photo_instant", "video", "audio", "field_visit"],
@@ -65,7 +65,7 @@ export const PLATFORM_EXPERTS: PlatformExpert[] = [
     consultationCount: 1640,
     specialties: ["Fertigation Optimization", "Soil Salinity Reclamation", "Drip Chemistry", "Micronutrient Deficiencies"],
     languages: ["English", "Spanish"],
-    feePerConsultation: 18,
+    feePerConsultation: 200,
     availableToday: true,
     nextSlotTime: "Today at 03:00 PM",
     supportedChannels: ["photo_instant", "video", "audio"],
@@ -90,7 +90,7 @@ export const PLATFORM_EXPERTS: PlatformExpert[] = [
     consultationCount: 3200,
     specialties: ["Bovine Mastitis Control", "Artificial Insemination Timing", "Total Mixed Ration (TMR)", "Calf Health"],
     languages: ["English", "Hindi", "Bengali"],
-    feePerConsultation: 22,
+    feePerConsultation: 300,
     availableToday: true,
     nextSlotTime: "Today at 02:00 PM",
     supportedChannels: ["video", "photo_instant", "audio", "field_visit"],
@@ -105,7 +105,7 @@ export const PLATFORM_EXPERTS: PlatformExpert[] = [
     id: "exp-dr-tariq-mansoor",
     name: "Dr. Tariq Mansoor, Ph.D.",
     title: "Avian Epidemiologist & Poultry Health Consultant",
-    primaryCategory: "veterinary",
+    primaryCategory: "poultry",
     categoryBadge: "Poultry Vet",
     qualification: "D.V.M., Ph.D. Avian Medicine & Biosecurity",
     registrationNumber: "VCI-AV-2016-1092",
@@ -115,7 +115,7 @@ export const PLATFORM_EXPERTS: PlatformExpert[] = [
     consultationCount: 1180,
     specialties: ["Broiler FCR Optimization", "Coccidiosis Management", "Newcastle & IBD Protocols", "Hatchery Sanitation"],
     languages: ["English", "Urdu", "Arabic"],
-    feePerConsultation: 20,
+    feePerConsultation: 250,
     availableToday: false,
     nextSlotTime: "Tomorrow at 09:30 AM",
     supportedChannels: ["video", "photo_instant", "audio"],
@@ -140,7 +140,7 @@ export const PLATFORM_EXPERTS: PlatformExpert[] = [
     consultationCount: 4100,
     specialties: ["Canine & Feline Dermatology", "Puppy Vaccine Protocols", "Emergency Triage", "Senior Pet Mobility"],
     languages: ["English", "French", "Russian"],
-    feePerConsultation: 25,
+    feePerConsultation: 350,
     availableToday: true,
     nextSlotTime: "Available in 10 mins",
     supportedChannels: ["video", "photo_instant", "audio"],
@@ -155,7 +155,7 @@ export const PLATFORM_EXPERTS: PlatformExpert[] = [
     id: "exp-dr-subhash-barman",
     name: "Dr. Subhash Barman, Ph.D.",
     title: "Aquaculture Biologist & Fish Disease Specialist",
-    primaryCategory: "veterinary",
+    primaryCategory: "fisheries",
     categoryBadge: "Aquaculture Expert",
     qualification: "Ph.D. Aquatic Animal Health, M.F.Sc. Aquaculture",
     registrationNumber: "AQUA-IND-2015-3091",
@@ -165,7 +165,7 @@ export const PLATFORM_EXPERTS: PlatformExpert[] = [
     consultationCount: 940,
     specialties: ["Pond Water Quality Chemistry", "Bacterial Epizootic Ulcerative Syndrome", "Shrimp Biofloc", "Carp Hatcheries"],
     languages: ["English", "Hindi", "Odia"],
-    feePerConsultation: 22,
+    feePerConsultation: 250,
     availableToday: true,
     nextSlotTime: "Today at 04:15 PM",
     supportedChannels: ["video", "photo_instant", "audio"],

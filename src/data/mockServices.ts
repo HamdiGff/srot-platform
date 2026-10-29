@@ -1,4 +1,4 @@
-export type ServiceCategory = "agri" | "veterinary" | "pet";
+export type ServiceCategory = "agri" | "veterinary" | "poultry" | "fisheries" | "pet";
 
 export type ConsultationChannel = "video" | "audio" | "photo_instant" | "field_visit";
 
@@ -35,7 +35,7 @@ export const PLATFORM_SERVICES: PlatformService[] = [
     iconName: "Wheat",
     supportedChannels: ["photo_instant", "video", "field_visit"],
     avgResponseTime: "Within 25 mins",
-    baseFee: 15,
+    baseFee: 150,
     highlightPoints: [
       "Pathogen identification with microscopic visual comparison",
       "Biological fungicide & organic spray alternatives",
@@ -63,7 +63,7 @@ export const PLATFORM_SERVICES: PlatformService[] = [
     iconName: "Sprout",
     supportedChannels: ["photo_instant", "video", "audio"],
     avgResponseTime: "Under 1 hour",
-    baseFee: 18,
+    baseFee: 200,
     highlightPoints: [
       "Balanced primary N-P-K, secondary (Ca-Mg-S), and micronutrient plans",
       "Fertigation scheduling for drip and sprinkler setups",
@@ -91,7 +91,7 @@ export const PLATFORM_SERVICES: PlatformService[] = [
     iconName: "Bug",
     supportedChannels: ["photo_instant", "video", "audio"],
     avgResponseTime: "Under 45 mins",
-    baseFee: 16,
+    baseFee: 150,
     highlightPoints: [
       "Threshold calculations (Economic Injury Level)",
       "Targeted pesticide selection avoiding pesticide resistance",
@@ -119,7 +119,7 @@ export const PLATFORM_SERVICES: PlatformService[] = [
     iconName: "MapPin",
     supportedChannels: ["field_visit"],
     avgResponseTime: "Scheduled 24-48 hrs",
-    baseFee: 65,
+    baseFee: 1500,
     highlightPoints: [
       "Physical canopy inspection, root health digging & soil core sampling",
       "GPS geotagged farm health audit report",
@@ -144,12 +144,12 @@ export const PLATFORM_SERVICES: PlatformService[] = [
     shortTagline: "Dairy & beef herd health, reproductive fertility, mastitis & milk yield.",
     description: "Connect with licensed livestock veterinarians for dairy cow, bull, and buffalo health. Get rapid advice on mastitis detection, calf diarrhea, artificial insemination timing, and balanced dry-matter feed rations.",
     category: "veterinary",
-    categoryLabel: "Animal Healthcare",
+    categoryLabel: "Dairy & Cattle Health",
     badge: "Dairy Specialists",
     iconName: "Milk",
     supportedChannels: ["video", "photo_instant", "audio", "field_visit"],
     avgResponseTime: "Under 20 mins",
-    baseFee: 22,
+    baseFee: 250,
     highlightPoints: [
       "Subclinical and clinical Mastitis CMT scoring & intramammary protocols",
       "Total Mixed Ration (TMR) silage & mineral block formulation",
@@ -171,13 +171,13 @@ export const PLATFORM_SERVICES: PlatformService[] = [
     name: "Poultry & Avian Disease Control",
     shortTagline: "Broiler FCR optimization, layer egg production & flock mortality control.",
     description: "Rapid clinical guidance for commercial broiler farms, layer cages, and backyard poultry. Manage respiratory distress, coccidiosis, brooding temperatures, and water sanitation.",
-    category: "veterinary",
-    categoryLabel: "Animal Healthcare",
+    category: "poultry",
+    categoryLabel: "Poultry Farming",
     badge: "Flock Health",
     iconName: "Egg",
     supportedChannels: ["video", "photo_instant", "audio"],
     avgResponseTime: "Within 30 mins",
-    baseFee: 20,
+    baseFee: 200,
     highlightPoints: [
       "Post-mortem lesion photo analysis and autopsy interpretation",
       "Drinking water chlorination and gut-health probiotic programs",
@@ -205,7 +205,7 @@ export const PLATFORM_SERVICES: PlatformService[] = [
     iconName: "ShieldAlert",
     supportedChannels: ["video", "audio", "photo_instant"],
     avgResponseTime: "Under 40 mins",
-    baseFee: 18,
+    baseFee: 200,
     highlightPoints: [
       "FAMACHA eye conjunctiva score interpretation for targeted deworming",
       "Peste des Petits Ruminants (PPR) early symptom mitigation",
@@ -227,13 +227,13 @@ export const PLATFORM_SERVICES: PlatformService[] = [
     name: "Aquaculture & Fisheries Management",
     shortTagline: "Pond dissolved oxygen, ammonia toxicity, fingerling mortality & feed FCR.",
     description: "Scientific water testing and fish pathology for freshwater carp, tilapia, pangasius, and shrimp ponds. Solve gill rot, dropsy, and sudden algae blooms.",
-    category: "veterinary",
-    categoryLabel: "Animal Healthcare",
+    category: "fisheries",
+    categoryLabel: "Fisheries & Pond Management",
     badge: "Aquaculture",
     iconName: "Waves",
     supportedChannels: ["video", "audio", "photo_instant"],
     avgResponseTime: "Within 45 mins",
-    baseFee: 22,
+    baseFee: 250,
     highlightPoints: [
       "Water pH, alkalinity, and unionized ammonia (NH3) rectification",
       "Plankton bloom crash and emergency oxygen aeration methods",
@@ -263,7 +263,7 @@ export const PLATFORM_SERVICES: PlatformService[] = [
     iconName: "HeartHandshake",
     supportedChannels: ["video", "photo_instant", "audio"],
     avgResponseTime: "Immediate (Under 15 mins)",
-    baseFee: 25,
+    baseFee: 300,
     highlightPoints: [
       "Face-to-face HD video consultation with board-certified small animal vets",
       "Dermatology & allergy triage with clear photo assessment",

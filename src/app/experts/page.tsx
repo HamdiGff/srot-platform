@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { PLATFORM_EXPERTS } from "@/data/mockExperts";
 import { ExpertCard } from "@/components/cards/ExpertCard";
-import { ShieldCheck, Search, Users, Wheat, Milk, HeartHandshake } from "lucide-react";
+import { ShieldCheck, Search, Users, Wheat, Milk, Egg, Fish, HeartHandshake } from "lucide-react";
 
 export default function ExpertsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -55,7 +55,9 @@ export default function ExpertsPage() {
           {[
             { id: "all", label: "All Practitioners" },
             { id: "agri", label: "Crop Pathologists", icon: <Wheat className="w-3.5 h-3.5" /> },
-            { id: "veterinary", label: "Livestock & Herd Vets", icon: <Milk className="w-3.5 h-3.5" /> },
+            { id: "veterinary", label: "Dairy & Cattle Vets", icon: <Milk className="w-3.5 h-3.5" /> },
+            { id: "poultry", label: "Poultry Specialists", icon: <Egg className="w-3.5 h-3.5" /> },
+            { id: "fisheries", label: "Aquaculture Experts", icon: <Fish className="w-3.5 h-3.5" /> },
             { id: "pet", label: "Companion Pet Vets", icon: <HeartHandshake className="w-3.5 h-3.5" /> },
           ].map((tab) => (
             <button

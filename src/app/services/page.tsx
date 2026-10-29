@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { PLATFORM_SERVICES, ServiceCategory } from "@/data/mockServices";
 import { ServiceCard } from "@/components/cards/ServiceCard";
-import { Wheat, Milk, HeartHandshake, Search, Filter, Sparkles } from "lucide-react";
+import { Wheat, Milk, Egg, Fish, HeartHandshake, Search, Filter, Sparkles } from "lucide-react";
 
 export default function ServicesPage() {
   const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | "all">("all");
@@ -54,7 +54,9 @@ export default function ServicesPage() {
           {[
             { id: "all", label: "All Services" },
             { id: "agri", label: "Agriculture", icon: <Wheat className="w-3.5 h-3.5" /> },
-            { id: "veterinary", label: "Animal Health", icon: <Milk className="w-3.5 h-3.5" /> },
+            { id: "veterinary", label: "Dairy & Cattle", icon: <Milk className="w-3.5 h-3.5" /> },
+            { id: "poultry", label: "Poultry", icon: <Egg className="w-3.5 h-3.5" /> },
+            { id: "fisheries", label: "Fisheries", icon: <Fish className="w-3.5 h-3.5" /> },
             { id: "pet", label: "Pet Services", icon: <HeartHandshake className="w-3.5 h-3.5" /> },
           ].map((tab) => (
             <button

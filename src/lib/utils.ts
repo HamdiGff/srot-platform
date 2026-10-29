@@ -5,7 +5,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatCurrency(amount: number, currency: string = "USD") {
+export function formatCurrency(amount: number, currency: string = "BDT") {
+  if (currency === "BDT" || currency === "৳") {
+    return `৳${amount.toLocaleString("en-US")}`;
+  }
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currency,
