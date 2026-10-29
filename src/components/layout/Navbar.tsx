@@ -78,6 +78,10 @@ export function Navbar() {
       href: "/experts",
     },
     {
+      label: isBn ? "কমিউনিটি ফোরাম" : "Community Q&A",
+      href: "/community",
+    },
+    {
       label: isBn ? "জ্ঞানকোষ" : "Knowledge Hub",
       href: "/knowledge",
     },

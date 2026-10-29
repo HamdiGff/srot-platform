@@ -23,6 +23,10 @@ import { HeroVisualGraphic } from "@/components/features/HeroVisualGraphic";
 import { CropLivestockCalendar } from "@/components/features/CropLivestockCalendar";
 import { SoilHealthInterpreter } from "@/components/features/SoilHealthInterpreter";
 import { AccreditationBadges } from "@/components/features/AccreditationBadges";
+import { MOCK_COMMUNITY_QUESTIONS, CommunityQuestion } from "@/data/mockCommunity";
+import { QuestionCard } from "@/components/community/QuestionCard";
+import { QuestionDetailModal } from "@/components/community/QuestionDetailModal";
+import { AskQuestionModal } from "@/components/community/AskQuestionModal";
 import {
   Wheat,
   Milk,
@@ -59,6 +63,9 @@ export default function HomePage() {
   const [heroSector, setHeroSector] = useState<"agri" | "livestock" | "pet">("agri");
   const [heroRightTab, setHeroRightTab] = useState<"graphic" | "triage">("graphic");
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
+  const [homeQuestions, setHomeQuestions] = useState<CommunityQuestion[]>(MOCK_COMMUNITY_QUESTIONS);
+  const [activeCommunityQuestion, setActiveCommunityQuestion] = useState<CommunityQuestion | null>(null);
+  const [isHomeAskModalOpen, setIsHomeAskModalOpen] = useState(false);
   const { openRoleModal, currentUser } = useUserStore();
 
   const filteredServices =
@@ -765,6 +772,51 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ================= 14B. ASK COMMUNITY Q&A (AGRI STACK OVERFLOW) ================= */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-white/[0.05]">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-2">
+              <Users className="w-3.5 h-3.5" />
+              <span>{isBn ? "উন্মুক্ত প্রশ্নোত্তর ফোরাম" : "Open Knowledge Forum"}</span>
+            </div>
+            <h3 className="text-2xl sm:text-4xl font-black text-white">
+              {isBn ? "কৃষি ও ভেটেরিনারি সম্প্রদায় প্রশ্নোত্তর" : "Ask the SROT Agro-Vet Community"}
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
+              {isBn
+                ? "কোনো সমস্যায় আটকে আছেন? ছবি ও বিবরণ দিয়ে প্রশ্ন করুন। নিবন্ধিত চিকিৎসক ও অভিজ্ঞ খামারিরা উত্তর দেবেন সম্পূর্ণ বিনামূল্যে।"
+                : "Got an unsolved crop or livestock symptom? Post photos and description. Certified clinicians and farmers answer free of charge."}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsHomeAskModalOpen(true)}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold text-xs transition shadow-lg shadow-emerald-500/20"
+            >
+              {isBn ? "+ প্রশ্ন করুন (বিনামূল্যে)" : "+ Ask a Question (Free)"}
+            </button>
+            <Link
+              href="/community"
+              className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-white/[0.08] text-xs font-semibold transition"
+            >
+              {isBn ? "সকল প্রশ্নোত্তর দেখুন →" : "View All Q&A →"}
+            </Link>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {homeQuestions.slice(0, 4).map((q) => (
+            <QuestionCard
+              key={q.id}
+              question={q}
+              onOpenDetails={(selected) => setActiveCommunityQuestion(selected)}
+            />
+          ))}
+        </div>
+      </section>
+
       {/* ================= 15. INTERACTIVE FAQ (ACCESSIBLE DETAILS ACCORDION) ================= */}
       <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center mb-10">
@@ -883,6 +935,17 @@ export default function HomePage() {
       <DosageCalculatorModal
         isOpen={isCalculatorOpen}
         onClose={() => setIsCalculatorOpen(false)}
+      />
+
+      {/* Community Q&A Modals */}
+      <AskQuestionModal
+        isOpen={isHomeAskModalOpen}
+        onClose={() => setIsHomeAskModalOpen(false)}
+        onSubmitQuestion={(newQ) => setHomeQuestions([newQ, ...homeQuestions])}
+      />
+      <QuestionDetailModal
+        question={activeCommunityQuestion}
+        onClose={() => setActiveCommunityQuestion(null)}
       />
     </div>
   );
