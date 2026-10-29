@@ -10,6 +10,15 @@ export type UserRole =
   | "field_vendor"
   | "admin";
 
+export interface RegisteredEntity {
+  id: string;
+  name: string;
+  type: "crop" | "livestock" | "pet" | "service";
+  details: string;
+  icon: string;
+  extraMeta?: Record<string, any>;
+}
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -20,13 +29,12 @@ export interface UserProfile {
   avatar: string;
   location: string;
   district?: string;
-  registeredEntities: {
-    id: string;
-    name: string;
-    type: "crop" | "livestock" | "pet" | "service";
-    details: string;
-    icon: string;
-  }[];
+  upazila?: string;
+  bio?: string;
+  fee?: number;
+  licenseNumber?: string;
+  councilName?: string;
+  registeredEntities: RegisteredEntity[];
   isCustomAccount?: boolean;
   pin?: string;
 }
@@ -165,6 +173,14 @@ interface UserState {
   registerAccount: (data: RegisterUserData) => { success: boolean; message: string; user?: UserProfile };
   loginWithPhone: (phone: string, pin: string) => { success: boolean; message: string };
   logout: () => void;
+
+  // Edit & Entity Actions for Panels
+  updateProfile: (updates: Partial<UserProfile>) => void;
+  addEntity: (entity: Omit<RegisteredEntity, "id">) => void;
+  updateEntity: (id: string, updates: Partial<RegisteredEntity>) => void;
+  deleteEntity: (id: string) => void;
+  adminUpdateUser: (userId: string, updates: Partial<UserProfile>) => void;
+  getAllUsers: () => UserProfile[];
 }
 
 export const useUserStore = create<UserState>()(
@@ -316,6 +332,86 @@ export const useUserStore = create<UserState>()(
           currentRole: "farmer",
           isAuthenticated: false,
         });
+      },
+
+      updateProfile: (updates: Partial<UserProfile>) => {
+        set((state) => {
+          const updatedUser = { ...state.currentUser, ...updates };
+          const updatedRegistered = state.registeredUsers.map((u) =>
+            u.id === state.currentUser.id ? { ...u, ...updates } : u
+          );
+          return {
+            currentUser: updatedUser,
+            registeredUsers: updatedRegistered,
+          };
+        });
+      },
+
+      addEntity: (entity: Omit<RegisteredEntity, "id">) => {
+        set((state) => {
+          const newEntity: RegisteredEntity = {
+            ...entity,
+            id: `ent-${Date.now().toString(36)}`,
+          };
+          const currentEntities = state.currentUser.registeredEntities || [];
+          const updatedUser: UserProfile = {
+            ...state.currentUser,
+            registeredEntities: [newEntity, ...currentEntities],
+          };
+          return { currentUser: updatedUser };
+        });
+      },
+
+      updateEntity: (id: string, updates: Partial<RegisteredEntity>) => {
+        set((state) => {
+          const currentEntities = state.currentUser.registeredEntities || [];
+          const updatedEntities = currentEntities.map((ent) =>
+            ent.id === id ? { ...ent, ...updates } : ent
+          );
+          const updatedUser: UserProfile = {
+            ...state.currentUser,
+            registeredEntities: updatedEntities,
+          };
+          return { currentUser: updatedUser };
+        });
+      },
+
+      deleteEntity: (id: string) => {
+        set((state) => {
+          const currentEntities = state.currentUser.registeredEntities || [];
+          const updatedEntities = currentEntities.filter((ent) => ent.id !== id);
+          const updatedUser: UserProfile = {
+            ...state.currentUser,
+            registeredEntities: updatedEntities,
+          };
+          return { currentUser: updatedUser };
+        });
+      },
+
+      adminUpdateUser: (userId: string, updates: Partial<UserProfile>) => {
+        set((state) => {
+          const updatedRegistered = state.registeredUsers.map((u) =>
+            u.id === userId ? { ...u, ...updates } : u
+          );
+          const updatedCurrent =
+            state.currentUser.id === userId ? { ...state.currentUser, ...updates } : state.currentUser;
+          return {
+            registeredUsers: updatedRegistered,
+            currentUser: updatedCurrent,
+          };
+        });
+      },
+
+      getAllUsers: () => {
+        const state = get();
+        const demoList = Object.values(DEMO_PROFILES);
+        const combined = [...demoList];
+        state.registeredUsers.forEach((reg) => {
+          if (!combined.some((u) => u.id === reg.id)) {
+            combined.push(reg);
+          }
+        });
+        return combined;
       },
     }),
     {

@@ -77,34 +77,35 @@ export function Navbar() {
   }, []);
 
   // Dynamic portal link and label based on active user persona
-  const portalPath =
-    currentRole === "admin"
-      ? "/admin"
-      : currentRole.startsWith("expert_") || currentRole === "veterinarian"
-      ? "/expert-portal"
-      : currentRole === "field_vendor"
-      ? "/services/field-visits"
-      : "/farmer-portal";
+  const portalPath = "/portal";
 
   const portalLabel = isBn
     ? currentRole === "admin"
-      ? "অ্যাডমিন"
-      : currentRole.startsWith("expert_") || currentRole === "veterinarian"
-      ? "ডেস্ক"
+      ? "অ্যাডমিন প্যানেল"
+      : currentRole === "expert_agronomist"
+      ? "কৃষিবিদ চেম্বার"
+      : currentRole === "veterinarian"
+      ? "ভেটেরিনারি চেম্বার"
       : currentRole === "field_vendor"
-      ? "ফিল্ড টেক"
+      ? "ফিল্ড টেকনিশিয়ান"
       : currentRole === "pet_owner"
-      ? "পেট হাব"
-      : "পোর্টাল"
+      ? "পেট পাসপোর্ট"
+      : currentRole === "livestock_farmer"
+      ? "ডেইরি পোর্টাল"
+      : "কৃষক পোর্টাল"
     : currentRole === "admin"
-    ? "Admin"
-    : currentRole.startsWith("expert_") || currentRole === "veterinarian"
-    ? "Desk"
+    ? "Admin Panel"
+    : currentRole === "expert_agronomist"
+    ? "Agronomy Desk"
+    : currentRole === "veterinarian"
+    ? "Veterinary Desk"
     : currentRole === "field_vendor"
-    ? "Field Tech"
+    ? "Field Technician"
     : currentRole === "pet_owner"
-    ? "Pet Hub"
-    : "Portal";
+    ? "Pet Portal"
+    : currentRole === "livestock_farmer"
+    ? "Dairy Portal"
+    : "Farmer Portal";
 
   return (
     <>

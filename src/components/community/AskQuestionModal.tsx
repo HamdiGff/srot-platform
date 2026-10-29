@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { CommunityQuestion, CommunitySector } from "@/data/mockCommunity";
 import { useLanguageStore } from "@/lib/store/languageStore";
+import { useUserStore } from "@/lib/store/userStore";
+import { useCommunityStore } from "@/lib/store/communityStore";
 import {
   X,
   HelpCircle,
@@ -32,8 +34,17 @@ export function AskQuestionModal({
 }: AskQuestionModalProps) {
   const { language } = useLanguageStore();
   const isBn = language === "bn";
+  const { currentUser, currentRole } = useUserStore();
+  const { addQuestion } = useCommunityStore();
 
-  const [sector, setSector] = useState<CommunitySector>("crops");
+  const defaultSector: CommunitySector =
+    currentRole === "pet_owner"
+      ? "pets"
+      : currentRole === "livestock_farmer"
+      ? "dairy"
+      : "crops";
+
+  const [sector, setSector] = useState<CommunitySector>(defaultSector);
   const [cropOrAnimal, setCropOrAnimal] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -88,8 +99,14 @@ export function AskQuestionModal({
       );
     }
 
-    const createdQuestion: CommunityQuestion = {
-      id: `q-${Date.now()}`,
+    const roleMapping: "farmer" | "dairy_farmer" | "poultry_farmer" | "fish_farmer" | "pet_owner" =
+      currentRole === "pet_owner"
+        ? "pet_owner"
+        : currentRole === "livestock_farmer"
+        ? "dairy_farmer"
+        : "farmer";
+
+    const createdQuestion = addQuestion({
       title,
       titleEn: title,
       description,
@@ -97,28 +114,20 @@ export function AskQuestionModal({
       sector,
       cropOrAnimal: cropOrAnimal || (isBn ? "সাধারণ ফসল/প্রাণী" : "General Specimen"),
       cropOrAnimalEn: cropOrAnimal || "General Specimen",
-      authorName: isBn ? "মো. তারিকুল ইসলাম (আপনি)" : "Tariqul Islam (You)",
-      authorLocation: isBn ? `${division}, বাংলাদেশ` : `${division}, Bangladesh`,
-      authorLocationEn: `${division}, Bangladesh`,
-      authorAvatar:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
-      authorRole: "farmer",
-      createdAt: isBn ? "এইমাত্র" : "Just now",
-      createdAtEn: "Just now",
-      upvotes: 1,
-      views: 3,
-      isSolved: false,
-      hasExpertAnswer: false,
+      authorName: currentUser.name,
+      authorLocation: currentUser.location || (isBn ? `${division}, বাংলাদেশ` : `${division}, Bangladesh`),
+      authorLocationEn: currentUser.location || `${division}, Bangladesh`,
+      authorAvatar: currentUser.avatar,
+      authorRole: roleMapping,
       images: attachedImages,
-      answers: [],
-    };
+    });
 
     setIsSubmitted(true);
     setTimeout(() => {
       onSubmitQuestion(createdQuestion);
       setIsSubmitted(false);
       onClose();
-    }, 1200);
+    }, 1000);
   };
 
   return (

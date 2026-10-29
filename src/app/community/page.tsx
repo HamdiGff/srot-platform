@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import {
-  MOCK_COMMUNITY_QUESTIONS,
   CommunityQuestion,
   CommunitySector,
 } from "@/data/mockCommunity";
@@ -10,6 +9,7 @@ import { QuestionCard } from "@/components/community/QuestionCard";
 import { AskQuestionModal } from "@/components/community/AskQuestionModal";
 import { QuestionDetailModal } from "@/components/community/QuestionDetailModal";
 import { useLanguageStore } from "@/lib/store/languageStore";
+import { useCommunityStore } from "@/lib/store/communityStore";
 import {
   Search,
   PlusCircle,
@@ -32,9 +32,7 @@ export default function CommunityPage() {
   const { language } = useLanguageStore();
   const isBn = language === "bn";
 
-  const [questions, setQuestions] = useState<CommunityQuestion[]>(
-    MOCK_COMMUNITY_QUESTIONS
-  );
+  const { questions } = useCommunityStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSector, setSelectedSector] = useState<CommunitySector | "all">("all");
   const [selectedDivision, setSelectedDivision] = useState<string>("all");
@@ -42,6 +40,11 @@ export default function CommunityPage() {
 
   const [isAskModalOpen, setIsAskModalOpen] = useState(false);
   const [activeQuestion, setActiveQuestion] = useState<CommunityQuestion | null>(null);
+
+  // Keep activeQuestion synchronized with store updates
+  const currentActiveQuestion = activeQuestion
+    ? questions.find((q) => q.id === activeQuestion.id) || null
+    : null;
 
   // Filter logic
   const filteredQuestions = questions.filter((q) => {
@@ -74,7 +77,7 @@ export default function CommunityPage() {
   });
 
   const handleAddNewQuestion = (newQ: CommunityQuestion) => {
-    setQuestions([newQ, ...questions]);
+    // Automatically handled by communityStore
   };
 
   const bangladeshDivisions = [
@@ -332,7 +335,7 @@ export default function CommunityPage() {
       />
 
       <QuestionDetailModal
-        question={activeQuestion}
+        question={currentActiveQuestion}
         onClose={() => setActiveQuestion(null)}
       />
     </div>

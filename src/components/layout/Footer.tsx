@@ -246,10 +246,19 @@ export function Footer() {
               {/* Highlighted Link for Client Feature Tour */}
               <li>
                 <Link
-                  href="/features"
-                  className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500/20 to-emerald-500/20 hover:from-cyan-500/30 hover:to-emerald-500/30 border border-cyan-500/40 text-cyan-300 font-bold transition w-full shadow-sm"
+                  href="/portal"
+                  className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 hover:from-emerald-500/30 hover:to-teal-500/30 border border-emerald-500/40 text-emerald-300 font-bold transition w-full shadow-sm"
                 >
-                  <Sparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                  <Compass className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span className="truncate">{isBn ? "৭-পার্সোনা সমন্বিত পোর্টাল" : "Unified 7-Persona Portal Hub"}</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/features"
+                  className="hover:text-white transition flex items-center gap-2 group"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400 transition shrink-0" />
                   <span className="truncate">{isBn ? "ফিচার ট্যুর ও ব্লুপ্রিন্ট" : "Features & Client Tour"}</span>
                 </Link>
               </li>
