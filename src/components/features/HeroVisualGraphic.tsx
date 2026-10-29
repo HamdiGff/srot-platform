@@ -5,365 +5,279 @@ import Link from "next/link";
 import { useLanguageStore } from "@/lib/store/languageStore";
 import {
   Wheat,
-  Activity,
-  HeartPulse,
+  Milk,
+  HeartHandshake,
   ShieldCheck,
   CheckCircle2,
   Scan,
-  AlertCircle,
+  AlertTriangle,
   FileText,
   Sparkles,
+  Video,
+  Activity,
+  Droplets,
+  CloudSun,
+  ArrowRight,
+  Clock,
+  QrCode,
+  BadgeCheck,
 } from "lucide-react";
 
 export function HeroVisualGraphic() {
   const { language } = useLanguageStore();
   const isBn = language === "bn";
-  const [activeTab, setActiveTab] = useState<"agri" | "herd" | "pet">("agri");
+  const [activeSector, setActiveSector] = useState<"agri" | "livestock" | "pet">("agri");
+
+  // Sector Data for the High-Tech Telehealth HUD
+  const sectorData = {
+    agri: {
+      tag: isBn ? "উদ্ভিদ রোগতত্ত্ব টেলি-ডেস্ক" : "Crop Pathology Tele-Desk",
+      subject: isBn ? "বোরো ধানের পাতা (BRRI ধান-২৮)" : "Boro Rice Paddy (BRRI Dhan-28)",
+      stage: isBn ? "কুশি পর্যায় • ৪২ দিন বয়স" : "Tillering Stage • 42 Days",
+      image: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=800&q=80",
+      detection: "Magnaporthe oryzae (Leaf Blast)",
+      detectionBn: "বোরো ধানের পাতা ব্লাস্ট রোগ",
+      confidence: "98.4%",
+      severity: isBn ? "তীব্র সংক্রমণ ঝুঁকি" : "High Fungal Risk",
+      telemetry: [
+        { label: isBn ? "এনডিভিআই সূচক" : "NDVI Index", value: "0.74", status: "Optimal" },
+        { label: isBn ? "পাতার আর্দ্রতা" : "Leaf Wetness", value: "4.2 hrs", status: "Critical" },
+        { label: isBn ? "পরিবেশ তাপমাত্রা" : "Canopy Temp", value: "28.5°C", status: "Normal" },
+      ],
+      doctor: {
+        name: "Dr. Ramesh Patel, Ph.D.",
+        title: isBn ? "প্রধান উদ্ভিদ রোগতত্ত্ববিদ • DAE-AGR-8891" : "Chief Plant Pathologist • DAE-8891",
+        avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+      },
+      rxItem: "Tricyclazole 75% WP",
+      rxDose: "0.6 g / L (Foliar)",
+      withholding: isBn ? "ফসল কাটার ২১ দিন পূর্বে স্প্রে বন্ধ" : "21 Days Pre-Harvest",
+      caseId: "consult-agri-101",
+      accentColor: "emerald",
+    },
+    livestock: {
+      tag: isBn ? "ডেইরি ভেটেরিনারি টেলি-ডেস্ক" : "Bovine Tele-Vet Desk",
+      subject: isBn ? "সংকর ডেইরি গাভী (HF-১০৮)" : "Holstein Cross Dairy Cow (HF-108)",
+      stage: isBn ? "২য় ল্যাকটেশন • ৩৫০ কেজি" : "2nd Lactation • 350 kg",
+      image: "https://images.unsplash.com/photo-1527153857715-3908f2ae5e81?auto=format&fit=crop&w=800&q=80",
+      detection: "Acute Mastitis (Hind Teat)",
+      detectionBn: "গাভীর তীব্র ওলান পাকা রোগ",
+      confidence: "96.8%",
+      severity: isBn ? "জরুরি চিকিৎসা প্রয়োজন" : "Immediate Action",
+      telemetry: [
+        { label: isBn ? "সোমাটিক সেল কাউন্ট" : "SCC Count", value: "650K/ml", status: "Elevated" },
+        { label: isBn ? "শরীরের তাপমাত্রা" : "Rectal Temp", value: "39.4°C", status: "Fever" },
+        { label: isBn ? "দুধ হ্রাস" : "Yield Drop", value: "-35%", status: "Warning" },
+      ],
+      doctor: {
+        name: "Dr. Ananya Sen, M.V.Sc.",
+        title: isBn ? "রেজিস্টার্ড ভেটেরিনারি সার্জন • BVC-7714" : "Registered Vet Surgeon • BVC-7714",
+        avatar: "https://images.unsplash.com/photo-1594824813568-7c8fa0747185?auto=format&fit=crop&w=200&q=80",
+      },
+      rxItem: "Cefquinome Sulfate Infusion",
+      rxDose: "75 mg / affected teat",
+      withholding: isBn ? "দুধ বর্জন: ৭২ ঘণ্টা কঠোর নিয়ম" : "72h Strict Milk Withholding",
+      caseId: "consult-vet-202",
+      accentColor: "cyan",
+    },
+    pet: {
+      tag: isBn ? "স্মল অ্যানিমেল টেলি-কেয়ার" : "Companion Pet Tele-Vet",
+      subject: isBn ? "গোল্ডেন রিট্রিভার (ম্যাক্স)" : "Golden Retriever (Max • 3.5 Yrs)",
+      stage: isBn ? "ওজন: ৩১.৫ কেজি • মাইক্রোচিপড" : "Weight: 31.5 kg • Microchipped",
+      image: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=800&q=80",
+      detection: "Canine Atopic Dermatitis",
+      detectionBn: "কুকুরের তীব্র চর্মরোগ ও চুলকানি",
+      confidence: "97.2%",
+      severity: isBn ? "মধ্যম অ্যালার্জি" : "Moderate Pruritus",
+      telemetry: [
+        { label: isBn ? "চুলকানি স্কোর" : "Pruritus Score", value: "8.5 / 10", status: "Severe" },
+        { label: isBn ? "ত্বকের পিএইচ" : "Skin pH", value: "7.1", status: "Normal" },
+        { label: isBn ? "ভ্যাকসিন স্থিতি" : "Vaccine Status", value: "Valid", status: "Optimal" },
+      ],
+      doctor: {
+        name: "Dr. Farhana Haque, D.V.M.",
+        title: isBn ? "স্মল অ্যানিমেল স্পেশালিস্ট • BVC-9912" : "Small Animal Specialist • BVC-9912",
+        avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
+      },
+      rxItem: "Oclacitinib Oral Tablets",
+      rxDose: "16 mg BID (Weight Titrated)",
+      withholding: isBn ? "ওজন অনুসারে সঠিক মাত্রায় সেব্য" : "Veterinary Prescription Only",
+      caseId: "consult-pet-303",
+      accentColor: "pink",
+    },
+  };
+
+  const current = sectorData[activeSector];
 
   return (
-    <div className="relative w-full rounded-3xl bg-gradient-to-b from-slate-900/90 via-[#081119] to-slate-950/95 border border-emerald-500/30 p-5 sm:p-6 shadow-2xl backdrop-blur-xl overflow-hidden group hover-glow-emerald">
-      {/* Subtle Background Glow Rings */}
-      <div className="absolute -top-24 -right-24 w-60 h-60 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none group-hover:scale-125 transition-transform duration-700" />
-      <div className="absolute -bottom-24 -left-24 w-60 h-60 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none group-hover:scale-125 transition-transform duration-700" />
+    <div className="relative w-full rounded-3xl bg-slate-900/90 border border-white/[0.1] p-5 sm:p-6 shadow-2xl backdrop-blur-2xl overflow-hidden group">
+      {/* Ambient Lighting Orbs */}
+      <div className="absolute -top-32 -right-32 w-72 h-72 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none group-hover:scale-125 transition-transform duration-700" />
+      <div className="absolute -bottom-32 -left-32 w-72 h-72 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none group-hover:scale-125 transition-transform duration-700" />
 
-      {/* Header with Mode Switcher & Real-time Telemetry Pulse */}
-      <div className="flex items-center justify-between pb-4 border-b border-slate-800/80">
-        <div className="flex items-center gap-2">
-          <span className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+      {/* Top Header: Telemetry Beacon & Sector Switcher */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/[0.08] relative z-10">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
             <Scan className="w-4 h-4 animate-pulse" />
-          </span>
+          </div>
           <div>
-            <span className="text-[10px] font-mono uppercase tracking-widest text-slate-400 block">
-              {isBn ? "মাল্টি-স্পেকট্রাল টেলি-ডায়াগনস্টিক ডেস্ক" : "Multi-Spectral Tele-Diagnostic Desk"}
-            </span>
-            <span className="text-xs font-bold text-white flex items-center gap-1.5">
-              <span>{isBn ? "এসআরওটি এআই ইঞ্জিন ৩.৪ (বাংলাদেশ)" : "SROT AI Tele-Health v3.4 BD"}</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-white font-mono">SROT CLINICAL HUD v3.5</span>
+              <span className="flex h-2 w-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-400 font-mono">
+              {isBn ? "লাইভ এআই ভিশন ও টেলি-মেডিসিন টার্মিনাল" : "Live Multi-Spectral Vision & Telemetry Terminal"}
+            </p>
           </div>
         </div>
 
-        {/* Sector mini-toggle inside graphic */}
-        <div className="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-700/60 text-[11px] font-bold">
+        {/* 3-Sector Navigation Tabs */}
+        <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-white/[0.08] text-xs font-bold">
           <button
-            onClick={() => setActiveTab("agri")}
-            className={`px-2.5 py-1 rounded-lg transition ${
-              activeTab === "agri"
+            onClick={() => setActiveSector("agri")}
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              activeSector === "agri"
                 ? "bg-emerald-600 text-white shadow-sm"
-                : "text-slate-400 hover:text-slate-200"
+                : "text-slate-400 hover:text-white"
             }`}
           >
-            {isBn ? "ধানের পাতা" : "Crop Leaf"}
+            <Wheat className="w-3.5 h-3.5" />
+            <span>{isBn ? "ফসল" : "Crops"}</span>
           </button>
           <button
-            onClick={() => setActiveTab("herd")}
-            className={`px-2.5 py-1 rounded-lg transition ${
-              activeTab === "herd"
+            onClick={() => setActiveSector("livestock")}
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              activeSector === "livestock"
                 ? "bg-cyan-600 text-white shadow-sm"
-                : "text-slate-400 hover:text-slate-200"
+                : "text-slate-400 hover:text-white"
             }`}
           >
-            {isBn ? "ডেইরি গরু" : "Bovine Herd"}
+            <Milk className="w-3.5 h-3.5" />
+            <span>{isBn ? "ডেইরি" : "Dairy"}</span>
           </button>
           <button
-            onClick={() => setActiveTab("pet")}
-            className={`px-2.5 py-1 rounded-lg transition ${
-              activeTab === "pet"
-                ? "bg-amber-600 text-white shadow-sm"
-                : "text-slate-400 hover:text-slate-200"
+            onClick={() => setActiveSector("pet")}
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 ${
+              activeSector === "pet"
+                ? "bg-pink-600 text-white shadow-sm"
+                : "text-slate-400 hover:text-white"
             }`}
           >
-            {isBn ? "পোষা প্রাণী" : "Companion Pet"}
+            <HeartHandshake className="w-3.5 h-3.5" />
+            <span>{isBn ? "পোষা প্রাণী" : "Pets"}</span>
           </button>
         </div>
       </div>
 
-      {/* Dynamic Graphic Display based on Sector */}
-      <div className="py-4">
-        {activeTab === "agri" && (
-          <div className="space-y-4">
-            {/* Simulated Multi-spectral leaf scanner display */}
-            <div className="relative rounded-2xl bg-gradient-to-br from-[#071612] via-[#0b1c18] to-slate-900 p-4 border border-emerald-500/30 overflow-hidden">
-              {/* Laser scanning beam */}
-              <div className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_12px_#34d399] animate-scan-laser pointer-events-none" />
+      {/* Main Visual Display: Real Photographic Visual with High-Tech Diagnostic HUD Overlays */}
+      <div className="relative mt-4 rounded-2xl overflow-hidden border border-white/[0.08] bg-slate-950 shadow-inner">
+        {/* Real High-Resolution Diagnostic Image */}
+        <div className="relative h-56 sm:h-64 w-full overflow-hidden">
+          <img
+            src={current.image}
+            alt={current.subject}
+            className="w-full h-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-black/40" />
 
-              <div className="flex items-center justify-between text-[11px] font-mono text-emerald-400 pb-2 border-b border-emerald-500/20">
-                <span className="flex items-center gap-1.5">
-                  <Wheat className="w-3.5 h-3.5" />
-                  {isBn ? "স্পেকট্রাল ব্যান্ড: বিআরআরআই ধান-২৮ • এনডিভিআই ০.৭২" : "SPECTRAL BAND: BRRI 28 • NDVI 0.72 | 840nm"}
-                </span>
-                <span className="bg-red-500/20 text-red-300 px-2 py-0.5 rounded text-[10px] font-bold border border-red-500/30">
-                  {isBn ? "ব্লাস্ট আক্রান্ত" : "BLAST DETECTED"}
-                </span>
-              </div>
+          {/* Animated Laser Scanning Beam */}
+          <div className="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_15px_#10b981] animate-scan-laser pointer-events-none" />
 
-              {/* Vector Diagnostic Graphic */}
-              <div className="relative h-36 w-full flex items-center justify-center my-2">
-                <svg
-                  viewBox="0 0 360 140"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-full h-full"
-                >
-                  {/* Grid Lines */}
-                  <line x1="20" y1="20" x2="340" y2="20" stroke="#064e3b" strokeDasharray="4 4" strokeWidth="0.8" />
-                  <line x1="20" y1="70" x2="340" y2="70" stroke="#064e3b" strokeDasharray="4 4" strokeWidth="0.8" />
-                  <line x1="20" y1="120" x2="340" y2="120" stroke="#064e3b" strokeDasharray="4 4" strokeWidth="0.8" />
-                  <line x1="90" y1="10" x2="90" y2="130" stroke="#064e3b" strokeDasharray="4 4" strokeWidth="0.8" />
-                  <line x1="180" y1="10" x2="180" y2="130" stroke="#064e3b" strokeDasharray="4 4" strokeWidth="0.8" />
-                  <line x1="270" y1="10" x2="270" y2="130" stroke="#064e3b" strokeDasharray="4 4" strokeWidth="0.8" />
+          {/* AI Reticle & Bounding Target Box */}
+          <div className="absolute top-1/4 left-1/4 w-36 h-28 border-2 border-emerald-400/80 rounded-xl pointer-events-none shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+            {/* Corner brackets */}
+            <span className="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-emerald-300" />
+            <span className="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-emerald-300" />
+            <span className="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-emerald-300" />
+            <span className="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-emerald-300" />
 
-                  {/* Stylized Rice Leaf Contour */}
-                  <path
-                    d="M30 110 C90 100, 160 50, 320 20 C240 70, 130 110, 30 110 Z"
-                    fill="url(#leaf-spectral-grad)"
-                    stroke="#10b981"
-                    strokeWidth="1.5"
-                  />
-                  {/* Midrib vein */}
-                  <path
-                    d="M30 110 C140 75, 230 45, 320 20"
-                    stroke="#059669"
-                    strokeWidth="1.2"
-                    strokeDasharray="2 2"
-                  />
-
-                  {/* Fungal Lesion Spot with Pinpoint Reticle */}
-                  <ellipse cx="175" cy="65" rx="16" ry="8" fill="#7f1d1d" fillOpacity="0.8" stroke="#ef4444" strokeWidth="1.5" />
-                  <ellipse cx="175" cy="65" rx="7" ry="3.5" fill="#f87171" />
-
-                  {/* Bounding Reticle Target */}
-                  <rect x="150" y="45" width="50" height="40" rx="4" fill="none" stroke="#38bdf8" strokeWidth="1.2" strokeDasharray="3 3" />
-                  {/* Corner accents */}
-                  <path d="M148 48 V43 H153" stroke="#38bdf8" strokeWidth="2" />
-                  <path d="M197 43 H202 V48" stroke="#38bdf8" strokeWidth="2" />
-                  <path d="M148 82 V87 H153" stroke="#38bdf8" strokeWidth="2" />
-                  <path d="M197 87 H202 V82" stroke="#38bdf8" strokeWidth="2" />
-
-                  {/* Label Callout */}
-                  <line x1="202" y1="55" x2="245" y2="35" stroke="#38bdf8" strokeWidth="1" />
-                  <rect x="245" y="24" width="98" height="22" rx="4" fill="#0f172a" stroke="#38bdf8" strokeWidth="0.8" />
-                  <text x="250" y="38" fill="#38bdf8" fontSize="8.5" fontWeight="bold" fontFamily="monospace">
-                    Pyricularia oryzae (98.4%)
-                  </text>
-
-                  <defs>
-                    <linearGradient id="leaf-spectral-grad" x1="30" y1="110" x2="320" y2="20" gradientUnits="userSpaceOnUse">
-                      <stop stopColor="#047857" />
-                      <stop offset="0.5" stopColor="#10b981" />
-                      <stop offset="0.75" stopColor="#ca8a04" />
-                      <stop offset="1" stopColor="#10b981" />
-                    </linearGradient>
-                  </defs>
-                </svg>
-              </div>
-
-              {/* Pathology Metric Pills */}
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-emerald-500/20 text-[10px]">
-                <div className="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
-                  <span className="text-slate-400 block font-mono">{isBn ? "রোগ নির্ণয়" : "INCIDENCE"}</span>
-                  <span className="font-bold text-red-400">{isBn ? "পাতার ব্লাস্ট দাগ" : "Leaf Blast Lesions"}</span>
-                </div>
-                <div className="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
-                  <span className="text-slate-400 block font-mono">{isBn ? "নিশ্চয়তা" : "CONFIDENCE"}</span>
-                  <span className="font-bold text-emerald-400">৯৮.৪% এআই ম্যাচ</span>
-                </div>
-                <div className="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
-                  <span className="text-slate-400 block font-mono">{isBn ? "প্রেসক্রিপশন" : "REC. SPRAY"}</span>
-                  <span className="font-bold text-cyan-300">ট্রাইসাইক্লাজল ৭৫ ডব্লিউপি</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Prescribing Doctor Stamp */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-xs">
-              <div className="flex items-center gap-2.5">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <div>
-                  <span className="text-[10px] text-slate-400 block">{isBn ? "যাচাইকৃত প্রধান উদ্ভিদ রোগতত্ত্ববিদ" : "Verified Plant Pathologist"}</span>
-                  <span className="font-bold text-white">{isBn ? "ড. তরিকুল ইসলাম • BRRI/BARC-AGRI-109" : "Dr. Tariqul Islam, Ph.D. • BRRI-109"}</span>
-                </div>
-              </div>
-              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/25">
-                {isBn ? "প্রেসক্রিপশন প্রস্তুত" : "Official Rx Issued"}
-              </span>
+            {/* Bounding box AI chip */}
+            <div className="absolute -top-3.5 left-2 px-2 py-0.5 rounded bg-emerald-500 text-slate-950 text-[9px] font-mono font-black flex items-center gap-1 shadow-md">
+              <Scan className="w-2.5 h-2.5" />
+              <span>AI DETECT: {current.confidence}</span>
             </div>
           </div>
-        )}
 
-        {activeTab === "herd" && (
-          <div className="space-y-4">
-            {/* Bovine Herd Telemetry Display */}
-            <div className="relative rounded-2xl bg-gradient-to-br from-[#081824] via-[#091f2e] to-slate-900 p-4 border border-cyan-500/30 overflow-hidden">
-              <div className="flex items-center justify-between text-[11px] font-mono text-cyan-400 pb-2 border-b border-cyan-500/20">
-                <span className="flex items-center gap-1.5">
-                  <HeartPulse className="w-3.5 h-3.5" />
-                  {isBn ? "গাভীর ভাইটালস: ফ্রিজিয়ান ক্রস HF-৮০২ (ময়মনসিংহ ক্লাস্টার)" : "BOVINE VITALS: HOLSTEIN-DESHI HF-802 BD"}
-                </span>
-                <span className="bg-cyan-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
-                  {isBn ? "টেলি-ভেটেরিনারি মনিটর" : "TELE-VET MONITOR"}
-                </span>
-              </div>
+          {/* Top Floating Target Pill */}
+          <div className="absolute top-3 left-3 flex items-center gap-2">
+            <span className="px-2.5 py-1 rounded-lg bg-black/75 backdrop-blur-md text-[10px] font-bold text-white border border-white/10 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <span>{current.subject}</span>
+            </span>
+          </div>
 
-              {/* Herd Vitals Graphic Curve */}
-              <div className="relative h-36 w-full flex items-center justify-center my-2">
-                <svg
-                  viewBox="0 0 360 140"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-full h-full"
-                >
-                  <line x1="20" y1="20" x2="340" y2="20" stroke="#083344" strokeDasharray="4 4" strokeWidth="0.8" />
-                  <line x1="20" y1="70" x2="340" y2="70" stroke="#083344" strokeDasharray="4 4" strokeWidth="0.8" />
-                  <line x1="20" y1="120" x2="340" y2="120" stroke="#083344" strokeDasharray="4 4" strokeWidth="0.8" />
+          {/* Top Right Severity Status */}
+          <div className="absolute top-3 right-3">
+            <span className="px-2.5 py-1 rounded-lg bg-rose-500/20 backdrop-blur-md text-[10px] font-mono font-bold text-rose-300 border border-rose-500/40">
+              {current.severity}
+            </span>
+          </div>
 
-                  {/* Rumination & Temperature Telemetry Line */}
-                  <path
-                    d="M20 90 Q 50 85, 80 88 T 140 70 T 200 45 T 260 55 T 320 60"
-                    fill="none"
-                    stroke="#38bdf8"
-                    strokeWidth="2.5"
-                  />
-                  {/* Rumination Rhythm wave */}
-                  <path
-                    d="M20 90 L 40 90 L 45 75 L 50 105 L 55 90 L 80 88 L 85 70 L 90 110 L 95 88 L 140 70 L 145 50 L 150 90 L 155 70 L 200 45 L 205 25 L 210 65 L 215 45 L 260 55 L 265 40 L 270 70 L 275 55 L 340 60"
-                    fill="none"
-                    stroke="#06b6d4"
-                    strokeWidth="1.2"
-                    strokeOpacity="0.8"
-                  />
-
-                  {/* High Somatic Cell Count Alert Point */}
-                  <circle cx="205" cy="25" r="5" fill="#ef4444" className="animate-ping" />
-                  <circle cx="205" cy="25" r="3.5" fill="#ef4444" />
-                  <line x1="205" y1="25" x2="235" y2="15" stroke="#ef4444" strokeWidth="1" />
-                  <rect x="235" y="5" width="115" height="22" rx="4" fill="#0f172a" stroke="#ef4444" strokeWidth="0.8" />
-                  <text x="240" y="19" fill="#f87171" fontSize="8.5" fontWeight="bold" fontFamily="monospace">
-                    SCC 650K (ম্যাস্টাইটিস +)
-                  </text>
-                </svg>
-              </div>
-
-              {/* Vitals Cards */}
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-cyan-500/20 text-[10px]">
-                <div className="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
-                  <span className="text-slate-400 block font-mono">{isBn ? "শরীরের তাপমাত্রা" : "RECTAL TEMP"}</span>
-                  <span className="font-bold text-amber-400">৩৯.৪°C (জ্বর)</span>
-                </div>
-                <div className="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
-                  <span className="text-slate-400 block font-mono">{isBn ? "জাবর কাটা" : "RUMINATION"}</span>
-                  <span className="font-bold text-red-400">৩২০ মিনিট (-৩৫%)</span>
-                </div>
-                <div className="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
-                  <span className="text-slate-400 block font-mono">{isBn ? "দুধ বর্জন (Withhold)" : "MILK WITHHOLD"}</span>
-                  <span className="font-bold text-cyan-300">৭২ ঘণ্টা কঠোর নিয়ম</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Surgeon Review */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-xs">
-              <div className="flex items-center gap-2.5">
-                <ShieldCheck className="w-4 h-4 text-cyan-400" />
-                <div>
-                  <span className="text-[10px] text-slate-400 block">{isBn ? "বাংলাদেশ ভেটেরিনারি কাউন্সিল (BVC) নিবন্ধিত" : "Veterinary Council Accredited"}</span>
-                  <span className="font-bold text-white">{isBn ? "ডা. অনন্যা সেন, ডিভিএম • BVC-VET-BD-2024" : "Dr. Ananya Sen, D.V.M. • BVC-BD-2024"}</span>
-                </div>
-              </div>
-              <span className="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/25">
-                {isBn ? "ইন্ট্রাম্যামারি ইনফিউশন" : "Intramammary Infusion"}
+          {/* Floating Clinician Picture-in-Picture Card (Tele-Health Link) */}
+          <div className="absolute bottom-3 right-3 p-2 rounded-xl bg-slate-900/95 border border-white/[0.15] shadow-2xl backdrop-blur-md flex items-center gap-2.5 max-w-[210px]">
+            <img
+              src={current.doctor.avatar}
+              alt={current.doctor.name}
+              className="w-10 h-10 rounded-lg object-cover border border-emerald-500/60 shrink-0"
+            />
+            <div className="min-w-0">
+              <span className="text-[9px] font-mono text-emerald-400 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                Live on Duty
               </span>
+              <p className="text-xs font-bold text-white truncate">{current.doctor.name}</p>
+              <p className="text-[9px] text-slate-400 truncate">{current.doctor.title.split("•")[1] || "Consultant"}</p>
             </div>
           </div>
-        )}
 
-        {activeTab === "pet" && (
-          <div className="space-y-4">
-            {/* Pet Tele-Vet Display */}
-            <div className="relative rounded-2xl bg-gradient-to-br from-[#1c1208] via-[#24170a] to-slate-900 p-4 border border-amber-500/30 overflow-hidden">
-              <div className="flex items-center justify-between text-[11px] font-mono text-amber-400 pb-2 border-b border-amber-500/20">
-                <span className="flex items-center gap-1.5">
-                  <Activity className="w-3.5 h-3.5" />
-                  {isBn ? "পোষা কুকুর: গোল্ডেন রিট্রিভার (৩১.৫ কেজি • ঢাকা)" : "COMPANION CANINE: DHAKA (31.5 KG)"}
-                </span>
-                <span className="bg-amber-500/20 px-2 py-0.5 rounded text-[10px] font-bold">
-                  {isBn ? "চর্মরোগ ট্রায়াজ" : "DERMATOLOGY TRIAGE"}
-                </span>
-              </div>
-
-              {/* Pet Dermatology Curve */}
-              <div className="relative h-36 w-full flex items-center justify-center my-2">
-                <svg
-                  viewBox="0 0 360 140"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-full h-full"
-                >
-                  <line x1="20" y1="20" x2="340" y2="20" stroke="#451a03" strokeDasharray="4 4" strokeWidth="0.8" />
-                  <line x1="20" y1="70" x2="340" y2="70" stroke="#451a03" strokeDasharray="4 4" strokeWidth="0.8" />
-                  <line x1="20" y1="120" x2="340" y2="120" stroke="#451a03" strokeDasharray="4 4" strokeWidth="0.8" />
-
-                  {/* Pruritus score waveform */}
-                  <path
-                    d="M20 70 C60 70, 80 40, 120 40 C160 40, 180 90, 220 90 C260 90, 280 30, 340 30"
-                    fill="none"
-                    stroke="#f59e0b"
-                    strokeWidth="2.5"
-                  />
-                  <circle cx="280" cy="30" r="4" fill="#f59e0b" />
-                  <rect x="210" y="8" width="130" height="20" rx="4" fill="#0f172a" stroke="#f59e0b" strokeWidth="0.8" />
-                  <text x="215" y="21" fill="#fbbf24" fontSize="8.5" fontWeight="bold" fontFamily="monospace">
-                    {isBn ? "চুলকানি স্কোর: ৮.৫/১০" : "Pruritus Score: 8.5/10"}
-                  </text>
-                </svg>
-              </div>
-
-              {/* Pet Metrics */}
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-amber-500/20 text-[10px]">
-                <div className="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
-                  <span className="text-slate-400 block font-mono">{isBn ? "সমস্যা" : "DIAGNOSIS"}</span>
-                  <span className="font-bold text-amber-300">{isBn ? "এটোপিক ডার্মাটাইটিস" : "Atopic Dermatitis"}</span>
-                </div>
-                <div className="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
-                  <span className="text-slate-400 block font-mono">{isBn ? "ওজনভিত্তিক ডোজ" : "WEIGHT TITRATED"}</span>
-                  <span className="font-bold text-emerald-400">১৬ মিগ্রা দিনে ২ বার</span>
-                </div>
-                <div className="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
-                  <span className="text-slate-400 block font-mono">{isBn ? "ওষুধ" : "FORMULATION"}</span>
-                  <span className="font-bold text-cyan-300">ওকলাসিটিনিব ওরাল</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Small animal vet */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-xs">
-              <div className="flex items-center gap-2.5">
-                <ShieldCheck className="w-4 h-4 text-amber-400" />
-                <div>
-                  <span className="text-[10px] text-slate-400 block">{isBn ? "ছোট প্রাণী ও পোষা জীব চিকিৎসক" : "Small Animal Clinician"}</span>
-                  <span className="font-bold text-white">{isBn ? "ডা. ফারহানা হক, ডিভিএম • BVC-9912" : "Dr. Farhana Haque, D.V.M. • BVC-9912"}</span>
-                </div>
-              </div>
-              <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/25">
-                {isBn ? "অ্যালার্জি প্ল্যান সক্রিয়" : "Allergy Plan Active"}
-              </span>
-            </div>
+          {/* Bottom Left Subject Stage Indicator */}
+          <div className="absolute bottom-3 left-3 hidden sm:block">
+            <span className="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md text-[10px] text-slate-300 font-mono">
+              {current.stage}
+            </span>
           </div>
-        )}
+        </div>
+
+        {/* Middle Telemetry Grid Strip */}
+        <div className="grid grid-cols-3 divide-x divide-white/[0.06] bg-slate-950 border-t border-white/[0.08] text-[11px] p-2.5">
+          {current.telemetry.map((t, idx) => (
+            <div key={idx} className="px-2 text-center">
+              <span className="text-[10px] text-slate-400 block font-mono">{t.label}</span>
+              <span className="font-mono font-black text-white text-xs mt-0.5 block">{t.value}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Bottom Action Footer with Live Prescription Link */}
-      <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 text-slate-400 text-[11px]">
-          <FileText className="w-3.5 h-3.5 text-emerald-400" />
-          <span>{isBn ? "কিউআর ভেরিফাইড অফিসিয়াল ডিজিটাল এ৪ প্রেসক্রিপশন" : "Legally Verifiable Digital PDF Rx with QR Checksum"}</span>
+      {/* Certified Prescription Token Banner (Bottom Row) */}
+      <div className="mt-4 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-slate-950 to-slate-950 border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
+            <FileText className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-white">{current.rxItem}</span>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-bold">
+                {current.rxDose}
+              </span>
+            </div>
+            <p className="text-[11px] text-amber-300 font-mono mt-0.5">
+              ⚠ {current.withholding}
+            </p>
+          </div>
         </div>
+
         <Link
-          href={`/consult/${activeTab === "agri" ? "consult-agri-101" : activeTab === "herd" ? "consult-vet-202" : "consult-pet-303"}`}
-          className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 group-hover:translate-x-1 transition-transform"
+          href={`/consult/${current.caseId}`}
+          className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shrink-0 shadow-md"
         >
-          <span>{isBn ? "লাইভ চেম্বার দেখুন" : "Examine Case Room"}</span>
-          <span>&rarr;</span>
+          <span>{isBn ? "লাইভ চেম্বারে যান" : "Enter Chamber"}</span>
+          <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
     </div>
