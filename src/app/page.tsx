@@ -121,21 +121,21 @@ export default function HomePage() {
       <OutbreakAlertBanner />
 
       {/* ========================================================================= */}
-      {/* 2. HERO SECTION: CLEAN, IMPACTFUL & EXECUTIVE-GRADE DESIGN */}
+      {/* 2. HERO SECTION: COMPACT, HIGH-DENSITY & EXECUTIVE-GRADE DESIGN */}
       {/* ========================================================================= */}
-      <section className="relative pt-12 pb-20 md:pt-20 md:pb-28 overflow-hidden border-b border-white/[0.06]">
+      <section className="relative py-6 sm:py-8 lg:py-10 overflow-hidden border-b border-white/[0.06]">
         {/* Soft Radial Ambient Glow */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[850px] h-[380px] bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-cyan-500/15 blur-[140px] rounded-full pointer-events-none" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[650px] h-[280px] bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-cyan-500/15 blur-[120px] rounded-full pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
             {/* Left 7 Cols: Executive Headline, Value Proposition & Launchpad */}
-            <div className="lg:col-span-7 space-y-7">
+            <div className="lg:col-span-7 space-y-4">
               {/* Trust & Council Accreditation Pill */}
-              <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold backdrop-blur-md shadow-sm">
-                <span className="flex h-2.5 w-2.5 relative shrink-0">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[11px] font-semibold backdrop-blur-md shadow-sm">
+                <span className="flex h-2 w-2 relative shrink-0">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                 </span>
                 <span>
                   {isBn
@@ -144,8 +144,8 @@ export default function HomePage() {
                 </span>
               </div>
 
-              {/* Bold Executive Headline */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.12]">
+              {/* Bold Compact Executive Headline */}
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight">
                 {isBn ? (
                   <>
                     মাঠের ফসল, ডেইরি খামার ও পোষা প্রাণীর আধুনিক স্বাস্থ্যসেবা এবং{" "}
@@ -163,17 +163,17 @@ export default function HomePage() {
                 )}
               </h1>
 
-              {/* Refined Sub-headline */}
-              <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl font-normal">
+              {/* Refined Compact Sub-headline */}
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-xl font-normal">
                 {isBn
-                  ? "ধানের ব্লাস্ট বা ক্ষতিকর পোকা, ডেইরি গাভীর ওলান পাকা (Mastitis) কিংবা পোষা বিড়াল ও কুকুরের অসুস্থতায় ১৫ মিনিটে লাইভ ভিডিও ও ফটোতে সার্টিফাইড বিশেষজ্ঞ পরামর্শ এবং কিউআর সিলযুক্ত ডিজিটাল প্রেসক্রিপশন গ্রহণ করুন।"
-                  : "Connect with certified plant pathologists, bovine veterinarians, and small animal clinicians in under 15 minutes. Receive real-time AI visual triage, live tele-consultation, and tamper-proof official digital prescriptions with statutory withholding safety intervals."}
+                  ? "ধানের ব্লাস্ট বা পোকা, গাভীর ম্যাসটাইটিস কিংবা পোষা প্রাণীর জরুরি সমস্যায় ১৫ মিনিটে লাইভ ভিডিও বা ফটোতে সার্টিফাইড বিশেষজ্ঞ পরামর্শ এবং কিউআর সিলযুক্ত বৈধ প্রেসক্রিপশন নিন।"
+                  : "Connect with certified plant pathologists, bovine veterinarians, and small animal clinicians in under 15 minutes. Instant AI visual triage, live tele-consultation, and tamper-proof digital prescriptions."}
               </p>
 
-              {/* UNIFIED FAST-ACTION SEARCH & TRIAGE BAR */}
-              <div className="p-2.5 rounded-2xl bg-slate-900/90 border border-white/[0.12] shadow-2xl backdrop-blur-2xl space-y-2.5 focus-within:border-emerald-500/50 transition-colors">
-                <div className="flex items-center gap-2 px-3.5 py-1 bg-slate-950/80 rounded-xl border border-white/[0.06]">
-                  <Search className="w-4 h-4 text-emerald-400 shrink-0" />
+              {/* UNIFIED COMPACT FAST-ACTION SEARCH BAR */}
+              <div className="p-2 rounded-xl bg-slate-900/90 border border-white/[0.12] shadow-xl backdrop-blur-xl space-y-1.5 focus-within:border-emerald-500/50 transition-colors">
+                <div className="flex items-center gap-2 px-3 py-0.5 bg-slate-950/80 rounded-lg border border-white/[0.06]">
+                  <Search className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                   <input
                     type="text"
                     value={searchQuery}
@@ -183,26 +183,26 @@ export default function HomePage() {
                         ? "ফসলের রোগ, গরুর লক্ষণ, পোষা প্রাণীর সমস্যা বা ডাক্তার খুঁজুন..."
                         : "Search crop pest, bovine symptom, pet query, or specialist doctor..."
                     }
-                    className="w-full bg-transparent text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none py-2 font-medium"
+                    className="w-full bg-transparent text-xs text-white placeholder:text-slate-500 focus:outline-none py-1.5 font-medium"
                   />
                   <Link
                     href={`/consult${searchQuery ? `?query=${encodeURIComponent(searchQuery)}` : ""}`}
-                    className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shrink-0 shadow-md shadow-emerald-950/60"
+                    className="px-3.5 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shrink-0 shadow-sm"
                   >
-                    {isBn ? "পরামর্শ নিন" : "Start Triage"}
+                    {isBn ? "পরামর্শ" : "Triage"}
                   </Link>
                 </div>
 
-                {/* Quick Suggestion Chips */}
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 px-1 text-[11px]">
+                {/* Compact Quick Suggestion Chips */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 px-0.5 text-[10px]">
                   <span className="text-slate-400 font-semibold shrink-0">
-                    {isBn ? "জনপ্রিয় ট্রায়াজ:" : "Quick Triage:"}
+                    {isBn ? "জনপ্রিয়:" : "Popular:"}
                   </span>
                   {quickSearchChips.map((chip, i) => (
                     <Link
                       key={i}
                       href={`/consult?category=${chip.category}&query=${chip.query}`}
-                      className="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-emerald-500/10 hover:text-emerald-300 text-slate-300 border border-white/[0.06] transition whitespace-nowrap"
+                      className="px-2 py-0.5 rounded-md bg-white/[0.04] hover:bg-emerald-500/10 hover:text-emerald-300 text-slate-300 border border-white/[0.06] transition whitespace-nowrap"
                     >
                       {chip.label}
                     </Link>
@@ -211,57 +211,66 @@ export default function HomePage() {
               </div>
 
               {/* Action Buttons & Fast CTAs */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
+              <div className="flex flex-wrap items-center gap-2.5 pt-1">
                 <Link
                   href="/consult"
-                  className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs sm:text-sm transition shadow-xl shadow-emerald-500/25 hover:-translate-y-0.5"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs transition shadow-lg shadow-emerald-500/20 hover:-translate-y-0.5"
                 >
-                  <CalendarCheck className="w-4 h-4 text-slate-950" />
-                  <span>{isBn ? "ডাক্তারের পরামর্শ শুরু করুন" : "Book Doctor Consultation"}</span>
-                  <ArrowRight className="w-4 h-4 text-slate-950" />
+                  <CalendarCheck className="w-3.5 h-3.5 text-slate-950" />
+                  <span>{isBn ? "ডাক্তার বুক করুন" : "Book Doctor Consultation"}</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-950" />
                 </Link>
 
                 <button
                   onClick={() => setIsCalculatorOpen(true)}
-                  className="inline-flex items-center gap-2 px-5 py-4 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-emerald-400 border border-emerald-500/40 font-bold text-xs sm:text-sm transition hover:-translate-y-0.5"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-emerald-400 border border-emerald-500/30 font-bold text-xs transition hover:-translate-y-0.5"
                 >
-                  <Calculator className="w-4 h-4" />
-                  <span>{isBn ? "ডোজ ক্যালকুলেটর" : "Dosage Calculator"}</span>
+                  <Calculator className="w-3.5 h-3.5" />
+                  <span>{isBn ? "ডোজ হিসাব" : "Dosage Calculator"}</span>
                 </button>
 
                 <Link
                   href="/farmer-portal#packages"
-                  className="inline-flex items-center gap-2 px-5 py-4 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 border border-white/[0.08] font-bold text-xs sm:text-sm transition"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 border border-white/[0.08] font-bold text-xs transition"
                 >
-                  <Sparkles className="w-4 h-4 text-emerald-400" />
-                  <span>{isBn ? "খামার প্যাকেজ (৳১৯৯)" : "Care Packages (৳199)"}</span>
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{isBn ? "প্যাকেজ (৳১৯৯)" : "Care Packages (৳199)"}</span>
+                </Link>
+
+                <Link
+                  href="/features"
+                  className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-bold text-xs transition"
+                  title="Explore Full Platform Features Tour"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>{isBn ? "সকল ফিচারসমূহ" : "Features"}</span>
                 </Link>
               </div>
 
-              {/* Trust Metrics Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-white/[0.08]">
-                <div className="p-3 rounded-2xl bg-slate-950/60 border border-white/[0.04]">
-                  <span className="text-xl sm:text-2xl font-black text-white font-mono block">১৪০+</span>
-                  <span className="text-[11px] text-slate-400 font-medium">
-                    {isBn ? "কাউন্সিল সার্জন ও কৃষিবিদ" : "Licensed Specialists"}
+              {/* Single-Row Compact Trust Stats Strip */}
+              <div className="grid grid-cols-4 gap-2 pt-3 border-t border-white/[0.08] text-center">
+                <div className="p-2 rounded-lg bg-slate-950/50 border border-white/[0.04]">
+                  <span className="text-base sm:text-lg font-black text-white font-mono block">140+</span>
+                  <span className="text-[10px] text-slate-400 truncate block">
+                    {isBn ? "সার্জন ও কৃষিবিদ" : "Specialists"}
                   </span>
                 </div>
-                <div className="p-3 rounded-2xl bg-slate-950/60 border border-white/[0.04]">
-                  <span className="text-xl sm:text-2xl font-black text-emerald-400 font-mono block">&lt; ১৫ মিনিট</span>
-                  <span className="text-[11px] text-slate-400 font-medium">
-                    {isBn ? "গড় সাড়া প্রদানের সময়" : "Avg Response Time"}
+                <div className="p-2 rounded-lg bg-slate-950/50 border border-white/[0.04]">
+                  <span className="text-base sm:text-lg font-black text-emerald-400 font-mono block">&lt; 15m</span>
+                  <span className="text-[10px] text-slate-400 truncate block">
+                    {isBn ? "সাড়া প্রদানের সময়" : "Avg Triage"}
                   </span>
                 </div>
-                <div className="p-3 rounded-2xl bg-slate-950/60 border border-white/[0.04]">
-                  <span className="text-xl sm:text-2xl font-black text-cyan-400 font-mono block">৳১৯৯</span>
-                  <span className="text-[11px] text-slate-400 font-medium">
-                    {isBn ? "মাসিক কেয়ার শুরু" : "Starting Monthly Care"}
+                <div className="p-2 rounded-lg bg-slate-950/50 border border-white/[0.04]">
+                  <span className="text-base sm:text-lg font-black text-cyan-400 font-mono block">৳199</span>
+                  <span className="text-[10px] text-slate-400 truncate block">
+                    {isBn ? "মাসিক কেয়ার" : "Starting Plan"}
                   </span>
                 </div>
-                <div className="p-3 rounded-2xl bg-slate-950/60 border border-white/[0.04]">
-                  <span className="text-xl sm:text-2xl font-black text-amber-400 font-mono block">১০০%</span>
-                  <span className="text-[11px] text-slate-400 font-medium">
-                    {isBn ? "যাচাইকৃত প্রেসক্রিপশন" : "Verifiable Digital Rx"}
+                <div className="p-2 rounded-lg bg-slate-950/50 border border-white/[0.04]">
+                  <span className="text-base sm:text-lg font-black text-amber-400 font-mono block">100%</span>
+                  <span className="text-[10px] text-slate-400 truncate block">
+                    {isBn ? "অনুমোদিত প্রেসক্রিপশন" : "Certified Rx"}
                   </span>
                 </div>
               </div>
