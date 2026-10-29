@@ -2,32 +2,25 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { PLATFORM_SERVICES, ServiceCategory } from "@/data/mockServices";
 import { PLATFORM_EXPERTS } from "@/data/mockExperts";
-import { KNOWLEDGE_ARTICLES } from "@/data/mockKnowledge";
 import { INITIAL_CONSULTATIONS } from "@/data/mockConsultations";
-import { ServiceCard } from "@/components/cards/ServiceCard";
-import { ExpertCard } from "@/components/cards/ExpertCard";
-import { KnowledgeCard } from "@/components/cards/KnowledgeCard";
-import { ConsultationCard } from "@/components/cards/ConsultationCard";
 import { useUserStore } from "@/lib/store/userStore";
 import { useLanguageStore } from "@/lib/store/languageStore";
 import { generatePrescriptionPdf } from "@/lib/prescriptionGenerator";
+import { formatCurrency } from "@/lib/utils";
+
+// Feature Components
+import { OutbreakAlertBanner } from "@/components/features/OutbreakAlertBanner";
+import { HeroVisualGraphic } from "@/components/features/HeroVisualGraphic";
+import { AccreditationBadges } from "@/components/features/AccreditationBadges";
 import { AiSymptomScanner } from "@/components/features/AiSymptomScanner";
 import { AgroWeatherRadar } from "@/components/features/AgroWeatherRadar";
-import { OutbreakAlertBanner } from "@/components/features/OutbreakAlertBanner";
-import { PricingComparisonTable } from "@/components/features/PricingComparisonTable";
+import { SoilHealthInterpreter } from "@/components/features/SoilHealthInterpreter";
+import { CropLivestockCalendar } from "@/components/features/CropLivestockCalendar";
+import { FarmHealthPackages } from "@/components/features/FarmHealthPackages";
 import { VerifiedTestimonials } from "@/components/features/VerifiedTestimonials";
 import { DosageCalculatorModal } from "@/components/features/DosageCalculatorModal";
-import { HeroVisualGraphic } from "@/components/features/HeroVisualGraphic";
-import { CropLivestockCalendar } from "@/components/features/CropLivestockCalendar";
-import { SoilHealthInterpreter } from "@/components/features/SoilHealthInterpreter";
-import { AccreditationBadges } from "@/components/features/AccreditationBadges";
-import { MOCK_COMMUNITY_QUESTIONS, CommunityQuestion } from "@/data/mockCommunity";
-import { QuestionCard } from "@/components/community/QuestionCard";
-import { QuestionDetailModal } from "@/components/community/QuestionDetailModal";
-import { AskQuestionModal } from "@/components/community/AskQuestionModal";
-import { FarmHealthPackages } from "@/components/features/FarmHealthPackages";
+
 import {
   Wheat,
   Milk,
@@ -36,922 +29,841 @@ import {
   CalendarCheck,
   ArrowRight,
   Sparkles,
-  Users,
   CheckCircle2,
   FileCheck2,
-  Sliders,
-  Layers,
   Clock,
   Download,
-  AlertTriangle,
   Stethoscope,
   Video,
   Camera,
   Search,
-  Check,
   ChevronDown,
   PhoneCall,
-  HelpCircle,
   Calculator,
   Activity,
   Scan,
+  FlaskConical,
+  CloudSun,
+  Truck,
+  Check,
+  ChevronRight,
+  FileText,
+  BadgeCheck,
+  Lock,
+  Layers,
 } from "lucide-react";
 
 export default function HomePage() {
   const { language } = useLanguageStore();
   const isBn = language === "bn";
-  const [activeCategory, setActiveCategory] = useState<ServiceCategory | "all">("all");
-  const [heroSector, setHeroSector] = useState<"agri" | "livestock" | "pet">("agri");
-  const [heroRightTab, setHeroRightTab] = useState<"graphic" | "triage">("graphic");
-  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
-  const [homeQuestions, setHomeQuestions] = useState<CommunityQuestion[]>(MOCK_COMMUNITY_QUESTIONS);
-  const [activeCommunityQuestion, setActiveCommunityQuestion] = useState<CommunityQuestion | null>(null);
-  const [isHomeAskModalOpen, setIsHomeAskModalOpen] = useState(false);
   const { openRoleModal, currentUser } = useUserStore();
 
-  const filteredServices =
-    activeCategory === "all"
-      ? PLATFORM_SERVICES
-      : PLATFORM_SERVICES.filter((s) => s.category === activeCategory);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
+  const [activeSuiteTab, setActiveSuiteTab] = useState<"ai_scan" | "weather" | "soil" | "calendar">("ai_scan");
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
-  // Quick Triage Demo Presets for Hero Interactive Simulator (Bilingual)
-  const heroTriagePresets = {
-    agri: {
-      tag: isBn ? "উদ্ভিদ রোগতত্ত্ব ট্রায়াজ" : "Crop Disease Triage",
-      title: isBn ? "বোরো ধানের পাতা ব্লাস্ট (Pyricularia oryzae)" : "Rice Blast (Pyricularia oryzae)",
-      symptom: isBn ? "কুশি গজানো ধানের পাতায় মাকু আকৃতির চোখা বাদামি দাগ" : "Diamond spindle lesions on tillering leaves",
-      doctor: isBn ? "ড. তরিকুল ইসলাম (প্রধান উদ্ভিদ রোগতত্ত্ববিদ)" : "Dr. Tariqul Islam, Ph.D. (Chief Pathologist)",
-      solution: isBn ? "ট্রাইসাইক্লাজল ৭৫ ডব্লিউপি + জমিতে পরিমিত পানি রাখা" : "Tricyclazole 75% WP + Silica Soil Amendment",
-      safety: isBn ? "ফসল কাটার ২১ দিন পূর্বে স্প্রে বন্ধ রাখুন (Withholding)" : "21 Days Pre-Harvest Withholding Period",
-      sampleCaseId: "consult-agri-101",
-      icon: <Wheat className="w-5 h-5 text-emerald-400" />,
-      color: "border-emerald-500/40 bg-emerald-950/30",
-    },
-    livestock: {
-      tag: isBn ? "ডেইরি ভেটেরিনারি ট্রায়াজ" : "Dairy Veterinary Triage",
-      title: isBn ? "গাভীর তীব্র ওলান পাকা রোগ (Acute Bovine Mastitis)" : "Acute Bovine Mastitis (Hind Quarter)",
-      symptom: isBn ? "পেছনের বাঁট অস্বাভাবিক ফোলা, ওলান গরম ও দুধে ছানা থোকা" : "Swollen hot quarter with milk curdling",
-      doctor: isBn ? "ডা. অনন্যা সেন, ডিভিএম (ভেটেরিনারি সার্জন)" : "Dr. Ananya Sen, D.V.M. (Veterinary Surgeon)",
-      solution: isBn ? "ইন্ট্রাম্যামারি অ্যান্টিবায়োটিক ইনফিউশন + বরফ-পানি সেঁক" : "Intramammary Infusion + Cold Water Hydrotherapy",
-      safety: isBn ? "চিকিৎসা চলাকালীন ও পরবর্তী ৭২ ঘণ্টা দুধ বিক্রি বন্ধ" : "72 Hours Strict Milk Withholding Interval",
-      sampleCaseId: "consult-vet-202",
-      icon: <Milk className="w-5 h-5 text-cyan-400" />,
-      color: "border-cyan-500/40 bg-cyan-950/30",
-    },
-    pet: {
-      tag: isBn ? "পোষা প্রাণী টেলি-ভেটেরিনারি" : "Companion Pet Tele-Vet",
-      title: isBn ? "কুকুর ও বিড়ালের অ্যালার্জি ডার্মাটাইটিস ও চুলকানি" : "Canine Atopic Dermatitis & Ear Pruritus",
-      symptom: isBn ? "ঘন ঘন পা চাটা, তলপেটে লালচে ফুসকুড়ি ও চুলকানি" : "Intense paw licking, red inflamed groin",
-      doctor: isBn ? "ডা. ফারহানা হক, ডিভিএম (স্মল অ্যানিমেল স্পেশালিস্ট)" : "Dr. Farhana Haque, D.V.M. (Small Animal Clinician)",
-      solution: isBn ? "ওজনভিত্তিক ওকলাসিটিনিব + হাইপোঅ্যালার্জিক ড্রপ" : "Weight-Titrated Oclacitinib + Otic Drops",
-      safety: isBn ? "ওজন অনুসারে সঠিক মাত্রায় সেব্য (৩১.৫ কেজি)" : "Weight-specific dosage verified (31.5 kg)",
-      sampleCaseId: "consult-pet-303",
-      icon: <HeartHandshake className="w-5 h-5 text-amber-400" />,
-      color: "border-amber-500/40 bg-amber-950/30",
-    },
-  };
+  // Quick Triage Search Suggestions
+  const quickSearchChips = [
+    { label: isBn ? "ধানের ব্লাস্ট রোগ" : "Rice Leaf Blast", category: "agri", query: "blast" },
+    { label: isBn ? "গাভীর ওলান পাকা (Mastitis)" : "Bovine Mastitis", category: "veterinary", query: "mastitis" },
+    { label: isBn ? "কুকুর/বিড়ালের অ্যালার্জি" : "Pet Skin Allergy", category: "pet", query: "allergy" },
+    { label: isBn ? "মাটির পিএইচ ও সার" : "Soil NPK Balance", category: "agri", query: "soil" },
+  ];
 
-  const currentPreset = heroTriagePresets[heroSector];
+  // Frequently Asked Questions
+  const faqs = [
+    {
+      q: isBn
+        ? "এসআরওটি (SROT) এর ডিজিটাল প্রেসক্রিপশন স্থানীয় ফার্মেসিতে গ্রহণযোগ্য কি না?"
+        : "Is SROT's digital prescription legally accepted at local agro-chemical dealers and pharmacies?",
+      a: isBn
+        ? "হ্যাঁ, সম্পূর্ণ বৈধ। আমাদের প্রতিটি প্রেসক্রিপশনে বাংলাদেশ ভেটেরিনারি কাউন্সিল (BVC) অথবা কৃষি সম্প্রসারণ অধিদপ্তর (DAE) এর নিবন্ধিত বিশেষজ্ঞ চিকিৎসকের নাম, সরকারি রেজিস্ট্রেশন নম্বর এবং ভেরিফিকেশন কিউআর কোড থাকে। ফার্মেসি যেকোনো স্মার্টফোন দিয়ে কিউআর স্ক্যান করে তাৎক্ষণিক অনুমোদন যাচাই করতে পারে।"
+        : "Yes, 100% accepted. Every prescription issued through SROT carries the clinician's verifiable state registration number (BVC / DAE), license seal, and a tamper-proof QR code that any local retailer or pharmacy can scan to verify authenticity.",
+    },
+    {
+      q: isBn
+        ? "পরামর্শ ফি কীভাবে পরিশোধ করব? বিকাশ ও নগদ কি চালু আছে?"
+        : "How do I pay consultation fees? Are bKash and Nagad supported?",
+      a: isBn
+        ? "খুব সহজেই বিকাশ, নগদ ও রকেটের মাধ্যমে মাত্র কয়েক সেকেন্ডে ফি পরিশোধ করা যায়। পেমেন্ট সম্পন্ন হওয়ামাত্রই আপনার নামে সুরক্ষিত ডিজিটাল মানি রসিদ ও লাইভ কনসালটেশন চেম্বার পাস তৈরি হয়।"
+        : "Payment is seamless via bKash, Nagad, and Rocket mobile wallets. An official cash memo and secure consultation room token are generated immediately upon checkout.",
+    },
+    {
+      q: isBn
+        ? "গ্রামাঞ্চলে দুর্বল ইন্টারনেটে ভিডিও বা অডিও কল কি সঠিকভাবে চলবে?"
+        : "How does tele-advisory perform in rural areas with low-bandwidth 3G or 4G connections?",
+      a: isBn
+        ? "আমাদের ইঞ্জিনটি বাংলাদেশের প্রত্যন্ত চরাঞ্চল ও গ্রামাঞ্চলের কথা মাথায় রেখে লো-ব্যান্ডউইথ অপটিমাইজড। যদি ইন্টারনেট অতিরিক্ত ধীরগতির হয়, প্ল্যাটফর্মটি স্বয়ংক্রিয়ভাবে হাই-রেজোলিউশন ফটো ট্রায়াজ এবং সিকিউর ভয়েস নোটে সুইচ করে।"
+        : "SROT's WebRTC tele-health core is tuned specifically for rural Bangladesh bandwidth constraints. If a video signal drops, it automatically degrades smoothly to crystal-clear VoIP audio and high-resolution photo triage.",
+    },
+    {
+      q: isBn
+        ? "উইথহোল্ডিং বা নিরাপদ প্রত্যাহার সময়সীমা কী এবং এটি কেন গুরুত্বপূর্ণ?"
+        : "What is the mandatory withholding period (withdrawal interval) on prescriptions?",
+      a: isBn
+        ? "এটি অত্যন্ত গুরুত্বপূর্ণ খাদ্য নিরাপত্তা বিধি। কোনো গাভীকে অ্যান্টিবায়োটিক দেওয়া হলে কত ঘণ্টা দুধ বিক্রি করা যাবে না (যেমন: ৭২ ঘণ্টা), কিংবা ধানে কীটনাশক স্প্রে করার পর কতদিন ফসল তোলা যাবে না—তা প্রেসক্রিপশনে স্পষ্টভাবে উল্লেখ থাকে। এটি ভোক্তাদের ক্যান্সার ও অ্যান্টিবায়োটিক রেজিস্ট্যান্স থেকে রক্ষা করে।"
+        : "A withholding period is the statutory interval required between administering a chemical spray or antibiotic and harvesting crops or consuming milk/meat. SROT strictly enforces this to prevent hazardous pesticide and antimicrobial residues in Bangladesh's food supply.",
+    },
+    {
+      q: isBn
+        ? "যদি মাঠে বা খামারে সরাসরি ডাক্তারের উপস্থিতি প্রয়োজন হয়?"
+        : "What if my emergency requires an on-site doorstep farm visit?",
+      a: isBn
+        ? "আমাদের 'মাঠ সেবা ও অন-সাইট ভিজিট' মডিউলটির মাধ্যমে জরুরি ভেটেরিনারি সার্জারি, উন্নত জাতের কৃত্রিম প্রজনন (AI) এবং মাটির কোর নিউট্রিয়েন্ট টেস্টের জন্য স্থানীয় সার্টিফাইড টেকনিশিয়ানকে সরাসরি আপনার খামার গেটে কল করতে পারেন।"
+        : "Through our Field Services module (/services/field-visits), you can dispatch licensed paravets and agronomists directly to your farm for emergency dystocia, pedigree Artificial Insemination (AI), and mobile soil lab audits within 2-4 hours.",
+    },
+  ];
 
   return (
-    <div className="w-full srot-grid-pattern srot-ambient-glow pb-24">
-      {/* 1. Live Disease & Pest Outbreak Warning Ticker */}
+    <div className="w-full bg-[#05080e] text-slate-100 srot-grid-pattern pb-24 selection:bg-emerald-500 selection:text-black">
+      {/* 1. Live Regional Pest & Disease Outbreak Warning Ticker */}
       <OutbreakAlertBanner />
 
-      {/* ================= HERO SECTION ================= */}
-      <section className="relative pt-8 pb-14 md:pt-14 md:pb-20 overflow-hidden border-b border-white/[0.05]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            {/* Left 7 Cols: Headline & Sector Selector */}
+      {/* ========================================================================= */}
+      {/* 2. HERO SECTION: CLEAN, IMPACTFUL & HIGH-CONVERTING */}
+      {/* ========================================================================= */}
+      <section className="relative pt-10 pb-16 md:pt-16 md:pb-24 overflow-hidden border-b border-white/[0.05]">
+        {/* Soft Radial Ambient Glow */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 blur-[130px] rounded-full pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            {/* Left 7 Cols: Headline, Value Proposition & Quick Search */}
             <div className="lg:col-span-7 space-y-6">
-              {/* Trust Badge */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-xs font-semibold backdrop-blur-md animate-float">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              {/* Trust & Council Accreditation Pill */}
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-300 text-xs font-semibold backdrop-blur-md">
+                <span className="flex h-2 w-2 relative shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                </span>
                 <span>
                   {isBn
-                    ? "বাংলাদেশ কাউন্সিল-নিবন্ধিত কৃষি ও প্রাণিসম্পদ টেলি-সেবা প্ল্যাটফর্ম"
-                    : "COUNCIL-ACCREDITED TELE-HEALTH FOR BANGLADESH AGRICULTURE & ANIMALS"}
+                    ? "বিআরআরআই, বিএআরআই ও বিভিসি কাউন্সিল-অনুমোদিত টেলি-স্বাস্থ্য প্ল্যাটফর্ম"
+                    : "COUNCIL-ACCREDITED TELE-HEALTH FOR BANGLADESH AGRO & ANIMALS"}
                 </span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.12] font-sans">
+              {/* Bold Main Headline */}
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.12]">
                 {isBn ? (
                   <>
-                    মাঠের ফসল, ডেইরি খামার ও পোষা প্রাণীর বৈজ্ঞানিক সমাধান এবং{" "}
-                    <span className="text-gradient-hero">
+                    মাঠের ফসল, ডেইরি খামার ও পোষা প্রাণীর বৈজ্ঞানিক স্বাস্থ্যসেবা এবং{" "}
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
                       ডিজিটাল প্রেসক্রিপশন।
                     </span>
                   </>
                 ) : (
                   <>
-                    Scientific Advisory & Digital Rx for Every{" "}
-                    <span className="text-gradient-hero">
+                    Scientific Healthcare & Verified Digital Rx for Every{" "}
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400">
                       Field, Herd & Companion Animal.
                     </span>
                   </>
                 )}
               </h1>
 
-              <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl font-normal">
+              {/* Concise Sub-headline */}
+              <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl">
                 {isBn
-                  ? "বিআরআরআই ও বিএআরআই সার্টিফাইড কৃষিবিদ এবং বিভিসি নিবন্ধিত ভেটেরিনারি সার্জনের সাথে মিনিটে সরাসরি সংযুক্ত হোন। ধানের ব্লাস্ট, মাটির পিএইচ, ডেইরি গাভীর রোগ বা পোষা প্রাণীর অসুস্থতায় তাৎক্ষণিক ভিডিও কনসালটেশন ও কিউআর সিলযুক্ত ডিজিটাল প্রেসক্রিপশন পান।"
-                  : "Connect with verified plant pathologists, agronomists, and veterinarians in minutes. From paddy rice blights and soil fertility to dairy cattle mastitis and pet dermatology — receive rapid visual diagnosis and verifiable official prescriptions."}
+                  ? "ধানের ব্লাস্ট বা ক্ষতিকর পোকা, ডেইরি গাভীর ওলান পাকা (Mastitis) কিংবা পোষা বিড়াল ও কুকুরের অসুস্থতায় ১৫ মিনিটে লাইভ ভিডিও ও ফটোতে সার্টিফাইড বিশেষজ্ঞ পরামর্শ এবং কিউআর সিলযুক্ত ডিজিটাল প্রেসক্রিপশন গ্রহণ করুন।"
+                  : "Connect with verified plant pathologists, agronomists, and veterinary surgeons in minutes. Receive rapid diagnostic triage, calibrated spray/dosage calculations, and tamper-proof official prescriptions."}
               </p>
 
-              {/* Sector Switcher Pills in Hero */}
-              <div className="pt-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
-                  {isBn ? "লাইভ ট্রায়াজ প্রিভিউ দেখতে খাত নির্বাচন করুন:" : "Choose Your Sector to Preview Live Triage:"}
-                </span>
-                <div className="inline-flex p-1.5 rounded-2xl bg-slate-900/90 border border-slate-700/80 backdrop-blur-md gap-1">
-                  {[
-                    {
-                      id: "agri",
-                      label: isBn ? "🌾 ফসল পরামর্শ (ধান, সবজি, গম)" : "🌾 Crop Advisory",
-                      color: "text-emerald-400",
-                    },
-                    {
-                      id: "livestock",
-                      label: isBn ? "🐄 ডেইরি, ছাগল ও মাছ" : "🐄 Livestock & Dairy",
-                      color: "text-cyan-400",
-                    },
-                    {
-                      id: "pet",
-                      label: isBn ? "🐕 পোষা প্রাণী (কুকুর ও বিড়াল)" : "🐕 Companion Pets",
-                      color: "text-amber-400",
-                    },
-                  ].map((s) => (
-                    <button
-                      key={s.id}
-                      onClick={() => setHeroSector(s.id as any)}
-                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
-                        heroSector === s.id
-                          ? "bg-slate-800 text-white shadow-md border border-slate-600 scale-102"
-                          : "text-slate-400 hover:text-white hover:bg-slate-850"
-                      }`}
+              {/* UNIFIED QUICK SEARCH & TRIAGE BAR */}
+              <div className="p-2 rounded-2xl bg-slate-900/90 border border-white/[0.1] shadow-2xl backdrop-blur-xl space-y-2">
+                <div className="flex items-center gap-2 px-3 py-1 bg-slate-950/80 rounded-xl border border-white/[0.05]">
+                  <Search className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={
+                      isBn
+                        ? "ফসলের রোগ, গরুর লক্ষণ, পোষা প্রাণীর সমস্যা বা ডাক্তার খুঁজুন..."
+                        : "Search crop pest, bovine symptom, pet query, or specialist doctor..."
+                    }
+                    className="w-full bg-transparent text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none py-2"
+                  />
+                  <Link
+                    href={`/consult${searchQuery ? `?query=${encodeURIComponent(searchQuery)}` : ""}`}
+                    className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shrink-0"
+                  >
+                    {isBn ? "পরামর্শ নিন" : "Search"}
+                  </Link>
+                </div>
+
+                {/* Quick Suggestion Chips */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 px-1 text-[11px]">
+                  <span className="text-slate-400 font-semibold shrink-0">
+                    {isBn ? "জনপ্রিয়:" : "Quick Triage:"}
+                  </span>
+                  {quickSearchChips.map((chip, i) => (
+                    <Link
+                      key={i}
+                      href={`/consult?category=${chip.category}&query=${chip.query}`}
+                      className="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-emerald-500/10 hover:text-emerald-300 text-slate-300 border border-white/[0.06] transition whitespace-nowrap"
                     >
-                      {s.label}
-                    </button>
+                      {chip.label}
+                    </Link>
                   ))}
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="pt-2 flex flex-wrap items-center gap-4">
+              {/* Action Buttons & Fast CTAs */}
+              <div className="flex flex-wrap items-center gap-3 pt-2">
                 <Link
                   href="/consult"
-                  className="btn-shimmer flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-sm transition shadow-xl shadow-emerald-950/60 hover:-translate-y-1 hover:shadow-emerald-900/80"
+                  className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs sm:text-sm transition shadow-xl shadow-emerald-500/20 hover:-translate-y-0.5"
                 >
                   <CalendarCheck className="w-4 h-4" />
-                  <span>{isBn ? "পরামর্শ সেবা শুরু করুন" : "Start Consultation Flow"}</span>
+                  <span>{isBn ? "ডাক্তারের পরামর্শ শুরু করুন" : "Book Doctor Consultation"}</span>
                   <ArrowRight className="w-4 h-4" />
                 </Link>
 
                 <button
                   onClick={() => setIsCalculatorOpen(true)}
-                  className="flex items-center gap-2 px-5 py-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-emerald-400 border border-emerald-500/40 font-bold text-sm transition hover-glow-emerald hover:-translate-y-0.5"
+                  className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-emerald-400 border border-emerald-500/40 font-bold text-xs sm:text-sm transition hover:-translate-y-0.5"
                 >
                   <Calculator className="w-4 h-4" />
                   <span>{isBn ? "ডোজ ক্যালকুলেটর" : "Dosage Calculator"}</span>
                 </button>
 
-                <button
-                  onClick={openRoleModal}
-                  className="flex items-center gap-2 px-4 py-3.5 rounded-xl bg-slate-900/60 hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs font-semibold transition"
+                <Link
+                  href="/farmer-portal#packages"
+                  className="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 border border-white/[0.08] font-bold text-xs sm:text-sm transition"
                 >
-                  <Users className="w-4 h-4 text-cyan-400" />
-                  <span>
-                    {isBn ? "সক্রিয় প্রোফাইল:" : "Persona:"} {currentUser.name.split(" ")[0]}
-                  </span>
-                </button>
+                  <Sparkles className="w-4 h-4 text-emerald-400" />
+                  <span>{isBn ? "খামার প্যাকেজ (৳১৯৯)" : "Care Packages (৳199)"}</span>
+                </Link>
               </div>
 
-              {/* Real-Time Metrics Strip & MFS Supported Badge */}
-              <div className="pt-6 border-t border-white/[0.08] space-y-4">
-                <div className="grid grid-cols-3 gap-6">
-                  <div>
-                    <span className="text-2xl sm:text-3xl font-black text-white block">১৪,৮০০+</span>
-                    <span className="text-xs text-slate-400 font-medium">
-                      {isBn ? "সফল সমাধানকৃত কেস" : "Verified Solved Cases"}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-2xl sm:text-3xl font-black text-emerald-400 block">&lt; ২০ মিনিট</span>
-                    <span className="text-xs text-slate-400 font-medium">
-                      {isBn ? "গড় রেসপন্স সময়" : "Average Response Time"}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-2xl sm:text-3xl font-black text-cyan-400 block">১০০%</span>
-                    <span className="text-xs text-slate-400 font-medium">
-                      {isBn ? "কাউন্সিল নিবন্ধিত সার্জন" : "Council Registered Vets"}
-                    </span>
-                  </div>
+              {/* Trust Metrics Strip */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-white/[0.08]">
+                <div>
+                  <span className="text-xl sm:text-2xl font-black text-white font-mono block">১৪০+</span>
+                  <span className="text-xs text-slate-400">
+                    {isBn ? "নিবন্ধিত ডাক্তার ও সার্জন" : "Licensed Specialists"}
+                  </span>
                 </div>
-
-                {/* Local MFS Payment Strip */}
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/70 border border-slate-800 text-[11px] text-slate-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  <span>{isBn ? "সহজ ফি পরিশোধ:" : "Secure Payment:"}</span>
-                  <span className="text-pink-400 font-bold">বিকাশ (bKash)</span>
-                  <span>•</span>
-                  <span className="text-orange-400 font-bold">নগদ (Nagad)</span>
-                  <span>•</span>
-                  <span className="text-purple-400 font-bold">রকেট (Rocket)</span>
+                <div>
+                  <span className="text-xl sm:text-2xl font-black text-emerald-400 font-mono block">&lt; ১৫ মিনিট</span>
+                  <span className="text-xs text-slate-400">
+                    {isBn ? "গড় সাড়া প্রদানের সময়" : "Avg Response Time"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xl sm:text-2xl font-black text-cyan-400 font-mono block">৳১৯৯</span>
+                  <span className="text-xs text-slate-400">
+                    {isBn ? "মাসিক কেয়ার শুরু" : "Starting Monthly Care"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-xl sm:text-2xl font-black text-amber-400 font-mono block">১০০%</span>
+                  <span className="text-xs text-slate-400">
+                    {isBn ? "যাচাইকৃত প্রেসক্রিপশন" : "Verifiable Digital Rx"}
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Right 5 Cols: Switchable Diagnostic Graphic & Case Triage Preview */}
-            <div className="lg:col-span-5 space-y-3">
-              {/* Tab Selector on Top of Card */}
-              <div className="flex items-center justify-between px-1">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
-                  {isBn ? "ইন্টারেক্টিভ ডায়াগনস্টিক ডেস্ক:" : "Interactive Tele-Deck:"}
-                </span>
-                <div className="inline-flex p-1 rounded-xl bg-slate-900 border border-slate-800 gap-1 text-[11px] font-bold">
-                  <button
-                    onClick={() => setHeroRightTab("graphic")}
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition ${
-                      heroRightTab === "graphic"
-                        ? "bg-emerald-600 text-white shadow-sm"
-                        : "text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    <Scan className="w-3.5 h-3.5" />
-                    <span>{isBn ? "স্পেকট্রাল স্ক্যান" : "Spectral Telemetry"}</span>
-                  </button>
-                  <button
-                    onClick={() => setHeroRightTab("triage")}
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition ${
-                      heroRightTab === "triage"
-                        ? "bg-cyan-600 text-white shadow-sm"
-                        : "text-slate-400 hover:text-white"
-                    }`}
-                  >
-                    <Activity className="w-3.5 h-3.5" />
-                    <span>{isBn ? "লাইভ কেস ট্রায়াজ" : "Live Case Triage"}</span>
-                  </button>
-                </div>
-              </div>
-
-              {heroRightTab === "graphic" ? (
-                <HeroVisualGraphic />
-              ) : (
-                <div className={`srot-glass-card rounded-3xl p-6 sm:p-7 border ${currentPreset.color} shadow-2xl relative transition-all duration-300 hover-glow-cyan`}>
-                  <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-                    <div className="flex items-center gap-2">
-                      <span className="p-2 rounded-xl bg-slate-800/90 border border-slate-700">
-                        {currentPreset.icon}
-                      </span>
-                      <div>
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                          {isBn ? "লাইভ কেস ট্রায়াজ প্রিভিউ" : "Live Case Triage Preview"}
-                        </span>
-                        <h4 className="text-xs font-bold text-white">{currentPreset.tag}</h4>
-                      </div>
-                    </div>
-                    <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 rounded-full flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                      {isBn ? "চিকিৎসক অনলাইন" : "Doctor Active"}
-                    </span>
-                  </div>
-
-                  <div className="py-4 space-y-3">
-                    <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                      <span className="text-[10px] uppercase text-slate-400 block">
-                        {isBn ? "উপসর্গ বা লক্ষণসমূহ:" : "Reported Symptoms:"}
-                      </span>
-                      <p className="text-xs text-slate-200 font-medium mt-0.5">{currentPreset.symptom}</p>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                      <span className="text-[10px] uppercase text-slate-400 block">
-                        {isBn ? "রোগতাত্ত্বিক বা ক্লিনিকাল ডায়াগনোসিস:" : "Pathology / Clinical Diagnosis:"}
-                      </span>
-                      <p className="text-xs font-bold text-emerald-300 mt-0.5">{currentPreset.title}</p>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
-                      <span className="text-[10px] uppercase text-slate-400 block">
-                        {isBn ? "প্রেসক্রিপশন ও ওষুধের মাত্রা:" : "Prescribed Action & Spray / Medicine:"}
-                      </span>
-                      <p className="text-xs text-white font-semibold mt-0.5">{currentPreset.solution}</p>
-                      <span className="text-[10px] text-amber-400 block mt-1 font-mono">
-                        {isBn ? "নিরাপত্তা নিয়ম: " : "Safety Protocol: "}
-                        {currentPreset.safety}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2.5 pt-1 text-xs text-slate-400">
-                      <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                      <span className="text-[11px] truncate">{currentPreset.doctor}</span>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
-                    <Link
-                      href={`/consult/${currentPreset.sampleCaseId}`}
-                      className="btn-shimmer flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold text-center transition shadow-lg shadow-emerald-950/60"
-                    >
-                      {isBn ? "লাইভ চেম্বার খুলুন →" : "Open Live Case Room →"}
-                    </Link>
-                    <Link
-                      href={`/consult?category=${heroSector === "pet" ? "pet" : heroSector === "livestock" ? "veterinary" : "agri"}`}
-                      className="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition"
-                    >
-                      {isBn ? "নতুন বুকিং" : "Book New"}
-                    </Link>
-                  </div>
-                </div>
-              )}
+            {/* Right 5 Cols: High-Tech Diagnostic Telemetry Terminal */}
+            <div className="lg:col-span-5 relative">
+              <HeroVisualGraphic />
             </div>
           </div>
         </div>
       </section>
 
-      {/* ================= 2. CERTIFIED ACCREDITATIONS & SECURITY RIBBON ================= */}
+      {/* ========================================================================= */}
+      {/* 3. CERTIFIED ACCREDITATIONS & SECURITY RIBBON */}
+      {/* ========================================================================= */}
       <AccreditationBadges />
 
-      {/* ================= 3. LIVE AI SYMPTOM SCANNER ================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <AiSymptomScanner />
-      </section>
-
-      {/* ================= 4. SEASONAL SPRAY & VACCINATION PROTOCOL CALENDAR ================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <CropLivestockCalendar />
-      </section>
-
-      {/* ================= 5. AGRO-CLIMATIC & LIVESTOCK THI RADAR ================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <AgroWeatherRadar />
-      </section>
-
-      {/* ================= 6. SOIL HEALTH & N-P-K NUTRIENT BIOAVAILABILITY ================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <SoilHealthInterpreter />
-      </section>
-
-      {/* ================= 7. ARCHITECTURAL DESIGN SPOTLIGHT ================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="srot-glass-card hover-glow-emerald rounded-3xl p-6 sm:p-10 border border-white/[0.08] bg-gradient-to-b from-slate-900/70 to-slate-950/90 shadow-2xl">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-8 border-b border-white/[0.06]">
-            <div>
-              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1.5">
-                <Layers className="w-4 h-4" />
-                {isBn ? "মাল্টি-সেক্টর মডুলার আর্কিটেকচার" : "Multi-Sector Modular Architecture"}
-              </div>
-              <h3 className="text-2xl sm:text-3xl font-black text-white">
-                {isBn
-                  ? "এক প্ল্যাটফর্ম, সর্বজনীন ডেটাবেজ ও সম্প্রসারণযোগ্য সার্ভিস মডিউল"
-                  : "One Platform, Generic Database & Scalable Service Modules"}
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-300 mt-1.5 max-w-2xl leading-relaxed">
-                {isBn
-                  ? "প্রাণিসম্পদ স্বাস্থ্য ও পোষা প্রাণীর সেবা কোনো আলাদা ওয়েবসাইট নয়। তারা একই কনসালটেশন বুকিং ইঞ্জিন, বিশেষজ্ঞ ডিরেক্টরি এবং কিউআর ভেরিফাইড প্রেসক্রিপশন জেনারেটরের অংশ।"
-                  : "Animal Healthcare and Companion Pet Care are not separate websites. They share the same generic consultation booking engine, practitioner directory, and cryptographic prescription generator."}
-              </p>
-            </div>
-
-            <Link
-              href="/admin"
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition self-start lg:self-auto hover:-translate-y-0.5"
-            >
-              <Sliders className="w-4 h-4" />
-              <span>{isBn ? "অ্যাডমিন মডিউল কন্ট্রোল প্যানেল →" : "Admin Module Switcher & Telemetry →"}</span>
-            </Link>
+      {/* ========================================================================= */}
+      {/* 4. THE 3 SPECIALIZED PILLARS: CROPS, LIVESTOCK & PETS */}
+      {/* ========================================================================= */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="text-center max-w-2xl mx-auto mb-14 space-y-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+            <Layers className="w-3.5 h-3.5" />
+            <span>{isBn ? "বিশেষায়িত সেবা খাতসমূহ" : "Specialized Care Sectors"}</span>
           </div>
-
-          {/* 3 Pillar Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-            {/* Agri */}
-            <div className="p-6 rounded-2xl bg-slate-900/70 border border-emerald-500/30 flex flex-col justify-between hover-glow-emerald">
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    <Wheat className="w-6 h-6" />
-                  </span>
-                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                    {isBn ? "ফেজ ১ • লাইভ" : "Phase 1 • Live"}
-                  </span>
-                </div>
-                <h4 className="font-bold text-white text-lg">
-                  {isBn ? "কৃষি পরামর্শ ও ফসল সুরক্ষা" : "Agriculture Advisory"}
-                </h4>
-                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  {isBn ? "ধান, পাট, আলু, ভুট্টা, সবজি ও ফলের বাগান।" : "Grain crops, horticulture, orchards, and cash crops."}
-                </p>
-                <ul className="mt-4 space-y-2 text-xs text-slate-300">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>{isBn ? "ধানের ব্লাস্ট, পাতা পোড়া ও শেকড় পচা রোগ নির্ণয়" : "Crop Leaf Blast, Blight & Root Rot Diagnosis"}</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>{isBn ? "ইউরিয়া, টিএসপি, পটাশ ও জিংক সুষম সার প্রয়োগ" : "Basal & Top-Dressing N-P-K Soil Balancing"}</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>{isBn ? "আইপিএম (IPM) জৈব বালাই দমন ও কীটনাশক সতর্কতা" : "IPM Bio-Control & Pesticide Resistance Control"}</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                    <span>{isBn ? "মাঠ পর্যায়ে কৃষিবিদ দ্বারা জমি পরিদর্শন সুবিধা" : "On-Site Farm Acreage Agronomist Inspections"}</span>
-                  </li>
-                </ul>
-              </div>
-              <Link
-                href="/services?cat=agri"
-                className="mt-6 text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 hover:translate-x-1 transition-transform"
-              >
-                <span>{isBn ? "কৃষি সেবাসমূহ দেখুন" : "View Agri Services"}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
-            {/* Livestock */}
-            <div className="p-6 rounded-2xl bg-slate-900/70 border border-cyan-500/30 flex flex-col justify-between hover-glow-cyan">
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="p-3 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                    <Milk className="w-6 h-6" />
-                  </span>
-                  <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">
-                    {isBn ? "ফেজ ২ • লাইভ" : "Phase 2 • Live"}
-                  </span>
-                </div>
-                <h4 className="font-bold text-white text-lg">
-                  {isBn ? "প্রাণিসম্পদ ও খামার চিকিৎসা" : "Animal Healthcare (Herd)"}
-                </h4>
-                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  {isBn ? "ডেইরি গরু, ব্রয়লার-লেয়ার পোল্ট্রি, ছাগল ও মাছের ঘের।" : "Commercial dairy, poultry flocks, sheep, and aquaculture."}
-                </p>
-                <ul className="mt-4 space-y-2 text-xs text-slate-300">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                    <span>{isBn ? "গাভীর ওলান পাকা (Mastitis) সিএমটি টেস্ট ও চিকিৎসা" : "Subclinical & Clinical Mastitis CMT Scoring"}</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                    <span>{isBn ? "পোল্ট্রি ব্রয়লার এফসিআর (FCR) ও কক্সিডিওসিস নিয়ন্ত্রণ" : "Broiler FCR Optimization & Coccidiosis Control"}</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                    <span>{isBn ? "ব্ল্যাক বেঙ্গল ছাগলের কৃমিনাশক ও পিপিআর ভ্যাকসিন" : "Small Ruminant Deworming (FAMACHA Score)"}</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                    <span>{isBn ? "পুকুরে অক্সিজেনের ঘাটতি ও গ্যাস দূরীকরণে চুন/জিওলাইট" : "Pond Oxygen Crashes & Aquaculture Chemistry"}</span>
-                  </li>
-                </ul>
-              </div>
-              <Link
-                href="/services?cat=veterinary"
-                className="mt-6 text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 hover:translate-x-1 transition-transform"
-              >
-                <span>{isBn ? "প্রাণিসম্পদ সেবাসমূহ দেখুন" : "View Livestock Services"}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-
-            {/* Pets */}
-            <div className="p-6 rounded-2xl bg-slate-900/70 border border-amber-500/30 flex flex-col justify-between hover-glow-amber">
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                    <HeartHandshake className="w-6 h-6" />
-                  </span>
-                  <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
-                    {isBn ? "ফেজ ২ • লাইভ" : "Phase 2 • Live"}
-                  </span>
-                </div>
-                <h4 className="font-bold text-white text-lg">
-                  {isBn ? "পোষা প্রাণী স্বাস্থ্যসেবা (পেট কেয়ার)" : "Companion Pet Care"}
-                </h4>
-                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  {isBn ? "পোষা কুকুর, বিড়াল, খরগোশ ও পাখি।" : "Dogs, cats, rabbits, and domestic companion animals."}
-                </p>
-                <ul className="mt-4 space-y-2 text-xs text-slate-300">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                    <span>{isBn ? "২৪/৭ লাইভ ভিডিওতে ভেটেরিনারি ডাক্তারের পরামর্শ" : "24/7 Small-Animal Video Tele-Vet Consultations"}</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                    <span>{isBn ? "চামড়ার অ্যালার্জি, উকুন ও ফাংগাল ইনফেকশন ট্রায়াজ" : "Skin Allergy & Flea/Tick Dermatitis Triage"}</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                    <span>{isBn ? "ওজন নিয়ন্ত্রণ ও সঠিক পুষ্টির ক্লিনিকাল চার্ট" : "Weight & Clinical Prescription Nutrition Plans"}</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                    <span>{isBn ? "ডিজিটাল পিডিএফ প্রেসক্রিপশন ডাউনলোড সুবিধা" : "Downloadable Official Vet Prescriptions (PDF)"}</span>
-                  </li>
-                </ul>
-              </div>
-              <Link
-                href="/services?cat=pet"
-                className="mt-6 text-xs font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1 hover:translate-x-1 transition-transform"
-              >
-                <span>{isBn ? "পেট সেবাসমূহ দেখুন" : "View Pet Services"}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ================= 8. HOW IT WORKS (4 STEPS) ================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-            {isBn ? "সহজ ৪-ধাপের প্রক্রিয়া" : "Rapid 4-Step Process"}
-          </span>
-          <h3 className="text-2xl sm:text-4xl font-black text-white mt-1">
-            {isBn ? "এসআরওটি প্ল্যাটফর্মে কীভাবে পরামর্শ নিবেন" : "How Tele-Advisory Works on SROT"}
-          </h3>
-          <p className="text-xs sm:text-sm text-slate-400 mt-2">
+          <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+            {isBn ? "আপনার প্রয়োজনীয় সেবাটি নির্বাচন করুন" : "Dedicated Health Desks for Every Domain"}
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
             {isBn
-              ? "মাঠের পাশে বসেই বা ঘরে থেকেই ২০ মিনিটের মধ্যে বৈজ্ঞানিক পরামর্শ ও চিকিৎসাপত্র গ্রহণ করুন।"
-              : "Accredited science delivered straight to your field or home in under 20 minutes."}
+              ? "মাঠের ফসল, ডেইরি গাভী কিংবা ঘরের পোষা প্রাণী—প্রত্যেকটির জন্য রয়েছে আলাদা প্রটোকল, বিশেষজ্ঞ ডিরেক্টরি এবং সঠিক মাত্রার প্রেসক্রিপশন।"
+              : "Standardized clinical protocols, certified expert panels, and weight-calibrated medicine for agriculture, herds, and pets."}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Pillar 1: Crop Health & Agronomy */}
+          <div className="srot-glass-card rounded-3xl p-7 border border-emerald-500/30 flex flex-col justify-between hover-glow-emerald transition-all duration-300 group hover:-translate-y-1">
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <span className="p-3.5 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 group-hover:scale-110 transition-transform">
+                  <Wheat className="w-7 h-7" />
+                </span>
+                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+                  {isBn ? "ফসল সুরক্ষা" : "Agronomy Desk"}
+                </span>
+              </div>
+
+              <h3 className="font-black text-white text-xl group-hover:text-emerald-300 transition-colors">
+                {isBn ? "মাঠফসল ও কৃষি পরামর্শ" : "Crop Disease & Agronomy"}
+              </h3>
+              <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                {isBn
+                  ? "ধান, গম, ভুট্টা, আলু, সবজি ও ফলের ক্ষতিকর বালাই ও সার ব্যবস্থাপনা।"
+                  : "Paddy rice, maize, potatoes, vegetables, and commercial fruit orchards."}
+              </p>
+
+              <ul className="mt-6 space-y-2.5 text-xs text-slate-300">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <span>{isBn ? "ধানের ব্লাস্ট, পাতা পোড়া ও শেকড় পচা রোগ নির্ণয়" : "Leaf Blast, Sheath Blight & Stem Borer Triage"}</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <span>{isBn ? "ইউরিয়া, টিএসপি, পটাশ ও জিংক সুষম সার শিডিউল" : "Precision N-P-K & Zinc Micro-nutrient Titration"}</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                  <span>{isBn ? "আইপিএম (IPM) জৈব বালাই দমন ও বালাইনাশক সতর্কতা" : "IPM Biological Controls & Resistance Prevention"}</span>
+                </li>
+              </ul>
+            </div>
+
+            <Link
+              href="/consult?category=agri"
+              className="mt-8 py-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition border border-emerald-500/20 group-hover:border-emerald-500"
+            >
+              <span>{isBn ? "কৃষি বিশেষজ্ঞের পরামর্শ নিন" : "Consult Agronomist"}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          {/* Pillar 2: Dairy, Cattle & Livestock */}
+          <div className="srot-glass-card rounded-3xl p-7 border border-cyan-500/30 flex flex-col justify-between hover-glow-cyan transition-all duration-300 group hover:-translate-y-1">
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <span className="p-3.5 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 group-hover:scale-110 transition-transform">
+                  <Milk className="w-7 h-7" />
+                </span>
+                <span className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider bg-cyan-500/10 px-2.5 py-0.5 rounded-full border border-cyan-500/20">
+                  {isBn ? "ডেইরি ও গবাদিপশু" : "Livestock Desk"}
+                </span>
+              </div>
+
+              <h3 className="font-black text-white text-xl group-hover:text-cyan-300 transition-colors">
+                {isBn ? "ডেইরি, খামার ও ভেটেরিনারি কেয়ার" : "Dairy & Livestock Healthcare"}
+              </h3>
+              <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                {isBn
+                  ? "গাভী, মহিষ, ছাগল ও ভেড়ার ক্লিনিকাল রোগব্যাধি ও কৃত্রিম প্রজনন (AI)।"
+                  : "Commercial dairy cattle, buffalo, Boer goats, and sheep breeding herds."}
+              </p>
+
+              <ul className="mt-6 space-y-2.5 text-xs text-slate-300">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <span>{isBn ? "গাভীর ওলান পাকা (Mastitis) সিএমটি টেস্ট ও চিকিৎসাপত্র" : "Subclinical Mastitis CMT Scoring & Antibiotic Dosing"}</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <span>{isBn ? "দুধ ও মাংসে নিরাপদ অ্যান্টিবায়োটিক উইথহোল্ডিং সময়" : "Strict Milk & Meat Withdrawal Period Calculations"}</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                  <span>{isBn ? "উন্নত জাতের কৃত্রিম প্রজনন (AI) ও ডোরস্টেপ ভিজিট" : "Pedigree Artificial Insemination (AI) Doorstep Support"}</span>
+                </li>
+              </ul>
+            </div>
+
+            <Link
+              href="/consult?category=veterinary"
+              className="mt-8 py-3 rounded-xl bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition border border-cyan-500/20 group-hover:border-cyan-500"
+            >
+              <span>{isBn ? "পশু চিকিৎসকের পরামর্শ নিন" : "Consult Bovine Vet"}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          {/* Pillar 3: Companion Pet Care */}
+          <div className="srot-glass-card rounded-3xl p-7 border border-pink-500/30 flex flex-col justify-between hover-glow-amber transition-all duration-300 group hover:-translate-y-1">
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <span className="p-3.5 rounded-2xl bg-pink-500/10 text-pink-400 border border-pink-500/20 group-hover:scale-110 transition-transform">
+                  <HeartHandshake className="w-7 h-7" />
+                </span>
+                <span className="text-[10px] font-bold text-pink-400 uppercase tracking-wider bg-pink-500/10 px-2.5 py-0.5 rounded-full border border-pink-500/20">
+                  {isBn ? "পোষা প্রাণী" : "Companion Pets"}
+                </span>
+              </div>
+
+              <h3 className="font-black text-white text-xl group-hover:text-pink-300 transition-colors">
+                {isBn ? "পোষা প্রাণী স্বাস্থ্যসেবা (পেট কেয়ার)" : "Companion Pet Tele-Vet"}
+              </h3>
+              <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                {isBn
+                  ? "কুকুর, বিড়াল, খরগোশ ও পাখির জন্য ২৪/৭ লাইভ ভিডিও ও ডার্মাটোলজি।"
+                  : "Dogs, cats, rabbits, and birds with 24/7 tele-triage and diet planning."}
+              </p>
+
+              <ul className="mt-6 space-y-2.5 text-xs text-slate-300">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-pink-400 shrink-0 mt-0.5" />
+                  <span>{isBn ? "২৪/৭ লাইভ ভিডিওতে স্মল-অ্যানিমেল ভেটেরিনারি সার্জন" : "24/7 Small-Animal Video Tele-Triage Consultations"}</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-pink-400 shrink-0 mt-0.5" />
+                  <span>{isBn ? "ওজনভিত্তিক ড্রপ ও অ্যান্টিবায়োটিকের সঠিক মাত্রা" : "Weight-Titrated Medication & Deworming Schedules"}</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-pink-400 shrink-0 mt-0.5" />
+                  <span>{isBn ? "চামড়ার অ্যালার্জি, উকুন ও ভ্যাকসিনের ডিজিটাল রেকর্ড" : "Skin Allergy Triage & Digital Rabies Vaccination Passport"}</span>
+                </li>
+              </ul>
+            </div>
+
+            <Link
+              href="/consult?category=pet"
+              className="mt-8 py-3 rounded-xl bg-pink-500/10 hover:bg-pink-500 text-pink-400 hover:text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition border border-pink-500/20 group-hover:border-pink-500"
+            >
+              <span>{isBn ? "পেট ডাক্তারের পরামর্শ নিন" : "Consult Pet Doctor"}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 5. INTERACTIVE SMART FARM SUITE: UNIFIED TABBED WORKBENCH */}
+      {/* (REPLACES 4 GIANT STACKED SECTIONS INTO 1 ELEGANT WORKBENCH) */}
+      {/* ========================================================================= */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="srot-glass-card rounded-3xl border border-white/[0.08] p-6 sm:p-10 shadow-2xl space-y-8">
+          {/* Header & Suite Tab Navigation */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-white/[0.08]">
+            <div>
+              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1">
+                <Sparkles className="w-4 h-4" />
+                <span>{isBn ? "স্মার্ট ফার্ম ডায়াগনস্টিক স্যুট" : "Interactive Smart Farm Suite"}</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-white">
+                {isBn ? "এআই স্ক্যানার, আবহাওয়া, মাটি ও কৃষি ক্যালেন্ডার" : "Unified AI Diagnostic & Agronomic Suite"}
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-400 mt-1">
+                {isBn
+                  ? "এক ক্লিকে আপনার প্রয়োজন অনুযায়ী ইন্টারেক্টিভ টুলটি ওপেন করুন।"
+                  : "Seamlessly switch between AI visual triage, local spray radar, soil testing, and herd calendars."}
+              </p>
+            </div>
+
+            {/* Tab Pills */}
+            <div className="flex flex-wrap items-center bg-slate-950 p-1.5 rounded-2xl border border-white/[0.08] gap-1">
+              {[
+                { id: "ai_scan", label: isBn ? "এআই পাতা স্ক্যান" : "AI Symptom Scan", icon: Scan },
+                { id: "weather", label: isBn ? "আবহাওয়া ও স্প্রে রাডার" : "Weather & Spray Radar", icon: CloudSun },
+                { id: "soil", label: isBn ? "মাটির পিএইচ ও সার" : "Soil Health & NPK", icon: FlaskConical },
+                { id: "calendar", label: isBn ? "মৌসুমি ক্যালেন্ডার" : "Farm Calendar", icon: CalendarCheck },
+              ].map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeSuiteTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveSuiteTab(tab.id as any)}
+                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                      isActive
+                        ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md font-extrabold"
+                        : "text-slate-400 hover:text-white hover:bg-slate-900"
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Active Tab Component */}
+          <div className="pt-2">
+            {activeSuiteTab === "ai_scan" && <AiSymptomScanner />}
+            {activeSuiteTab === "weather" && <AgroWeatherRadar />}
+            {activeSuiteTab === "soil" && <SoilHealthInterpreter />}
+            {activeSuiteTab === "calendar" && <CropLivestockCalendar />}
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 6. HOW SROT WORKS: 3 CRISP STEPS */}
+      {/* ========================================================================= */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="text-center max-w-2xl mx-auto mb-14 space-y-3">
+          <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+            {isBn ? "সহজ ৩-ধাপের প্রক্রিয়া" : "Streamlined 3-Step Process"}
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+            {isBn ? "যেভাবে ঘরে বসেই বৈজ্ঞানিক পরামর্শ পাবেন" : "How Tele-Advisory Operates on SROT"}
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+            {isBn
+              ? "মাঠের পাশে বসেই বা ঘরে থেকেই ১৫ মিনিটের মধ্যে বৈজ্ঞানিক রোগ নির্ণয় ও অনুমোদিত চিকিৎসাপত্র গ্রহণ করুন।"
+              : "Expert diagnosis and verifiable digital prescription delivered to your phone in under 15 minutes."}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             {
               step: "01",
-              title: isBn ? "ছবি তুলুন বা ভিডিও অনুরোধ করুন" : "Upload Photos or Request Video",
+              title: isBn ? "লক্ষণ ও ছবি আপলোড করুন" : "Upload Symptoms & Photos",
               desc: isBn
-                ? "আক্রান্ত পাতা, ওলান বা প্রাণীর লক্ষণের স্পষ্ট ছবি আপলোড করুন অথবা সরাসরি ভিডিও কলের সময় বুক করুন।"
-                : "Snap close-up photos of leaf lesions, animal symptoms, or request a scheduled HD video call.",
+                ? "আক্রান্ত ধানের পাতা, গরুর ওলান বা পোষা প্রাণীর স্পষ্ট ছবি আপলোড করুন অথবা তাৎক্ষণিক ভিডিও কনসালটেশন সিলেক্ট করুন।"
+                : "Snap high-resolution photos of damaged leaves, skin lesions, or request an instant live video consult.",
               icon: <Camera className="w-6 h-6 text-emerald-400" />,
             },
             {
               step: "02",
-              title: isBn ? "এআই ট্রায়াজ ও ডাক্তার ম্যাচ" : "Pre-Screening & Doctor Match",
+              title: isBn ? "বিশেষজ্ঞ চিকিৎসকের সাথে লাইভ কল" : "Consult with Verified Doctor",
               desc: isBn
-                ? "আমাদের ইঞ্জিন আপনার কেসটি সংশ্লিষ্ট বিশেষজ্ঞ উদ্ভিদ রোগতত্ত্ববিদ বা নিবন্ধিত ভেটেরিনারি সার্জনের কাছে পাঠাবে।"
-                : "Our engine routes your case to certified plant pathologists or veterinary surgeons on duty.",
+                ? "আমাদের ইঞ্জিন আপনার কেসটি ডিএই বা বিভিসি নিবন্ধিত বিশেষজ্ঞ উদ্ভিদ রোগতত্ত্ববিদ বা ভেটেরিনারি সার্জনের চেম্বারে পাঠাবে।"
+                : "Your ticket connects directly to on-duty plant pathologists or veterinary clinicians for video or audio examination.",
+              icon: <Video className="w-6 h-6 text-cyan-400" />,
             },
             {
               step: "03",
-              title: isBn ? "লাইভ কনসালটেশন ও পরীক্ষা" : "Live Examination & Triage",
-              desc: isBn
-                ? "চ্যাট বা ভিডিওতে লক্ষণগুলো আলোচনা করুন। আবহাওয়া, পূর্ববর্তী স্প্রে ও খাদ্য ইতিহাস পর্যালোচনা করা হবে।"
-                : "Discuss symptoms over chat or face-to-face video. Clarify history, recent weather, and feed.",
-              icon: <Video className="w-6 h-6 text-amber-400" />,
-            },
-            {
-              step: "04",
-              title: isBn ? "স্বাক্ষরিত ডিজিটাল প্রেসক্রিপশন" : "Receive Signed Digital Rx",
+              title: isBn ? "কিউআর স্বাক্ষরিত প্রেসক্রিপশন গ্রহণ" : "Download Official Signed Rx",
               desc: isBn
                 ? "সঠিক ওষুধের মাত্রা, সক্রিয় ফর্মুলেশন ও প্রত্যাহার সময়সহ অফিসিয়াল এ৪ সাইজের পিডিএফ প্রেসক্রিপশন ডাউনলোড করুন।"
-                : "Download official PDF prescription with exact dosages, active formulations, and withholding rules.",
-              icon: <Download className="w-6 h-6 text-emerald-400" />,
+                : "Receive a tamper-proof PDF prescription with certified chemical active ingredients and strict harvest withdrawal times.",
+              icon: <Download className="w-6 h-6 text-teal-400" />,
             },
           ].map((item, i) => (
-            <div key={i} className="srot-glass-card rounded-2xl p-6 border border-slate-800 relative group hover-glow-emerald">
-              <span className="text-4xl font-black text-slate-800/80 absolute top-4 right-4 font-mono group-hover:text-emerald-500/20 transition-colors">
+            <div
+              key={i}
+              className="srot-glass-card rounded-3xl p-7 border border-slate-800 relative group hover-glow-emerald transition-all duration-300 hover:-translate-y-1"
+            >
+              <span className="text-5xl font-black text-slate-800/60 absolute top-5 right-6 font-mono group-hover:text-emerald-500/20 transition-colors">
                 {item.step}
               </span>
-              <div className="p-3 rounded-2xl bg-slate-900 border border-slate-700/80 inline-block mb-4 group-hover:scale-110 transition-transform">
+              <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-700/80 inline-block mb-5 group-hover:scale-110 transition-transform">
                 {item.icon}
               </div>
-              <h4 className="text-base font-bold text-white mb-1.5">{item.title}</h4>
+              <h3 className="text-base font-bold text-white mb-2">{item.title}</h3>
               <p className="text-xs text-slate-400 leading-relaxed">{item.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ================= 9. MODULAR SERVICES CATALOG ================= */}
+      {/* ========================================================================= */}
+      {/* 7. FARM HEALTH PACKAGES & SUBSCRIPTIONS (STEP 4) */}
+      {/* ========================================================================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-              {isBn ? "সার্ভিস ক্যাটালগ" : "Interactive Service Catalog"}
-            </span>
-            <h3 className="text-2xl sm:text-4xl font-black text-white mt-1">
-              {isBn ? "পরামর্শ বা চিকিৎসাসেবা নির্বাচন করুন" : "Select an Advisory or Clinical Service"}
-            </h3>
-          </div>
-
-          {/* Category Filter Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-            {[
-              { id: "all", label: isBn ? "সব সেবাসমূহ" : "All Services" },
-              { id: "agri", label: isBn ? "কৃষি সেবা" : "Agriculture" },
-              { id: "veterinary", label: isBn ? "ডেইরি ও গবাদিপশু" : "Dairy & Cattle" },
-              { id: "poultry", label: isBn ? "পোল্ট্রি ও মুরগি" : "Poultry" },
-              { id: "fisheries", label: isBn ? "মৎস্য চাষ" : "Fisheries" },
-              { id: "pet", label: isBn ? "পোষা প্রাণী" : "Pet Care" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveCategory(tab.id as any)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${
-                  activeCategory === tab.id
-                    ? "bg-emerald-600 text-white shadow-lg shadow-emerald-950/60"
-                    : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredServices.map((service) => (
-            <ServiceCard key={service.id} service={service} />
-          ))}
-        </div>
-      </section>
-
-      {/* ================= 10. PRICING & VALUE COMPARISON ================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <PricingComparisonTable />
-      </section>
-
-      {/* ================= 11. VERIFIED PRACTITIONERS ================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="flex items-end justify-between mb-10">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-cyan-400">
-              {isBn ? "যাচাইকৃত সনদপ্রাপ্ত প্যানেল" : "Verified Accreditation"}
-            </span>
-            <h3 className="text-2xl sm:text-4xl font-black text-white mt-1">
-              {isBn ? "কাউন্সিল-নিবন্ধিত কৃষিবিদ ও ভেটেরিনারি সার্জন" : "Council-Registered Specialists"}
-            </h3>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>{isBn ? "সাশ্রয়ী সদস্যপদ" : "Care Subscriptions"}</span>
+            </div>
+            <h2 className="text-3xl font-black text-white">
+              {isBn ? "মাসিক খামার ও পশু স্বাস্থ্য প্যাকেজ" : "Farm & Animal Health Subscription Plans"}
+            </h2>
             <p className="text-xs text-slate-400 mt-1">
               {isBn
-                ? "আমাদের প্রতিটি কনসালটেন্টের অফিসিয়াল সরকারি রেজিস্ট্রেশন নম্বর ও মাঠ পর্যায়ের অভিজ্ঞতা যাচাইকৃত।"
-                : "Each consultant possesses verifiable state council licensing numbers and field credentials."}
+                ? "স্বল্প খরচে নিয়মিত পরামর্শ, ফ্রি কনসালটেশন কোটা এবং জেলাভিত্তিক বালাই সতর্কবার্তা নোটিফিকেশন।"
+                : "Cost-effective monthly care with free consultation quotas and automated regional SMS disease alerts."}
+            </p>
+          </div>
+
+          <Link
+            href="/services/field-visits"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-bold transition self-start sm:self-auto"
+          >
+            <Truck className="w-4 h-4" />
+            <span>{isBn ? "ডোরস্টেপ মাঠ সেবা (Step 6) →" : "Doorstep Farm Visits (Step 6) →"}</span>
+          </Link>
+        </div>
+
+        <FarmHealthPackages />
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 8. VERIFIED SPECIALISTS ON-DUTY */}
+      {/* ========================================================================= */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-wider text-cyan-400">
+              {isBn ? "সনদপ্রাপ্ত বিশেষজ্ঞ প্যানেল" : "Council-Registered Specialists"}
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-white mt-1">
+              {isBn ? "বিশেষজ্ঞ কৃষিবিদ ও ভেটেরিনারি সার্জন" : "Accredited Agronomists & Veterinarians"}
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">
+              {isBn
+                ? "আমাদের প্রতিটি চিকিৎসকের বিআরআরআই, বিএআরআই বা বাংলাদেশ ভেটেরিনারি কাউন্সিল (BVC) লাইসেন্স নম্বর যাচাইকৃত।"
+                : "Every consultant possesses verified state council credentials and active field experience."}
             </p>
           </div>
 
           <Link
             href="/experts"
-            className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 hover:translate-x-1 transition-transform"
+            className="flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 hover:translate-x-1 transition-transform self-start sm:self-auto"
           >
-            <span>{isBn ? "সকল বিশেষজ্ঞ দেখুন →" : "View All Practitioners →"}</span>
+            <span>{isBn ? "সকল বিশেষজ্ঞ দেখুন (১৪০+) →" : "View All Specialists (140+) →"}</span>
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {PLATFORM_EXPERTS.slice(0, 3).map((expert) => (
-            <ExpertCard key={expert.id} expert={expert} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {PLATFORM_EXPERTS.slice(0, 4).map((expert) => (
+            <div
+              key={expert.id}
+              className="srot-glass-card rounded-2xl p-5 border border-slate-800 space-y-4 hover:border-slate-700 transition hover:-translate-y-1 flex flex-col justify-between"
+            >
+              <div>
+                <div className="relative mb-4">
+                  <img
+                    src={expert.avatar}
+                    alt={expert.name}
+                    className="w-full h-44 rounded-xl object-cover border border-slate-700/80"
+                  />
+                  <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-slate-900/90 text-emerald-400 text-[10px] font-bold border border-emerald-500/30 flex items-center gap-1 backdrop-blur-md">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                    Online
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1 text-emerald-400 mb-0.5">
+                  <ShieldCheck className="w-4 h-4" />
+                  <span className="text-[10px] font-mono">{expert.registrationNumber}</span>
+                </div>
+
+                <h3 className="text-sm font-bold text-white line-clamp-1">{expert.name}</h3>
+                <p className="text-[11px] text-slate-400 line-clamp-1">{expert.title}</p>
+
+                <div className="pt-2 mt-2 border-t border-white/[0.04] text-[11px] text-slate-300 flex items-center justify-between">
+                  <span>{expert.experienceYears} Years Exp</span>
+                  <span className="font-bold text-white font-mono">{formatCurrency(expert.feePerConsultation)}</span>
+                </div>
+              </div>
+
+              <Link
+                href={`/consult?expert=${expert.id}&category=${expert.primaryCategory}`}
+                className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs text-center transition shadow-md"
+              >
+                {isBn ? "পরামর্শ নিন" : "Book Advisory"}
+              </Link>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* ================= 11B. FARM HEALTH PACKAGES (STEP 4) ================= */}
-      <FarmHealthPackages />
+      {/* ========================================================================= */}
+      {/* 9. VERIFIABLE OFFICIAL PRESCRIPTION (Rx) SHOWCASE */}
+      {/* ========================================================================= */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-[#07131a] via-slate-900 to-slate-950 border border-emerald-500/30 shadow-2xl relative overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Left 7 Cols: Explainer */}
+            <div className="lg:col-span-7 space-y-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+                <FileCheck2 className="w-4 h-4" />
+                <span>{isBn ? "আইনগত বৈধ ডিজিটাল প্রেসক্রিপশন" : "Official Digital Prescription (Rx)"}</span>
+              </div>
 
-      {/* ================= 12. VERIFIED CLIENT TESTIMONIALS ================= */}
+              <h2 className="text-3xl font-black text-white">
+                {isBn
+                  ? "কিউআর ভেরিফাইড প্রেসক্রিপশন ও প্রত্যাহার সময়সীমা"
+                  : "Tamper-Proof Digital Prescriptions with Withdrawal Safety"}
+              </h2>
+
+              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                {isBn
+                  ? "এসআরওটি প্রেসক্রিপশন শুধুমাত্র ওষুধ নয়, এটি একটি পূর্ণাঙ্গ বিজ্ঞানভিত্তিক প্রটোকল। প্রতিটি প্রেসক্রিপশনে সক্রিয় রাসায়নিক উপাদান (Active Ingredient), পানির সাথে সঠিক মাত্রা এবং ফসল বা দুধ-মাংসের নিরাপদ প্রত্যাহার সময় (Withholding Period) সুনির্দিষ্টভাবে লেখা থাকে।"
+                  : "Every prescription generated on SROT contains verifiable council accreditation, exact active chemical formulations per bigha or bodyweight, and mandatory withholding safety windows ensuring zero harmful residues."}
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs text-slate-300">
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-950/80 border border-white/[0.06]">
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{isBn ? "ফার্মেসি ও ডিলার কিউআর ভেরিফিকেশন" : "Retailer QR Scan Authenticity"}</span>
+                </div>
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-950/80 border border-white/[0.06]">
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{isBn ? "অ্যান্টিবায়োটিক উইথহোল্ডিং খাদ্য নিরাপত্তা" : "Zero-Residue Withholding Protocol"}</span>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  onClick={() => generatePrescriptionPdf(INITIAL_CONSULTATIONS[0])}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition shadow-lg shadow-emerald-950/60"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>{isBn ? "নমুনা প্রেসক্রিপশন ডাউনলোড করুন (PDF)" : "Download Sample Prescription PDF"}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Right 5 Cols: Visual Sample Rx Card */}
+            <div className="lg:col-span-5 p-5 rounded-2xl bg-slate-950 border border-slate-700/80 shadow-2xl space-y-3 font-sans">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800 text-xs">
+                <div>
+                  <span className="font-bold text-white block">Dr. Ramesh Patel, Ph.D.</span>
+                  <span className="text-[10px] text-emerald-400 font-mono">AGR-REG-2014-8891 (DAE)</span>
+                </div>
+                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold">
+                  Rx #SROT-AG-2026-8819
+                </span>
+              </div>
+
+              <div className="text-xs space-y-1">
+                <span className="text-[10px] text-slate-400 block uppercase">Diagnosis:</span>
+                <p className="font-bold text-white">Rice Leaf Blast (Pyricularia oryzae)</p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-xs space-y-1">
+                <div className="flex items-center justify-between text-white font-bold">
+                  <span>Tricyclazole 75% WP</span>
+                  <span className="text-emerald-400">0.6 g / L</span>
+                </div>
+                <p className="text-[11px] text-slate-400">Foliar protectant spray at late afternoon tillering</p>
+                <div className="pt-1 text-[10px] text-amber-400 font-mono font-semibold">
+                  Withholding Period: 21 Days Pre-Harvest
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2 text-[10px] text-slate-400">
+                <span>Cryptographically Signed</span>
+                <span className="text-emerald-400 font-mono">Verified Authenticity</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 10. VERIFIED CUSTOMER & FARMER REVIEWS */}
+      {/* ========================================================================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <VerifiedTestimonials />
       </section>
 
-      {/* ================= 13. DOWNLOADABLE OFFICIAL RX SHOWCASE ================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="srot-glass-card hover-glow-emerald rounded-3xl p-6 sm:p-10 border border-emerald-500/30 bg-gradient-to-r from-emerald-950/30 via-slate-900 to-slate-950">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 pb-6 border-b border-slate-800">
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
-                {isBn ? "অফিসিয়াল ডিজিটাল প্রেসক্রিপশন" : "Official Clinical Documents"}
-              </span>
-              <h3 className="text-2xl sm:text-3xl font-black text-white mt-1">
-                {isBn ? "যাচাইযোগ্য পরামর্শ রিপোর্ট ও কিউআর ডিজিটাল প্রেসক্রিপশন" : "Verifiable Advisory Reports & Digital Rx"}
-              </h3>
-              <p className="text-xs text-slate-300 mt-1">
-                {isBn
-                  ? "প্রতিটি কনসালটেশন শেষে প্রিন্টযোগ্য এ৪ সাইজের সাইনড প্রেসক্রিপশন পাবেন যাতে ওষুধের সঠিক মাত্রা ও খাদ্য নিরাপত্তার উইথহোল্ডিং সময় উল্লেখ থাকে।"
-                  : "Every completed consultation outputs a signed A4 PDF document containing diagnosis, active formulations, and withholding rules."}
-              </p>
-            </div>
-
-            <button
-              onClick={() => generatePrescriptionPdf(INITIAL_CONSULTATIONS[0])}
-              className="btn-shimmer flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-extrabold transition shadow-lg self-start md:self-auto hover:-translate-y-0.5"
-            >
-              <Download className="w-4 h-4" />
-              <span>{isBn ? "নমুনা প্রেসক্রিপশন ডাউনলোড (PDF)" : "Test Download Sample Rx (PDF)"}</span>
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {INITIAL_CONSULTATIONS.slice(0, 2).map((c) => (
-              <ConsultationCard key={c.id} consultation={c} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ================= 14. KNOWLEDGE HUB ARTICLES ================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="flex items-end justify-between mb-10">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-              {isBn ? "বিজ্ঞানসম্মত প্রটোকল" : "Evidence-Based Protocols"}
-            </span>
-            <h3 className="text-2xl sm:text-4xl font-black text-white mt-1">
-              {isBn ? "কৃষি ও ভেটেরিনারি জ্ঞানকোষের ফিল্ড গাইড" : "Field Protocols from the Knowledge Hub"}
-            </h3>
-          </div>
-
-          <Link
-            href="/knowledge"
-            className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 hover:translate-x-1 transition-transform"
-          >
-            <span>{isBn ? "সকল প্রটোকল পড়ুন →" : "Explore All Protocols →"}</span>
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {KNOWLEDGE_ARTICLES.slice(0, 3).map((article) => (
-            <KnowledgeCard key={article.id} article={article} />
-          ))}
-        </div>
-      </section>
-
-      {/* ================= 14B. ASK COMMUNITY Q&A (AGRI STACK OVERFLOW) ================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-white/[0.05]">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-2">
-              <Users className="w-3.5 h-3.5" />
-              <span>{isBn ? "উন্মুক্ত প্রশ্নোত্তর ফোরাম" : "Open Knowledge Forum"}</span>
-            </div>
-            <h3 className="text-2xl sm:text-4xl font-black text-white">
-              {isBn ? "কৃষি ও ভেটেরিনারি সম্প্রদায় প্রশ্নোত্তর" : "Ask the SROT Agro-Vet Community"}
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">
-              {isBn
-                ? "কোনো সমস্যায় আটকে আছেন? ছবি ও বিবরণ দিয়ে প্রশ্ন করুন। নিবন্ধিত চিকিৎসক ও অভিজ্ঞ খামারিরা উত্তর দেবেন সম্পূর্ণ বিনামূল্যে।"
-                : "Got an unsolved crop or livestock symptom? Post photos and description. Certified clinicians and farmers answer free of charge."}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsHomeAskModalOpen(true)}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-extrabold text-xs transition shadow-lg shadow-emerald-500/20"
-            >
-              {isBn ? "+ প্রশ্ন করুন (বিনামূল্যে)" : "+ Ask a Question (Free)"}
-            </button>
-            <Link
-              href="/community"
-              className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-white/[0.08] text-xs font-semibold transition"
-            >
-              {isBn ? "সকল প্রশ্নোত্তর দেখুন →" : "View All Q&A →"}
-            </Link>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {homeQuestions.slice(0, 4).map((q) => (
-            <QuestionCard
-              key={q.id}
-              question={q}
-              onOpenDetails={(selected) => setActiveCommunityQuestion(selected)}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* ================= 15. INTERACTIVE FAQ (ACCESSIBLE DETAILS ACCORDION) ================= */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="text-center mb-10">
+      {/* ========================================================================= */}
+      {/* 11. FREQUENTLY ASKED QUESTIONS (ACCORDION) */}
+      {/* ========================================================================= */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="text-center mb-12 space-y-2">
           <span className="text-xs font-bold uppercase tracking-wider text-cyan-400">
-            {isBn ? "সাধারণ প্রশ্নোত্তর" : "Frequently Asked Questions"}
+            {isBn ? "সাধারণ প্রশ্ন জিজ্ঞাসা" : "Clear Answers"}
           </span>
-          <h3 className="text-2xl sm:text-3xl font-black text-white mt-1">
-            {isBn ? "এসআরওটি (SROT) প্ল্যাটফর্ম সম্পর্কে জানুন" : "Understanding the SROT Platform"}
-          </h3>
-          <p className="text-xs text-slate-400 mt-1">
+          <h2 className="text-3xl sm:text-4xl font-black text-white">
+            {isBn ? "সচরাচর জিজ্ঞাসিত প্রশ্নসমূহ (FAQ)" : "Frequently Asked Questions"}
+          </h2>
+          <p className="text-xs text-slate-400">
             {isBn
-              ? "টেলি-পরামর্শ, ডিজিটাল প্রেসক্রিপশন ও বিকাশ/নগদে ফি প্রদানের নিয়মাবলী।"
-              : "How our tele-advisory, digital prescriptions, and multi-sector system operate."}
+              ? "এসআরওটি প্ল্যাটফর্ম ব্যবহার, পেমেন্ট ও প্রেসক্রিপশন সংক্রান্ত তথ্য।"
+              : "Everything you need to know about consultation flow, payments, and prescriptions."}
           </p>
         </div>
 
         <div className="space-y-3">
-          {[
-            {
-              q: isBn
-                ? "আমি কি একই অ্যাকাউন্ট দিয়ে ধানক্ষেত, ডেইরি গরু ও পোষা বিড়ালের চিকিৎসা নিতে পারব?"
-                : "Can I manage both crop acreage and livestock or pets under one account?",
-              a: isBn
-                ? "হ্যাঁ। এসআরওটি প্ল্যাটফর্মে একাউন্টে আপনি একই সাথে আপনার ধানের জমি, খামারের গরু-ছাগল এবং পোষা প্রাণীর প্রোফাইল যুক্ত করতে পারবেন। আমাদের বুদ্ধিমান রাউটিং সিস্টেম স্বয়ংক্রিয়ভাবে কেসটি সংশ্লিষ্ট উদ্ভিদ রোগতত্ত্ববিদ বা ভেটেরিনারি সার্জনের কাছে পাঠাবে।"
-                : "Yes. SROT was built around generic users and entities. You can register rice fields, orchards, a 30-head dairy herd, and your family dog under the same single account. The consultation engine automatically routes each case to the right agronomist or veterinarian.",
-            },
-            {
-              q: isBn
-                ? "বিকাশ বা নগদ দিয়ে কীভাবে পরামর্শ ফি দেওয়া যায়?"
-                : "How do I pay consultation fees using bKash or Nagad?",
-              a: isBn
-                ? "কনসালটেশন বুকিংয়ের সময় সরাসরি বিকাশ (bKash), নগদ (Nagad) অথবা রকেটের সুরক্ষিত অনলাইন গেটওয়ের মাধ্যমে মাত্র ৳২৫০ ফি পরিশোধ করা যায়। সফল পেমেন্টের সাথে সাথেই আপনার প্রেসক্রিপশন চেম্বার সক্রিয় হবে।"
-                : "During booking, you can pay via bKash, Nagad, Rocket, or cards starting from ৳250 ($2.50). Once confirmed, your tele-consultation room activates instantly.",
-            },
-            {
-              q: isBn
-                ? "ডিজিটাল প্রেসক্রিপশন কি ভেটেরিনারি ওষুধ কিনতে গ্রহণ করবে?"
-                : "Are the digital veterinary prescriptions legally verifiable at pharmacies?",
-              a: isBn
-                ? "হ্যাঁ। আমাদের প্রতিটি প্রেসক্রিপশনে বাংলাদেশ ভেটেরিনারি কাউন্সিল (BVC) নিবন্ধিত সার্জনের রেজিস্ট্রেশন নম্বর, ডিজিটাল কিউআর কোড এবং ওষুধের সঠিক উইথহোল্ডিং মেয়াদ স্পষ্টভাবে উল্লেখ থাকে, যা যেকোনো রেজিস্টার্ড ভেট ফার্মেসিতে শতভাগ বৈধ।"
-                : "Yes. Each prescription is issued by a veterinarian with their official Veterinary Council registration number, cryptographic checksum, exact body-weight dosage, and mandated milk or meat withholding period.",
-            },
-            {
-              q: isBn
-                ? "জরুরি অবস্থায় খামারে কোনো আকস্মিক মহামারি দেখা দিলে কী করণীয়?"
-                : "What if I experience an emergency crop swarm or downer cow in Bangladesh?",
-              a: isBn
-                ? "আমাদের উপরের নেভিগেশন বার থেকে 'জরুরি হটলাইন' বাটনে ক্লিক করুন অথবা সরকারি কৃষি কল সেন্টার ১৬১২৩ কিংবা ৩৩৩-এ ফোন করুন। আমাদের ইমার্জেন্সি রোস্টার থেকে ১০ মিনিটের মধ্যে অন-কল ডাক্তারের সাথে কথা বলতে পারবেন।"
-                : "Click the 24/7 SOS Helpline button in the top navigation or call Bangladesh Krishi Call Centre 16123 or 333. Emergency cases receive priority dispatch and under 10-minute specialist connection.",
-            },
-            {
-              q: isBn
-                ? "ফসলের পাতার ছবি তুলে কীভাবে রোগ নির্ণয় করব?"
-                : "How does the rapid photo diagnosis work for crop leaf diseases?",
-              a: isBn
-                ? "আপনার মোবাইল দিয়ে ধানের পাতা বা আক্রান্ত ফসলের স্পষ্ট আলোতে ছবি তুলুন এবং প্ল্যাটফর্মে আপলোড করুন। আমাদের এআই ও উদ্ভিদ রোগতত্ত্ববিদ ১৫-২০ মিনিটের মধ্যে রোগের স্পেকট্রাল বিশ্লেষণ ও অনুমোদিত বালাইনাশকের ডোজ পাঠাবেন।"
-                : "When you upload high-resolution photos of affected leaves or stems, our certified plant pathologists inspect lesion morphology, collar rings, and fungal spores. In under 25 minutes, you receive a verified diagnosis and downloadable spray schedule.",
-            },
-          ].map((faq, idx) => (
-            <details
-              key={idx}
-              name="srot-faq"
-              className="srot-glass-card hover-glow-emerald rounded-2xl border border-slate-800 p-5 group transition-all"
-            >
-              <summary className="flex items-center justify-between cursor-pointer font-bold text-white text-sm list-none select-none">
-                <span className="flex items-center gap-2">
-                  <HelpCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+          {faqs.map((faq, idx) => {
+            const isOpen = openFaqIndex === idx;
+            return (
+              <div
+                key={idx}
+                className="rounded-2xl border border-white/[0.08] bg-slate-900/60 overflow-hidden transition"
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
+                  className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 font-bold text-xs sm:text-sm text-white hover:text-emerald-300 transition"
+                >
                   <span>{faq.q}</span>
-                </span>
-                <ChevronDown className="w-4 h-4 text-slate-400 group-open:rotate-180 transition-transform duration-200 shrink-0" />
-              </summary>
-              <div className="mt-3 pt-3 border-t border-slate-800/80 text-xs text-slate-300 leading-relaxed pl-6">
-                <p>{faq.a}</p>
+                  <ChevronDown
+                    className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${
+                      isOpen ? "rotate-180 text-emerald-400" : ""
+                    }`}
+                  />
+                </button>
+                {isOpen && (
+                  <div className="px-4 pb-5 sm:px-5 sm:pb-6 text-xs text-slate-300 leading-relaxed border-t border-white/[0.04] pt-3">
+                    {faq.a}
+                  </div>
+                )}
               </div>
-            </details>
-          ))}
+            );
+          })}
         </div>
       </section>
 
-      {/* ================= 16. FINAL CALL TO ACTION ================= */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 text-center">
-        <div className="p-8 sm:p-14 rounded-3xl bg-gradient-to-r from-emerald-950 via-[#0a141f] to-teal-950 border border-emerald-500/30 shadow-2xl relative overflow-hidden group hover-glow-emerald">
+      {/* ========================================================================= */}
+      {/* 12. HIGH-IMPACT FINAL CTA BANNER */}
+      {/* ========================================================================= */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
+        <div className="p-8 sm:p-14 rounded-3xl bg-gradient-to-r from-emerald-950 via-[#071720] to-teal-950 border border-emerald-500/30 shadow-2xl space-y-6 relative overflow-hidden">
           <div className="relative z-10 space-y-4">
-            <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse">
-              {isBn ? "লাইভ টেলি-পরামর্শ সেবা সক্রিয়" : "Instant Tele-Advisory Active"}
+            <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+              {isBn ? "সারাদেশে সেবা উন্মুক্ত" : "Live Across All 64 Districts"}
             </span>
-            <h2 className="text-3xl sm:text-5xl font-black text-white">
-              {isBn ? "আপনার ফসল, খামার ও পোষা প্রাণীর সুরক্ষায় প্রস্তুত?" : "Ready to Protect Your Crops, Herds & Pets?"}
+
+            <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+              {isBn
+                ? "আজই আপনার ফসল ও প্রাণীর সুরক্ষায় প্রস্তুতি নিন"
+                : "Protect Your Crops, Livestock & Pets Today"}
             </h2>
+
             <p className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto leading-relaxed">
               {isBn
-                ? "এখনই বিএআরআই/বিআরআরআই সার্টিফাইড কৃষিবিদ বা বিভিসি নিবন্ধিত ভেটেরিনারি ডাক্তারের সাথে পরামর্শ নিন। আধুনিক বাংলাদেশের কৃষিকে করুন লাভজনক ও নিরাপদ।"
-                : "Book a consultation with certified plant pathologists or veterinary surgeons now. Experience the power of modern agricultural & veterinary tele-health."}
+                ? "কোনো অপ্রয়োজনীয় জটিলতা ছাড়া মাত্র কয়েক ক্লিকে বিশেষজ্ঞ পরামর্শক চিকিৎসকের সাথে যুক্ত হোন। নিরাপদ কৃষি, স্বাস্থ্যবান প্রাণী ও সুরক্ষিত ভবিষ্যৎ।"
+                : "Connect with accredited plant doctors and veterinarians in minutes. Science-backed guidance, certified digital prescriptions, and peace of mind."}
             </p>
 
-            <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <Link
                 href="/consult"
-                className="btn-shimmer px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-sm transition shadow-xl shadow-emerald-950/80 hover:scale-105 active:scale-95"
+                className="px-8 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs sm:text-sm transition shadow-xl shadow-emerald-500/25 hover:-translate-y-0.5"
               >
-                {isBn ? "পরামর্শ বুক করুন (৳২৫০ থেকে)" : "Book Advisory Consultation"}
+                {isBn ? "পরামর্শ সেবা শুরু করুন →" : "Book Advisory Session →"}
               </Link>
+
               <button
                 onClick={() => setIsCalculatorOpen(true)}
-                className="px-6 py-4 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 font-bold text-sm hover:bg-slate-800 transition flex items-center gap-2 hover-glow-emerald"
+                className="px-6 py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-white/[0.1] font-bold text-xs sm:text-sm transition"
               >
-                <Calculator className="w-4 h-4 text-emerald-400" />
-                <span>{isBn ? "ডোজ ক্যালকুলেটর খুলুন" : "Open Dosage Calculator"}</span>
+                {isBn ? "ওষুধের ডোজ মাপুন" : "Calculate Dosage"}
               </button>
+            </div>
+
+            {/* Emergency Hotline Badges */}
+            <div className="pt-4 flex flex-wrap items-center justify-center gap-4 text-xs text-slate-400">
+              <span className="flex items-center gap-1.5">
+                <PhoneCall className="w-3.5 h-3.5 text-emerald-400" />
+                <span>কৃষি কল সেন্টার: <strong className="text-white">16123</strong></span>
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1.5">
+                <PhoneCall className="w-3.5 h-3.5 text-cyan-400" />
+                <span>জাতীয় জরুরি হেল্পলাইন: <strong className="text-white">333</strong></span>
+              </span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Global Dosage Calculator Modal on Homepage */}
+      {/* Global Dosage Calculator Modal */}
       <DosageCalculatorModal
         isOpen={isCalculatorOpen}
         onClose={() => setIsCalculatorOpen(false)}
-      />
-
-      {/* Community Q&A Modals */}
-      <AskQuestionModal
-        isOpen={isHomeAskModalOpen}
-        onClose={() => setIsHomeAskModalOpen(false)}
-        onSubmitQuestion={(newQ) => setHomeQuestions([newQ, ...homeQuestions])}
-      />
-      <QuestionDetailModal
-        question={activeCommunityQuestion}
-        onClose={() => setActiveCommunityQuestion(null)}
       />
     </div>
   );
