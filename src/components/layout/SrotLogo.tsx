@@ -94,7 +94,7 @@ export function SrotLogo({ className = "", size = "md", showTagline = true }: Sr
           <span
             className={`${titleSizes[size]} font-black tracking-tight text-white group-hover:text-emerald-400 transition-colors flex items-center gap-1.5`}
           >
-            <span>{isBn ? "উৎস" : "SROT"}</span>
+            <span>{isBn ? "স্রোত" : "SROT"}</span>
             <span className="text-emerald-400 text-xs font-semibold tracking-normal hidden sm:inline">
               {isBn ? "প্ল্যাটফর্ম" : "Platform"}
             </span>

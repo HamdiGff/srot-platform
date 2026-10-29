@@ -529,18 +529,8 @@ export function Navbar() {
                 {/* 1. Language Toggle */}
                 <div
                   className="inline-flex items-center p-0.5 rounded-lg bg-slate-900 border border-white/[0.08]"
-                  title={isBn ? "ভাষা পরিবর্তন করুন" : "Toggle Language"}
+                  title={isBn ? "Switch Language" : "Toggle Language"}
                 >
-                  <button
-                    onClick={() => setLanguage("bn")}
-                    className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all ${
-                      isBn
-                        ? "bg-emerald-500 text-slate-950 shadow-sm"
-                        : "text-slate-400 hover:text-slate-200"
-                    }`}
-                  >
-                    বাং
-                  </button>
                   <button
                     onClick={() => setLanguage("en")}
                     className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all ${
@@ -550,6 +540,16 @@ export function Navbar() {
                     }`}
                   >
                     EN
+                  </button>
+                  <button
+                    onClick={() => setLanguage("bn")}
+                    className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all ${
+                      isBn
+                        ? "bg-emerald-500 text-slate-950 shadow-sm"
+                        : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    বাং
                   </button>
                 </div>
 

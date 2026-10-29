@@ -7,6 +7,7 @@ import { useConsultationStore } from "@/lib/store/consultationStore";
 import { ConsultationCard } from "@/components/cards/ConsultationCard";
 import { FarmerInvoiceModal } from "@/components/features/FarmerInvoiceModal";
 import { FarmHealthPackages } from "@/components/features/FarmHealthPackages";
+import { FarmRecordsDashboard } from "@/components/features/FarmRecordsDashboard";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   Wheat,
@@ -35,32 +36,6 @@ export default function FarmerPortalPage() {
   const userConsultations = getByUserRole(currentRole);
   const [selectedInvoiceCase, setSelectedInvoiceCase] = useState<any>(null);
   const totalPaid = userConsultations.reduce((sum, c) => sum + (c.feePaid || 300), 0);
-
-  const [entities, setEntities] = useState(currentUser.registeredEntities);
-  const [isAddingEntity, setIsAddingEntity] = useState(false);
-  const [newEntityName, setNewEntityName] = useState("");
-  const [newEntityDetails, setNewEntityDetails] = useState("");
-
-  const handleAddEntity = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newEntityName.trim()) return;
-
-    const newEnt = {
-      id: `ent-${Date.now()}`,
-      name: newEntityName,
-      type: (currentRole === "pet_owner" ? "pet" : currentRole === "livestock_farmer" ? "livestock" : "crop") as any,
-      details: newEntityDetails || "Registered profile on SROT Platform",
-      icon: currentRole === "pet_owner" ? "HeartHandshake" : currentRole === "livestock_farmer" ? "Milk" : "Wheat",
-    };
-
-    setEntities([...entities, newEnt]);
-    setNewEntityName("");
-    setNewEntityDetails("");
-    setIsAddingEntity(false);
-  };
-
-  const isPetOwner = currentRole === "pet_owner";
-  const isLivestock = currentRole === "livestock_farmer";
 
   return (
     <div className="w-full srot-glow-mesh py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
@@ -161,103 +136,8 @@ export default function FarmerPortalPage() {
         </div>
       </div>
 
-      {/* Registered Assets / Farms / Pets section */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-bold text-white">
-              {isPetOwner ? "My Registered Pets" : isLivestock ? "My Registered Herds & Livestock" : "My Registered Crops & Farm Plots"}
-            </h2>
-            <p className="text-xs text-slate-400">
-              Profiles linked to your SROT tele-advisory account.
-            </p>
-          </div>
-
-          <button
-            onClick={() => setIsAddingEntity(!isAddingEntity)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-200 text-xs font-semibold transition"
-          >
-            <Plus className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{isPetOwner ? "Add Pet" : "Add Farm Plot / Herd"}</span>
-          </button>
-        </div>
-
-        {/* Add Entity Form Toggle */}
-        {isAddingEntity && (
-          <form
-            onSubmit={handleAddEntity}
-            className="p-5 rounded-2xl bg-slate-900 border border-slate-800 mb-4 space-y-3"
-          >
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-              Register New {isPetOwner ? "Pet" : isLivestock ? "Herd" : "Crop Field"}
-            </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <input
-                type="text"
-                placeholder={isPetOwner ? "Pet Name & Breed (e.g. Bella, French Bulldog)" : "Plot Name & Crop (e.g. South Paddy Plot C, 4 Acres)"}
-                value={newEntityName}
-                onChange={(e) => setNewEntityName(e.target.value)}
-                className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Details (e.g. Age, Sowing Date, Acreage, Microchip ID)"
-                value={newEntityDetails}
-                onChange={(e) => setNewEntityDetails(e.target.value)}
-                className="px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"
-              />
-            </div>
-            <div className="flex justify-end gap-2 pt-1">
-              <button
-                type="button"
-                onClick={() => setIsAddingEntity(false)}
-                className="px-3 py-1.5 rounded-lg text-slate-400 text-xs hover:text-white"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold"
-              >
-                Save Profile
-              </button>
-            </div>
-          </form>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {entities.map((ent) => (
-            <div
-              key={ent.id}
-              className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                <span className="p-2.5 rounded-xl bg-slate-800 text-emerald-400">
-                  {ent.type === "pet" ? (
-                    <HeartHandshake className="w-5 h-5 text-amber-400" />
-                  ) : ent.type === "livestock" ? (
-                    <Milk className="w-5 h-5 text-cyan-400" />
-                  ) : (
-                    <Wheat className="w-5 h-5 text-emerald-400" />
-                  )}
-                </span>
-                <div>
-                  <h4 className="font-bold text-white text-xs">{ent.name}</h4>
-                  <p className="text-[11px] text-slate-400">{ent.details}</p>
-                </div>
-              </div>
-
-              <Link
-                href={`/consult?category=${ent.type === "pet" ? "pet" : ent.type === "livestock" ? "veterinary" : "agri"}`}
-                className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300"
-              >
-                Consult &rarr;
-              </Link>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* 3. FARM MANAGEMENT & ANIMAL HEALTH RECORDS (BLUEPRINT MODULES 6 & 7) */}
+      <FarmRecordsDashboard />
 
       {/* Consultations & Rx History */}
       <div>
