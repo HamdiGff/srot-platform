@@ -240,15 +240,6 @@ export default function HomePage() {
                   <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
                   <span>{isBn ? "প্যাকেজ (৳১৯৯)" : "Care Packages (৳199)"}</span>
                 </Link>
-
-                <Link
-                  href="#features"
-                  className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-bold text-xs transition"
-                  title="Explore Platform Features & Clinical Suite"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>{isBn ? "ফিচারসমূহ" : "Features"}</span>
-                </Link>
               </div>
 
               {/* Single-Row Compact Trust Stats Strip */}
