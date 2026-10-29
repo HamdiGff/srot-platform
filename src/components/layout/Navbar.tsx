@@ -477,8 +477,8 @@ export function Navbar() {
                         <div>
                           <strong className="text-xs font-bold text-white group-hover:text-purple-300 flex items-center gap-1.5">
                             <span>{isBn ? "ফিল্ড সার্ভিস ও অন-সাইট ভিজিট" : "Field Services & Home Visits"}</span>
-                            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-400">
-                              Step 6
+                            <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300">
+                              LIVE
                             </span>
                           </strong>
                           <span className="text-[10px] text-slate-400 leading-tight block">
