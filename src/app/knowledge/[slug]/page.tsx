@@ -30,9 +30,9 @@ export default async function KnowledgeArticlePage({ params }: ArticleDetailPage
     notFound();
   }
 
-  const relatedExpert = PLATFORM_EXPERTS.find(
-    (e) => e.name.toLowerCase().includes(article.author.toLowerCase().split(" ")[1] || "")
-  ) || PLATFORM_EXPERTS[0];
+  const relatedExpert =
+    PLATFORM_EXPERTS.find((e) => e.primaryCategory === article.category) ||
+    PLATFORM_EXPERTS[0];
 
   return (
     <div className="w-full srot-glow-mesh py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">

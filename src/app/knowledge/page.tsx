@@ -3,9 +3,13 @@
 import React, { useState } from "react";
 import { KNOWLEDGE_ARTICLES } from "@/data/mockKnowledge";
 import { KnowledgeCard } from "@/components/cards/KnowledgeCard";
+import { useLanguageStore } from "@/lib/store/languageStore";
 import { BookOpen, Search, Wheat, Milk, HeartHandshake, Sparkles } from "lucide-react";
 
 export default function KnowledgeHubPage() {
+  const { language } = useLanguageStore();
+  const isBn = language === "bn";
+
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -25,13 +29,15 @@ export default function KnowledgeHubPage() {
       <div className="max-w-3xl mb-10">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-3">
           <BookOpen className="w-3.5 h-3.5" />
-          <span>Scientific Knowledge Repository</span>
+          <span>{isBn ? "বিজ্ঞানসম্মত জ্ঞানকোষ ও প্রোটোকল" : "Scientific Knowledge Repository"}</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-          Agro-Veterinary Knowledge Hub
+          {isBn ? "কৃষি ও ভেটেরিনারি বিজ্ঞান জ্ঞানভাণ্ডার" : "Agro-Veterinary Knowledge Hub"}
         </h1>
         <p className="mt-2 text-sm text-slate-300 leading-relaxed">
-          Peer-reviewed field protocols, disease identification guides, and emergency outbreak management written by our accredited agronomists and veterinary clinicians.
+          {isBn
+            ? "বিএআরআই, বিআরআরআই ও বাংলাদেশ ভেটেরিনারি কাউন্সিল অনুমোদিত বিশেষজ্ঞদের দ্বারা রচিত মাঠ প্রোটোকল, রোগ দমন গাইড এবং জরুরি চিকিৎসা নির্দেশিকা।"
+            : "Peer-reviewed field protocols, disease identification guides, and emergency outbreak management written by accredited agronomists and veterinary clinicians."}
         </p>
       </div>
 
@@ -44,7 +50,11 @@ export default function KnowledgeHubPage() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search crop blast, mastitis CMT, poultry heat stress, pet itch..."
+            placeholder={
+              isBn
+                ? "ধানের ব্লাস্ট, ওলান পাকা সিএমটি, মুরগির হিট স্ট্রেস অনুসন্ধান করুন..."
+                : "Search crop blast, mastitis CMT, poultry heat stress, pet itch..."
+            }
             className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-700/80 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
           />
         </div>
@@ -52,10 +62,10 @@ export default function KnowledgeHubPage() {
         {/* Category Tabs */}
         <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
           {[
-            { id: "all", label: "All Protocols" },
-            { id: "agri", label: "Crop Diseases", icon: <Wheat className="w-3.5 h-3.5" /> },
-            { id: "veterinary", label: "Livestock Veterinary", icon: <Milk className="w-3.5 h-3.5" /> },
-            { id: "pet", label: "Companion Pet Health", icon: <HeartHandshake className="w-3.5 h-3.5" /> },
+            { id: "all", label: isBn ? "সকল প্রোটোকল" : "All Protocols" },
+            { id: "agri", label: isBn ? "ফসল ও বালাই" : "Crop Diseases", icon: <Wheat className="w-3.5 h-3.5" /> },
+            { id: "veterinary", label: isBn ? "ডেইরি ও গবাদিপশু" : "Livestock Veterinary", icon: <Milk className="w-3.5 h-3.5" /> },
+            { id: "pet", label: isBn ? "পোষা প্রাণী" : "Companion Pet Health", icon: <HeartHandshake className="w-3.5 h-3.5" /> },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -82,15 +92,17 @@ export default function KnowledgeHubPage() {
         </div>
       ) : (
         <div className="p-12 text-center rounded-2xl bg-slate-900/50 border border-slate-800 text-slate-400">
-          <p className="text-sm">No protocols found matching &quot;{searchQuery}&quot;.</p>
+          <p className="text-sm">
+            {isBn ? `"${searchQuery}" এর সাথে মিলে এমন কোনো প্রোটোকল পাওয়া যায়নি।` : `No protocols found matching "${searchQuery}".`}
+          </p>
           <button
             onClick={() => {
               setSearchQuery("");
               setSelectedCategory("all");
             }}
-            className="mt-3 px-4 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold"
+            className="mt-3 px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-md shadow-emerald-950/60"
           >
-            Clear Filters
+            {isBn ? "ফিল্টার রিসেট করুন" : "Clear Filters"}
           </button>
         </div>
       )}

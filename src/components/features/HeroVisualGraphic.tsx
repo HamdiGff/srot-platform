@@ -35,7 +35,7 @@ export function HeroVisualGraphic() {
         { label: isBn ? "তাপমাত্রা" : "Canopy", value: "28.5°C" },
       ],
       doctor: {
-        name: "Dr. Ramesh Patel, Ph.D.",
+        name: "Dr. S. M. Tanvir Ahmed, Ph.D.",
         title: isBn ? "উদ্ভিদ বিশেষজ্ঞ • DAE-8891" : "Plant Pathologist • DAE-8891",
         avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
       },
@@ -59,7 +59,7 @@ export function HeroVisualGraphic() {
         { label: isBn ? "দুধ হ্রাস" : "Yield Drop", value: "-35%" },
       ],
       doctor: {
-        name: "Dr. Ananya Sen, M.V.Sc.",
+        name: "Dr. Mahfuzur Rahman, M.V.Sc.",
         title: isBn ? "ভেটেরিনারি সার্জন • BVC-7714" : "Vet Surgeon • BVC-7714",
         avatar: "https://images.unsplash.com/photo-1594824813568-7c8fa0747185?auto=format&fit=crop&w=150&q=80",
       },
