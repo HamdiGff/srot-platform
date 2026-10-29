@@ -552,33 +552,33 @@ export default function HomePage() {
       {/* ========================================================================= */}
       {/* 5. PRECISION AGRI-CLINICAL SUITE: UNIFIED DIAGNOSTIC WORKBENCH */}
       {/* ========================================================================= */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="srot-glass-card rounded-3xl border border-white/[0.1] p-6 sm:p-10 shadow-2xl space-y-8 bg-gradient-to-b from-slate-900/90 via-[#060e17] to-slate-950/95">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="srot-glass-card rounded-3xl border border-white/[0.08] p-5 sm:p-8 shadow-2xl space-y-6 bg-[#070d16]/95 backdrop-blur-2xl">
           {/* Header & Suite Tab Navigation */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-white/[0.08]">
-            <div>
-              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>{isBn ? "এসআরওটি এআই ও টেলিমেট্রি স্যুট ৩.৫" : "SROT Precision Farm & Clinical Suite v3.5"}</span>
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 pb-5 border-b border-white/[0.08]">
+            <div className="space-y-1.5 max-w-xl">
+              <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-emerald-400 px-3 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25">
+                <Sparkles className="w-3 h-3 text-emerald-400" />
+                <span>{isBn ? "এসআরওটি এআই ও টেলিমেট্রি ল্যাব" : "AI Clinical & Agronomic Suite"}</span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black text-white">
-                {isBn ? "নির্ভুল কৃষি গোয়েন্দা তথ্য ও ক্লিনিকাল ডায়াগনস্টিক স্যুট" : "Precision Agronomic Intelligence & Clinical Diagnostics"}
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight">
+                {isBn ? "নির্ভুল কৃষি ও ভেটেরিনারি ডায়াগনস্টিক স্যুট" : "Precision Agro-Vet Diagnostic Suite"}
               </h2>
-              <p className="text-xs sm:text-sm text-slate-300 mt-1">
+              <p className="text-xs text-slate-300 font-normal leading-relaxed">
                 {isBn
-                  ? "মাল্টি-স্পেকট্রাল এআই ভিশন, উপজেলাভিত্তিক মাইক্রো-ক্লাইমেট স্প্রে রাডার, মাটির রাসায়নিক উর্বরতা ও গবাদিপশুর টিকা ক্যালেন্ডার।"
-                  : "Integrated multi-spectral computer vision, upazila meteorological spray forecasting, soil chemistry interpretation, and livestock health schedules."}
+                  ? "মাল্টি-স্পেকট্রাল এআই ভিশন প্যাথোলজি, ৮ বিভাগের রোগ প্রাদুর্ভাব রাডার, আবহাওয়া ও মাটির সার বিশ্লেষণ।"
+                  : "Multi-spectral computer vision pathology, national 8-division outbreak surveillance, and calibrated dosage prescriptions."}
               </p>
             </div>
 
             {/* High-Tech Tab Pills */}
-            <div className="flex flex-wrap items-center bg-slate-950 p-1.5 rounded-2xl border border-white/[0.08] gap-1 shrink-0">
+            <div className="flex flex-wrap items-center bg-slate-950/80 p-1 rounded-2xl border border-white/[0.08] gap-1 shrink-0">
               {[
-                { id: "ai_scan", label: isBn ? "এআই প্যাথোলজি স্ক্যানার" : "AI Vision Scanner", icon: Scan },
-                { id: "outbreak", label: isBn ? "লাইভ প্রাদুর্ভাব রাডার" : "Live Outbreak Radar", icon: Radio },
-                { id: "weather", label: isBn ? "আবহাওয়া ও স্প্রে রাডার" : "Weather & Spray Radar", icon: CloudSun },
-                { id: "soil", label: isBn ? "মাটির পিএইচ ও সার" : "Soil Health & NPK", icon: FlaskConical },
-                { id: "calendar", label: isBn ? "মৌসুমি ক্যালেন্ডার" : "Farm Calendar", icon: CalendarCheck },
+                { id: "ai_scan", label: isBn ? "এআই ভিশন স্ক্যানার" : "AI Vision Scanner", icon: Scan },
+                { id: "outbreak", label: isBn ? "প্রাদুর্ভাব রাডার" : "Outbreak Radar", icon: Radio },
+                { id: "weather", label: isBn ? "আবহাওয়া ও স্প্রে" : "Weather & Spray", icon: CloudSun },
+                { id: "soil", label: isBn ? "মাটির পিএইচ ও সার" : "Soil NPK & pH", icon: FlaskConical },
+                { id: "calendar", label: isBn ? "খামার ক্যালেন্ডার" : "Farm Calendar", icon: CalendarCheck },
               ].map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeSuiteTab === tab.id;
@@ -586,7 +586,7 @@ export default function HomePage() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveSuiteTab(tab.id as any)}
-                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
                       isActive
                         ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md font-black shadow-emerald-500/20"
                         : "text-slate-400 hover:text-white hover:bg-slate-900"
@@ -601,7 +601,7 @@ export default function HomePage() {
           </div>
 
           {/* Active Tab Component */}
-          <div className="pt-2">
+          <div className="pt-1">
             {activeSuiteTab === "ai_scan" && <AiSymptomScanner />}
             {activeSuiteTab === "outbreak" && <LiveOutbreakTelemetry />}
             {activeSuiteTab === "weather" && <AgroWeatherRadar />}

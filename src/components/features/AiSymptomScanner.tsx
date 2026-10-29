@@ -10,401 +10,486 @@ import {
   CheckCircle2,
   AlertTriangle,
   ArrowRight,
-  RefreshCw,
+  ShieldCheck,
   Wheat,
   Milk,
+  Egg,
   HeartHandshake,
   Upload,
-  ShieldCheck,
-  FileText,
-  BadgeCheck,
-  Clock,
   Activity,
-  Droplets,
+  Layers,
+  Clock,
+  Flame,
+  Radio,
 } from "lucide-react";
 
-interface ScanSample {
+interface DiagnosticSample {
   id: string;
-  category: "agri" | "veterinary" | "pet";
-  categoryLabel: string;
-  categoryLabelBn: string;
-  label: string;
-  labelBn: string;
+  category: "agri" | "veterinary" | "poultry" | "pet";
+  tabLabelEn: string;
+  tabLabelBn: string;
+  specimenNameEn: string;
+  specimenNameBn: string;
+  varietyOrBreed: string;
   image: string;
-  pathogen: string;
-  pathogenBn: string;
+  pathogenScientific: string;
+  pathogenCommonEn: string;
+  pathogenCommonBn: string;
   confidence: number;
-  severity: "High" | "Moderate" | "Mild";
-  severityLabel: string;
-  symptomsObserved: string[];
-  symptomsObservedBn: string[];
-  immediateSteps: string[];
-  immediateStepsBn: string[];
-  matchedDoctor: {
+  severity: "High" | "Moderate" | "Controlled";
+  observedSignsEn: string[];
+  observedSignsBn: string[];
+  protocolStepsEn: string[];
+  protocolStepsBn: string[];
+  recommendedRxEn: string;
+  recommendedRxBn: string;
+  withholdingSafetyEn: string;
+  withholdingSafetyBn: string;
+  doctor: {
     name: string;
     role: string;
-    avatar: string;
-    id: string;
     regNumber: string;
+    council: string;
+    avatar: string;
+    fee: number;
+    id: string;
   };
-  recommendedFormulation: string;
-  recommendedFormulationBn: string;
-  withholdingTime: string;
-  withholdingTimeBn: string;
-  consultationPath: string;
 }
 
-const SAMPLES: ScanSample[] = [
+const DIAGNOSTIC_SAMPLES: DiagnosticSample[] = [
   {
-    id: "sample-blast",
+    id: "sample-rice-blast",
     category: "agri",
-    categoryLabel: "Crop Pathology",
-    categoryLabelBn: "মাঠফসল রোগতত্ত্ব",
-    label: "Rice Leaf Blast (BRRI Dhan-28)",
-    labelBn: "বোরো ধানের পাতা ব্লাস্ট (BRRI ধান-২৮)",
-    image: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=800&q=80",
-    pathogen: "Magnaporthe oryzae (Pyricularia oryzae)",
-    pathogenBn: "ম্যাগনাপোর্থে ওরিজি (পাতা ব্লাস্ট ছত্রাক)",
-    confidence: 98.4,
+    tabLabelEn: "Crop Leaf Blast",
+    tabLabelBn: "ধানের পাতা ব্লাস্ট",
+    specimenNameEn: "Boro Rice Foliar Blast",
+    specimenNameBn: "বোরো ধানের পাতা ব্লাস্ট",
+    varietyOrBreed: "BRRI Dhan-28 (দিনাজপুর সদর)",
+    image: "https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=900&q=80",
+    pathogenScientific: "Pyricularia oryzae (Magnaporthe oryzae)",
+    pathogenCommonEn: "Foliar & Neck Blast Fungus",
+    pathogenCommonBn: "ছত্রাকজনিত পাতা ও শীষ ব্লাস্ট",
+    confidence: 98.6,
     severity: "High",
-    severityLabel: "High Epidemic Spread Risk",
-    symptomsObserved: [
-      "Diamond spindle-shaped foliar lesions with ash-gray center",
-      "Necrotic dark brown borders spreading rapidly along leaf veins",
-      "Fungal conidia sporulation activated by morning dew & high humidity",
+    observedSignsEn: [
+      "Spindle diamond-shaped lesions with ash-gray center",
+      "Necrotic brown borders spreading along parallel veins",
+      "High humidity and nitrogen succulence triggering sporulation",
     ],
-    symptomsObservedBn: [
+    observedSignsBn: [
       "পাতায় দুই প্রান্ত চোখা তেকোনা/মাকু আকৃতির ছাই রঙের দাগ",
-      "দাগের চারপাশের কিনারা গাঢ় বাদামি হয়ে প্রসারিত হচ্ছে",
-      "ভোরের কুয়াশা ও উচ্চ আর্দ্রতার কারণে নিচের পাতায় জীবাণু ছড়িয়ে পড়ছে",
+      "দাগের চারপাশের কিনারা গাঢ় বাদামি হয়ে পাতাজুড়ে ছড়াচ্ছে",
+      "ভোরের কুয়াশা ও উচ্চ আর্দ্রতায় ছত্রাকের দ্রুত বিস্তার",
     ],
-    immediateSteps: [
-      "Halt nitrogen / urea top-dressing immediately to reduce leaf tenderness.",
-      "Maintain a 5 cm standing water layer in paddy fields to restrict fungal spread.",
+    protocolStepsEn: [
+      "Halt all urea top-dressing immediately to slow vegetative succulence.",
+      "Maintain 3-5 cm standing water in paddy; do not let the field dry crack.",
       "Spray calibrated protectant triazole fungicide during late afternoon.",
     ],
-    immediateStepsBn: [
+    protocolStepsBn: [
       "জমিতে অতিরিক্ত ইউরিয়া সার প্রয়োগ অবিলম্বে বন্ধ রাখুন।",
       "ক্ষেতে ২-৩ ইঞ্চি পানি ধরে রাখুন যাতে ছত্রাকের বিস্তার রোধ হয়।",
-      "পড়ন্ত বিকেলে ট্রাইসাইক্লাজল বা নাটিভো স্প্রে করার প্রস্তুতি নিন।",
+      "পড়ন্ত বিকেলে ট্রাইসাইক্লাজল বা নাটিভো স্প্রে প্রয়োগ করুন।",
     ],
-    matchedDoctor: {
-      name: "Dr. Ramesh Patel, Ph.D.",
-      role: "Chief Plant Pathologist & IPM Specialist",
+    recommendedRxEn: "Tricyclazole 75% WP @ 0.6g/L water (Foliar)",
+    recommendedRxBn: "ট্রাইসাইক্লাজল ৭৫% ডব্লিউপি প্রতি লিটার পানিতে ০.৬ গ্রাম",
+    withholdingSafetyEn: "21 Days Pre-Harvest Statutory Withdrawal Interval",
+    withholdingSafetyBn: "ফসল কাটার ২১ দিন পূর্বে বালাইনাশক স্প্রে বন্ধ রাখুন",
+    doctor: {
+      name: "Dr. S. M. Tanvir Ahmed, Ph.D.",
+      role: "Chief Plant Pathologist & Rice IPM Specialist",
+      regNumber: "DAE-AGR-2015-8891",
+      council: "Department of Agricultural Extension",
       avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+      fee: 200,
       id: "exp-dr-ramesh-patel",
-      regNumber: "DAE-AGR-8891",
     },
-    recommendedFormulation: "Tricyclazole 75% WP @ 0.6g/L water (Foliar)",
-    recommendedFormulationBn: "ট্রাইসাইক্লাজল ৭৫ ডব্লিউপি প্রতি লিটারে ০.৬ গ্রাম অথবা নাটিভো",
-    withholdingTime: "21 Days Pre-Harvest Statutory Withdrawal",
-    withholdingTimeBn: "ফসল কাটার ২১ দিন পূর্বে স্প্রে বন্ধ রাখুন",
-    consultationPath: "/consult?expert=exp-dr-ramesh-patel&category=agri",
   },
   {
-    id: "sample-mastitis",
+    id: "sample-bovine-mastitis",
     category: "veterinary",
-    categoryLabel: "Dairy Veterinary",
-    categoryLabelBn: "ডেইরি ও গবাদিপশু",
-    label: "Bovine Acute Mastitis (HF Cross)",
-    labelBn: "গাভীর তীব্র ওলান পাকা রোগ (HF-১০৮)",
-    image: "https://images.unsplash.com/photo-1527153857715-3908f2ae5e81?auto=format&fit=crop&w=800&q=80",
-    pathogen: "Streptococcus uberis / S. aureus",
-    pathogenBn: "স্ট্রেপটোকক্কাস উবারিস ও ব্যাকটেরিয়াল লোড",
-    confidence: 96.8,
+    tabLabelEn: "Dairy Mastitis",
+    tabLabelBn: "ডেইরি ওলান পাকা",
+    specimenNameEn: "Acute Bovine Mastitis",
+    specimenNameBn: "গাভীর তীব্র ওলান পাকা রোগ",
+    varietyOrBreed: "Holstein Friesian Cross (বাঘাবাড়ী ডেইরি বেল্ট)",
+    image: "https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=900&q=80",
+    pathogenScientific: "Streptococcus uberis / S. aureus",
+    pathogenCommonEn: "Environmental Bacterial Teat Infection",
+    pathogenCommonBn: "পরিবেশগত ব্যাকটেরিয়াজনিত ওলান প্রদাহ",
+    confidence: 97.4,
     severity: "High",
-    severityLabel: "Critical Acute Teat Inflammation",
-    symptomsObserved: [
-      "Severe erythematous swelling and localized heat in right hind quarter",
-      "Milk flakes & yellowish serous clotting visible on fore-strip paddle",
-      "Somatic cell count elevated above 650,000 cells/ml with fever (39.4°C)",
+    observedSignsEn: [
+      "Swollen, erythematous, hot right hind udder quarter",
+      "Milk flakes and yellowish serous clots on strip cup paddle",
+      "Somatic cell count >750,000 cells/ml with systemic fever (103.4°F)",
     ],
-    symptomsObservedBn: [
-      "ডান পেছনের ওলান অস্বাভাবিক ফুলে গেছে এবং স্পর্শে গরম",
+    observedSignsBn: [
+      "ডান পেছনের ওলান অস্বাভাবিক ফুলে গেছে এবং স্পর্শে অত্যন্ত গরম",
       "দুধে ছানার মতো থোকা থোকা রক্তাভ ও হলুদাভ জমাট পদার্থ",
-      "সোমাটিক সেল কাউন্ট প্রতি মিলিলিটারে ৬.৫ লাখ ছাড়িয়েছে এবং জ্বর",
+      "সোমাটিক সেল কাউন্ট প্রতি মিলিলিটারে ৭.৫ লাখ ও গাভীর জ্বর",
     ],
-    immediateSteps: [
-      "Completely strip out infected milk every 3 hours to eliminate bacterial toxins.",
-      "Apply clean cold hydrotherapy packs to inflamed teat before milking.",
-      "Isolate cow and discard all milk into sanitary disposal — never feed calves.",
+    protocolStepsEn: [
+      "Completely strip out the affected quarter every 3 hours to evacuate toxins.",
+      "Apply cold hydrotherapy compress for 15 minutes prior to milking.",
+      "Strictly discard all milk into sanitary disposal pit — never feed calves.",
     ],
-    immediateStepsBn: [
+    protocolStepsBn: [
       "প্রতি ৩ ঘণ্টা পর পর আক্রান্ত বাঁট থেকে সম্পূর্ণ দুধ টেনে ফেলে দিন।",
-      "দোহনের পূর্বে ওলানে ১৫ মিনিট বরফ-ঠাণ্ডা পানির সেঁক দিন।",
+      "দোহনের পূর্বে ওলানে ১৫ মিনিট ঠান্ডা পানির সেঁক দিন।",
       "এই দুধ সম্পূর্ণ মাটিতে পুঁতে ফেলুন; বাছুরকে কোনোভাবেই খাওয়াবেন না।",
     ],
-    matchedDoctor: {
-      name: "Dr. Ananya Sen, M.V.Sc.",
-      role: "Senior Veterinary Surgeon & Bovine Clinician",
+    recommendedRxEn: "Ceftiofur Sodium 1g IM + Intramammary Infusion",
+    recommendedRxBn: "সেফটিওফার সোডিয়াম ১ গ্রাম ইনজেকশন + ইন্ট্রাম্যামারি টিউব",
+    withholdingSafetyEn: "Strict Milk Withholding: 72 Hours (3 Days) • Meat: 4 Days",
+    withholdingSafetyBn: "শেষ ইনজেকশনের পর ৭২ ঘণ্টা দুধ বাজারে বিক্রি সম্পূর্ণ নিষিদ্ধ",
+    doctor: {
+      name: "Dr. Mahfuzur Rahman, M.V.Sc.",
+      role: "Senior Veterinary Surgeon & Bovine Specialist",
+      regNumber: "BVC-VET-2014-7714",
+      council: "Bangladesh Veterinary Council",
       avatar: "https://images.unsplash.com/photo-1594824813568-7c8fa0747185?auto=format&fit=crop&w=200&q=80",
+      fee: 300,
       id: "exp-dr-ananya-sen",
-      regNumber: "BVC-VET-7714",
     },
-    recommendedFormulation: "Cefquinome Sulfate 75mg Intramammary Infusion",
-    recommendedFormulationBn: "ইন্ট্রাম্যামারি অ্যান্টিবায়োটিক ইনফিউশন + মেলোক্সিক্যাম",
-    withholdingTime: "Strict Milk Withholding: 72 Hours (3 Days)",
-    withholdingTimeBn: "চিকিৎসা চলাকালীন ও পরবর্তী ৭২ ঘণ্টা দুধ বিক্রি বন্ধ",
-    consultationPath: "/consult?expert=exp-dr-ananya-sen&category=veterinary",
   },
   {
-    id: "sample-dermatitis",
-    category: "pet",
-    categoryLabel: "Companion Pet Care",
-    categoryLabelBn: "পোষা প্রাণী স্বাস্থ্যসেবা",
-    label: "Canine Atopic Dermatitis & Pruritus",
-    labelBn: "কুকুর ও বিড়ালের অ্যালার্জি চর্মরোগ (ম্যাক্স)",
-    image: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=800&q=80",
-    pathogen: "Atopic Environmental Allergy & Secondary Malassezia",
-    pathogenBn: "এলার্জি ও ব্যাকটেরিয়াজনিত ত্বকের প্রদাহ",
-    confidence: 97.2,
-    severity: "Moderate",
-    severityLabel: "Moderate Pruritus Severity (8.5/10)",
-    symptomsObserved: [
-      "Compulsive bilateral paw licking and salivary staining",
-      "Erythematous ventral flare with micro-crusting along inner groin",
-      "Elevated nocturnal scratching behavior causing skin breakdown",
+    id: "sample-poultry-coccidiosis",
+    category: "poultry",
+    tabLabelEn: "Poultry Flocks",
+    tabLabelBn: "পোল্ট্রি ফ্লক আমাশয়",
+    specimenNameEn: "Caecal Coccidiosis Outbreak",
+    specimenNameBn: "ব্রয়লার কক্সিডিওসিস রক্ত আমাশয়",
+    varietyOrBreed: "Cobb-500 Broiler Flock (শ্রীপুর, গাজীপুর)",
+    image: "https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?auto=format&fit=crop&w=900&q=80",
+    pathogenScientific: "Eimeria tenella (Protozoan parasite)",
+    pathogenCommonEn: "Caecal Intestinal Coccidiosis",
+    pathogenCommonBn: "অন্ত্রের প্রোটোজোয়া রক্ত আমাশয়",
+    confidence: 96.8,
+    severity: "High",
+    observedSignsEn: [
+      "Blood-tinged mucoid droppings and ruffled feathers",
+      "Spike in morning mortality (22 birds lost in 3,500 flock)",
+      "Huddling under brooding heat lamps with pale combs",
     ],
-    symptomsObservedBn: [
-      "ঘন ঘন পা ও তলপেট চাটা এবং লালচে প্রদাহের সৃষ্টি হওয়া",
-      "চুলকানির চোটে লোম উঠে গিয়ে চামড়া খসখসে ও লাল হওয়া",
-      "রাতের বেলা অতিরিক্ত চুলকানি ও অস্বস্তি প্রকাশ করা",
+    observedSignsBn: [
+      "পায়খানার সাথে রক্ত ও আমাশয়ের স্পষ্ট লক্ষণ এবং ডানা ঝোলানো",
+      "সকালে হঠাৎ মৃত্যুহার বৃদ্ধি (৩,৫০০ মুরগির শেডে ২২টি মৃত্যু)",
+      "পাখির রক্তস্বল্পতায় ফ্যাকাশে ঝুঁটি ও ব্রুডারের নিচে দলা পাকানো",
     ],
-    immediateSteps: [
-      "Fit protective soft cone collar to stop self-mutilating skin licking.",
-      "Wipe paws and ventral groin with damp chlorhexidine antiseptic wipes.",
-      "Administer veterinarian-titrated oral JAK inhibitor with meal.",
+    protocolStepsEn: [
+      "Remove all damp, caked litter around drinker lines immediately.",
+      "Add water-soluble Toltrazuril 2.5% for 48 continuous hours.",
+      "Administer Vitamin K3 to halt intestinal hemorrhaging.",
     ],
-    immediateStepsBn: [
-      "মুখে কোন কলার (ই-কলার) পরিয়ে দিন যাতে ক্ষতস্থান চাটতে না পারে।",
-      "হালকা কুসুম গরম পানিতে ভেজা তোয়ালে দিয়ে পা পরিষ্কার রাখুন।",
-      "ভেটেরিনারি চিকিৎসকের ওজনভিত্তিক চুলকানির ওষুধ খাওয়ান।",
+    protocolStepsBn: [
+      "পানির পাত্রের চারপাশের ভেজা লিটার অবিলম্বে অপসারণ করে শুকনা তুষ দিন।",
+      "খাবারের পানিতে টোল্ট্রাজুরিল ২.৫% টানা ৪৮ ঘণ্টা প্রয়োগ করুন।",
+      "রক্তক্ষরণ বন্ধে পানিতে ভিটামিন কে৩ ও ইলেকট্রোলাইট সরবরাহ করুন।",
     ],
-    matchedDoctor: {
-      name: "Dr. Farhana Haque, D.V.M.",
-      role: "Small Animal Specialist & Veterinary Surgeon",
-      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
-      id: "exp-dr-elena-rostova",
-      regNumber: "BVC-PET-9912",
+    recommendedRxEn: "Toltrazuril 2.5% Oral Solution @ 1ml/L drinking water",
+    recommendedRxBn: "টোল্ট্রাজুরিল ২.৫% প্রতি লিটার পানিতে ১ মিলি হারে ৪৮ ঘণ্টা",
+    withholdingSafetyEn: "Statutory Meat Withholding: 14 Days Prior to Slaughter",
+    withholdingSafetyBn: "মুরগি বিক্রির ১৪ দিন পূর্বে ওষুধ প্রয়োগ বন্ধ রাখুন",
+    doctor: {
+      name: "Dr. Tariqul Hasan, D.V.M., Ph.D.",
+      role: "Commercial Avian Epidemiologist & Biosecurity Consultant",
+      regNumber: "BVC-PLT-2015-1092",
+      council: "Bangladesh Veterinary Council",
+      avatar: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=200&q=80",
+      fee: 250,
+      id: "exp-dr-tariq-mansoor",
     },
-    recommendedFormulation: "Oclacitinib 16mg Tablets + Hypoallergenic Otic Wash",
-    recommendedFormulationBn: "ওকলাসিটিনিব ১৬ মিগ্রা + কান ও ত্বকের অ্যান্টিসেপটিক ড্রপ",
-    withholdingTime: "Weight-Titrated Dosage: 31.5 kg (Prescription Only)",
-    withholdingTimeBn: "ওজন অনুসারে সঠিক মাত্রায় সেব্য (৩১.৫ কেজি)",
-    consultationPath: "/consult?expert=exp-dr-elena-rostova&category=pet",
+  },
+  {
+    id: "sample-pet-dermatitis",
+    category: "pet",
+    tabLabelEn: "Companion Pets",
+    tabLabelBn: "পোষা প্রাণী চর্মরোগ",
+    specimenNameEn: "Canine Allergic Dermatitis",
+    specimenNameBn: "কুকুর ও বিড়ালের অ্যালার্জিক চর্মরোগ",
+    varietyOrBreed: "Golden Retriever (ধানমন্ডি, ঢাকা)",
+    image: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&w=900&q=80",
+    pathogenScientific: "Atopic Dermatitis & Malassezia pachydermatis",
+    pathogenCommonEn: "Allergic Pruritus with Secondary Yeast Flare",
+    pathogenCommonBn: "পরাগরেণু এলার্জি ও ত্বক প্রদাহ",
+    confidence: 97.9,
+    severity: "Moderate",
+    observedSignsEn: [
+      "Intense bilateral pododermatitis (paw licking) & erythema",
+      "Secondary yeast colonization in ear canals with scratching",
+      "Alopecia and excoriation around ventral abdomen",
+    ],
+    observedSignsBn: [
+      "ঘন ঘন পা চাটা, লালচে ফুসকুড়ি ও রাতে ক্রমাগত শরীর চুলকানো",
+      "কানের ভেতরে চুলকানি ও বাদামি খৈলস জমাট বাঁধা",
+      "পেটের নিচের অংশে লোম উঠে ত্বক শুষ্ক ও খসখসে হওয়া",
+    ],
+    protocolStepsEn: [
+      "Wipe paws and lower abdomen with damp washcloth after outdoor walks.",
+      "Fit soft Elizabethan cone collar for 48 hours to halt self-trauma.",
+      "Administer weight-titrated Janus kinase (JAK) inhibitor with food.",
+    ],
+    protocolStepsBn: [
+      "বাইরে থেকে আসার পর ভেজা নরম তোয়ালে দিয়ে পা ও পেট মুছে দিন।",
+      "চুলকানি বন্ধ রাখতে ৪৮ ঘণ্টা সফট ই-কলার পরিয়ে রাখুন।",
+      "ওজন অনুযায়ী নির্ধারিত এন্টি-অ্যালার্জি ওষুধ খাবারের সাথে দিন।",
+    ],
+    recommendedRxEn: "Oclacitinib (Apoquel) 16mg + Otic Antifungal Drops",
+    recommendedRxBn: "ওক্লাসিটিনিব (অ্যাপোকুয়েল) ১৬ মিলিগ্রাম ও কান পরিষ্কারের ড্রপ",
+    withholdingSafetyEn: "Prescription Only (BVC Verified Veterinary Formulation)",
+    withholdingSafetyBn: "শুধুমাত্র প্রেসক্রিপশন অনুযায়ী চিকিৎসকের তত্ত্বাবধানে সেব্য",
+    doctor: {
+      name: "Dr. Nusrat Jahan, D.V.M.",
+      role: "Small Animal Clinician & Pet Tele-Health Director",
+      regNumber: "BVC-PET-2018-9104",
+      council: "Bangladesh Veterinary Council",
+      avatar: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=200&q=80",
+      fee: 300,
+      id: "exp-dr-elena-rostova",
+    },
   },
 ];
 
 export function AiSymptomScanner() {
   const { language } = useLanguageStore();
   const isBn = language === "bn";
-  const [selectedSample, setSelectedSample] = useState<ScanSample>(SAMPLES[0]);
-  const [isScanning, setIsScanning] = useState(false);
 
-  const handleSelectSample = (sample: ScanSample) => {
-    if (sample.id === selectedSample.id) return;
-    setIsScanning(true);
-    setSelectedSample(sample);
-    setTimeout(() => {
-      setIsScanning(false);
-    }, 700);
+  const [activeSampleId, setActiveSampleId] = useState<string>("sample-rice-blast");
+  const [uploadedPreview, setUploadedPreview] = useState<string | null>(null);
+  const [isScanningActive, setIsScanningActive] = useState<boolean>(true);
+
+  const currentSample =
+    DIAGNOSTIC_SAMPLES.find((s) => s.id === activeSampleId) || DIAGNOSTIC_SAMPLES[0];
+
+  const handleSimulateCustomUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const url = URL.createObjectURL(file);
+      setUploadedPreview(url);
+      setIsScanningActive(true);
+    }
   };
 
+  const activeImage = uploadedPreview || currentSample.image;
+
   return (
-    <div className="space-y-6">
-      {/* Top Controller Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
-        <div>
-          <h3 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
-            <span>{isBn ? "লাইভ এআই ভিশন প্যাথোলজি স্ক্যানার" : "Live AI Vision Pathology Scanner"}</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono font-bold">
-              v3.5 Live
-            </span>
-          </h3>
-          <p className="text-xs text-slate-400 mt-1">
-            {isBn
-              ? "নিচের নমুনা রোগগুলো সিলেক্ট করে এআই স্ক্যান ও বিশেষজ্ঞ প্রেসক্রিপশন প্রবাহ লাইভ টেস্ট করুন।"
-              : "Switch between real field samples below to test automated vision detection and verified prescription generation."}
-          </p>
+    <div className="w-full space-y-5">
+      {/* 1. COMPACT SPECIMEN SELECTOR BAR */}
+      <div className="flex items-center justify-between gap-3 overflow-x-auto pb-2 border-b border-white/[0.08]">
+        <div className="flex items-center gap-2">
+          {DIAGNOSTIC_SAMPLES.map((sample) => {
+            const isSelected = sample.id === currentSample.id && !uploadedPreview;
+            return (
+              <button
+                key={sample.id}
+                onClick={() => {
+                  setUploadedPreview(null);
+                  setActiveSampleId(sample.id);
+                  setIsScanningActive(true);
+                }}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                  isSelected
+                    ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20 font-black"
+                    : "bg-slate-900/80 text-slate-400 hover:text-white hover:bg-slate-800 border border-white/[0.06]"
+                }`}
+              >
+                {sample.category === "agri" ? (
+                  <Wheat className="w-3.5 h-3.5" />
+                ) : sample.category === "veterinary" ? (
+                  <Milk className="w-3.5 h-3.5" />
+                ) : sample.category === "poultry" ? (
+                  <Egg className="w-3.5 h-3.5" />
+                ) : (
+                  <HeartHandshake className="w-3.5 h-3.5" />
+                )}
+                <span>{isBn ? sample.tabLabelBn : sample.tabLabelEn}</span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Preset Category Switcher */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-950 rounded-xl border border-white/[0.08] overflow-x-auto">
-          {SAMPLES.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => handleSelectSample(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
-                selectedSample.id === s.id
-                  ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 shadow-md font-black"
-                  : "text-slate-400 hover:text-white hover:bg-slate-900"
-              }`}
-            >
-              {s.category === "agri" && <Wheat className="w-3.5 h-3.5" />}
-              {s.category === "veterinary" && <Milk className="w-3.5 h-3.5" />}
-              {s.category === "pet" && <HeartHandshake className="w-3.5 h-3.5" />}
-              <span>{isBn ? s.categoryLabelBn : s.categoryLabel}</span>
-            </button>
-          ))}
-        </div>
+        {/* Upload Custom Leaf / Symptom Image */}
+        <label className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 text-xs font-bold cursor-pointer transition shrink-0">
+          <Camera className="w-3.5 h-3.5 text-cyan-400" />
+          <span>{isBn ? "নিজের ছবি স্ক্যান করুন" : "Upload Live Photo"}</span>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleSimulateCustomUpload}
+            className="hidden"
+          />
+        </label>
       </div>
 
-      {/* Main Studio Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left 5 Cols: High-Resolution Vision Viewport with Laser Sweep */}
-        <div className="lg:col-span-5 space-y-3">
-          <div className="relative rounded-2xl overflow-hidden border-2 border-emerald-500/40 shadow-2xl bg-slate-950 aspect-[4/3] group">
+      {/* 2. MAIN 2-COLUMN CLINICAL DIAGNOSTIC WORKBENCH */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* LEFT 5 COLS: COMPUTER VISION VIEWFINDER HUD */}
+        <div className="lg:col-span-5 relative rounded-2xl overflow-hidden border border-white/[0.1] bg-slate-950 shadow-xl group">
+          {/* Main Visual Frame */}
+          <div className="relative h-72 sm:h-80 w-full overflow-hidden">
             <img
-              src={selectedSample.image}
-              alt={selectedSample.label}
-              className={`w-full h-full object-cover transition-all duration-700 ${
-                isScanning ? "scale-105 brightness-110 blur-[1px]" : "scale-100 brightness-100"
-              }`}
+              src={activeImage}
+              alt={currentSample.specimenNameEn}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-black/30" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-black/30 pointer-events-none" />
 
-            {/* Laser Scanning Line Animation */}
-            <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_15px_#10b981] animate-scan-laser pointer-events-none" />
+            {/* High-Tech Laser Scan Line Animation */}
+            {isScanningActive && (
+              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_#22d3ee] animate-pulse pointer-events-none" />
+            )}
 
-            {/* Bounding Box Target */}
-            <div className="absolute top-[22%] left-[24%] w-44 h-32 border-2 border-emerald-400/90 rounded-xl pointer-events-none shadow-[0_0_20px_rgba(16,185,129,0.35)]">
-              <span className="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-emerald-300" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-emerald-300" />
-              <span className="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-emerald-300" />
-              <span className="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-emerald-300" />
+            {/* AI Bounding Crosshair Target */}
+            <div className="absolute inset-10 border-2 border-emerald-400/80 rounded-2xl pointer-events-none flex flex-col justify-between p-2.5 backdrop-blur-[0.5px]">
+              <div className="flex items-center justify-between">
+                <span className="px-2 py-0.5 rounded-md bg-black/80 text-[10px] font-mono font-bold text-emerald-400 border border-emerald-500/40 flex items-center gap-1">
+                  <Scan className="w-3 h-3" />
+                  <span>{currentSample.confidence}% AI MATCH</span>
+                </span>
 
-              <div className="absolute -top-3.5 left-2 px-2 py-0.5 rounded bg-emerald-500 text-slate-950 text-[10px] font-mono font-black flex items-center gap-1 shadow-lg">
-                <Scan className="w-3 h-3" />
-                <span>{selectedSample.confidence}% AI CONFIDENCE</span>
-              </div>
-            </div>
-
-            {/* Top Left Tag */}
-            <div className="absolute top-3 left-3">
-              <span className="px-2.5 py-1 rounded-lg bg-black/80 backdrop-blur-md text-[10px] font-bold text-white border border-white/10 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                <span>{isBn ? selectedSample.labelBn : selectedSample.label}</span>
-              </span>
-            </div>
-
-            {/* Bottom Status Ticker */}
-            <div className="absolute bottom-3 inset-x-3 p-2.5 rounded-xl bg-slate-900/90 backdrop-blur-md border border-white/[0.1] flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span className="text-[11px] text-slate-300 font-mono">
-                  {selectedSample.severityLabel}
+                <span className="px-2 py-0.5 rounded-md bg-red-500/80 text-white font-mono font-bold text-[9px] uppercase tracking-wider">
+                  {currentSample.severity}
                 </span>
               </div>
-              <span className="text-[10px] font-mono font-bold text-emerald-400">
-                Tamper-Proof
-              </span>
+
+              {/* Bounding box target corners */}
+              <div className="flex items-end justify-between">
+                <span className="text-[9px] font-mono text-slate-300 bg-black/80 px-2 py-0.5 rounded border border-white/10">
+                  FOV: MACRO LENS 1.4x
+                </span>
+                <span className="text-[9px] font-mono text-emerald-300 bg-black/80 px-2 py-0.5 rounded border border-emerald-500/30">
+                  RESNET-50 AGRO
+                </span>
+              </div>
+            </div>
+
+            {/* Specimen Variety Header Pill */}
+            <div className="absolute top-3 left-3 bg-black/80 backdrop-blur-md px-3 py-1 rounded-xl text-xs text-white border border-white/15 flex items-center gap-1.5 shadow-md">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="font-semibold">{currentSample.varietyOrBreed}</span>
             </div>
           </div>
 
-          {/* Quick Upload Simulator Prompt */}
-          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-white/[0.06] flex items-center justify-between text-xs text-slate-400">
-            <span className="flex items-center gap-2">
-              <Camera className="w-4 h-4 text-emerald-400" />
-              <span>{isBn ? "আপনার আক্রান্ত মাঠের ছবি তুলে ট্রায়াজ করুন" : "Upload your own leaf / symptom photo"}</span>
+          {/* Under-Image Metadata Strip */}
+          <div className="p-3 bg-slate-900/90 border-t border-white/[0.08] flex items-center justify-between text-xs">
+            <span className="text-slate-400 text-[11px] font-medium flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>{isBn ? "কাউন্সিল ভেরিফাইড ডাটাবেস" : "BVC & DAE Ground Truth Model"}</span>
             </span>
-            <Link
-              href="/consult"
-              className="text-emerald-400 hover:text-emerald-300 font-bold underline underline-offset-2"
-            >
-              {isBn ? "ছবি আপলোড করুন" : "Start Live Upload"}
-            </Link>
+
+            <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/30">
+              TAMPER-PROOF QR
+            </span>
           </div>
         </div>
 
-        {/* Right 7 Cols: Diagnostic Analysis & Immediate Clinical Action Plan */}
-        <div className="lg:col-span-7 space-y-4">
-          {/* Diagnostic Header */}
-          <div className="p-4 rounded-2xl bg-slate-950 border border-white/[0.08] space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-mono font-bold uppercase text-emerald-400 tracking-wider">
-                PRIMARY CLINICAL PATHOGEN IDENTIFIED
+        {/* RIGHT 7 COLS: EXECUTIVE CLINICAL PATHOLOGY DOSSIER */}
+        <div className="lg:col-span-7 srot-glass-card rounded-2xl p-5 sm:p-6 border border-white/[0.08] space-y-4 bg-gradient-to-br from-slate-900/90 via-[#060c14] to-slate-950">
+          {/* Pathogen Identification Header */}
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-3 border-b border-white/[0.08]">
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400 font-mono flex items-center gap-1.5">
+                <Activity className="w-3 h-3 text-emerald-400" />
+                <span>{isBn ? "চিহ্নিত রোগজীবাণু ও প্যাথোজেন" : "Primary Identified Pathogen"}</span>
               </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                {selectedSample.severity} Severity
+              <h3 className="text-lg sm:text-xl font-black text-white mt-0.5">
+                {isBn ? currentSample.specimenNameBn : currentSample.specimenNameEn}
+              </h3>
+              <p className="text-xs text-slate-400 font-mono mt-0.5">
+                {currentSample.pathogenScientific} • ({isBn ? currentSample.pathogenCommonBn : currentSample.pathogenCommonEn})
+              </p>
+            </div>
+
+            <div className="shrink-0 flex items-center gap-2">
+              <span className="px-2.5 py-1 rounded-lg bg-red-500/15 border border-red-500/30 text-red-400 text-[11px] font-bold flex items-center gap-1">
+                <Flame className="w-3 h-3" />
+                <span>{currentSample.severity} Severity</span>
               </span>
             </div>
-            <h4 className="text-base sm:text-lg font-black text-white">
-              {isBn ? selectedSample.pathogenBn : selectedSample.pathogen}
-            </h4>
-            <p className="text-xs text-slate-400 font-mono">
-              Diagnostic Target: {selectedSample.label}
-            </p>
           </div>
 
-          {/* Symptoms Checklist */}
-          <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-300 block mb-2">
-              {isBn ? "সনাক্তকৃত প্যাথলজিক্যাল লক্ষণসমূহ:" : "Observed Clinical Manifestations:"}
-            </span>
-            <ul className="space-y-1.5 text-xs text-slate-300">
-              {(isBn ? selectedSample.symptomsObservedBn : selectedSample.symptomsObserved).map((sym, idx) => (
-                <li key={idx} className="flex items-start gap-2 bg-slate-950/40 p-2 rounded-xl border border-white/[0.04]">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>{sym}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Immediate Action Steps */}
-          <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-300 block mb-2">
-              {isBn ? "তাৎক্ষণিক করণীয় পদক্ষেপ (Emergency Actions):" : "Immediate Field Protocol:"}
-            </span>
-            <ul className="space-y-1.5 text-xs text-slate-300">
-              {(isBn ? selectedSample.immediateStepsBn : selectedSample.immediateSteps).map((step, idx) => (
-                <li key={idx} className="flex items-start gap-2">
-                  <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">
-                    {idx + 1}
-                  </span>
-                  <span>{step}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Prescribed Formulation & Withholding Banner */}
-          <div className="p-3.5 rounded-xl bg-gradient-to-r from-emerald-950/50 via-slate-950 to-slate-950 border border-emerald-500/30 space-y-1 text-xs">
-            <span className="text-[10px] font-mono text-emerald-400 uppercase font-bold block">
-              RECOMMENDED SPRAY / CLINICAL FORMULATION
-            </span>
-            <div className="font-bold text-white text-sm">
-              {isBn ? selectedSample.recommendedFormulationBn : selectedSample.recommendedFormulation}
+          {/* 2-Column Clinical Manifestations & Protocol */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            {/* Column A: Observed Manifestations */}
+            <div className="p-3.5 rounded-xl bg-slate-950/70 border border-white/[0.05] space-y-2">
+              <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{isBn ? "দৃষ্ট ক্লিনিকাল আলামতসমূহ:" : "Observed Clinical Signs:"}</span>
+              </h4>
+              <ul className="space-y-1.5 text-slate-300 text-[11px] leading-relaxed">
+                {(isBn ? currentSample.observedSignsBn : currentSample.observedSignsEn).map((sign, i) => (
+                  <li key={i} className="flex items-start gap-1.5">
+                    <span className="text-emerald-400 font-bold">•</span>
+                    <span>{sign}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <div className="text-[11px] text-amber-300 font-mono">
-              ⚠ Statutory Withholding: {isBn ? selectedSample.withholdingTimeBn : selectedSample.withholdingTime}
+
+            {/* Column B: Immediate Field Protocol */}
+            <div className="p-3.5 rounded-xl bg-slate-950/70 border border-white/[0.05] space-y-2">
+              <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-cyan-400" />
+                <span>{isBn ? "জরুরি মাঠ প্রোটোকল:" : "Immediate Mitigation:"}</span>
+              </h4>
+              <ul className="space-y-1.5 text-slate-300 text-[11px] leading-relaxed">
+                {(isBn ? currentSample.protocolStepsBn : currentSample.protocolStepsEn).map((step, i) => (
+                  <li key={i} className="flex items-start gap-1.5">
+                    <span className="w-3.5 h-3.5 rounded-full bg-cyan-500/20 text-cyan-300 font-bold flex items-center justify-center text-[9px] shrink-0 mt-0.5">
+                      {i + 1}
+                    </span>
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
 
-          {/* Doctor Card & Instant Booking CTA */}
-          <div className="p-4 rounded-2xl bg-slate-950 border border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          {/* Prescribed Formulation & Withholding Safety */}
+          <div className="p-3.5 rounded-xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-teal-950/30 border border-emerald-500/25 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block font-mono">
+                {isBn ? "প্রস্তাবিত স্প্রে / চিকিৎসা ফর্মুলেশন:" : "Calibrated Chemical / Medical Formulation:"}
+              </span>
+              <span className="text-xs sm:text-sm font-bold text-white mt-0.5 block">
+                {isBn ? currentSample.recommendedRxBn : currentSample.recommendedRxEn}
+              </span>
+            </div>
+
+            <div className="sm:text-right shrink-0">
+              <span className="text-[10px] text-amber-300 bg-amber-500/15 border border-amber-500/30 px-2.5 py-1 rounded-md font-semibold block sm:inline-block">
+                ⚠️ {isBn ? currentSample.withholdingSafetyBn : currentSample.withholdingSafetyEn}
+              </span>
+            </div>
+          </div>
+
+          {/* Attending Verified Doctor & One-Click Consult Bar */}
+          <div className="p-3 rounded-xl bg-slate-950/80 border border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <img
-                src={selectedSample.matchedDoctor.avatar}
-                alt={selectedSample.matchedDoctor.name}
-                className="w-12 h-12 rounded-xl object-cover border border-emerald-500/60 shrink-0"
+                src={currentSample.doctor.avatar}
+                alt={currentSample.doctor.name}
+                className="w-10 h-10 rounded-xl object-cover border border-emerald-400/40 shrink-0"
               />
-              <div>
-                <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-bold">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>{selectedSample.matchedDoctor.regNumber}</span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-white truncate">{currentSample.doctor.name}</span>
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 </div>
-                <h5 className="font-bold text-white text-xs">{selectedSample.matchedDoctor.name}</h5>
-                <p className="text-[11px] text-slate-400">{selectedSample.matchedDoctor.role}</p>
+                <p className="text-[11px] text-slate-400 truncate">{currentSample.doctor.role}</p>
+                <p className="text-[10px] text-emerald-400 font-mono truncate">
+                  {currentSample.doctor.council} • {currentSample.doctor.regNumber}
+                </p>
               </div>
             </div>
 
             <Link
-              href={selectedSample.consultationPath}
-              className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-lg shadow-emerald-950/60 shrink-0"
+              href={`/consult?expert=${currentSample.doctor.id}&category=${currentSample.category}`}
+              className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs transition shadow-md shadow-emerald-500/20 shrink-0"
             >
-              <span>{isBn ? "এই ডাক্তারের পরামর্শ নিন (৳৩০০)" : "Consult This Doctor"}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <span>{isBn ? `ডাক্তারের প্রেসক্রিপশন নিন (৳${currentSample.doctor.fee})` : `Consult Attending Doctor (৳${currentSample.doctor.fee})`}</span>
+              <ArrowRight className="w-3.5 h-3.5 text-slate-950" />
             </Link>
           </div>
         </div>
