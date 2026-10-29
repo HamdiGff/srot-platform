@@ -6,6 +6,7 @@ import { useUserStore } from "@/lib/store/userStore";
 import { useConsultationStore } from "@/lib/store/consultationStore";
 import { ConsultationCard } from "@/components/cards/ConsultationCard";
 import { FarmerInvoiceModal } from "@/components/features/FarmerInvoiceModal";
+import { FarmHealthPackages } from "@/components/features/FarmHealthPackages";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   Wheat,
@@ -23,6 +24,8 @@ import {
   CheckCircle2,
   Receipt,
   FileText,
+  Sparkles,
+  Package,
 } from "lucide-react";
 
 export default function FarmerPortalPage() {
@@ -101,6 +104,60 @@ export default function FarmerPortalPage() {
             <CalendarCheck className="w-4 h-4" />
             <span>Book New Consultation</span>
           </Link>
+        </div>
+      </div>
+
+      {/* 2. ACTIVE FARM HEALTH PACKAGE CARD (STEP 4) */}
+      <div id="packages" className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-[#0c1824] border border-emerald-500/30 relative overflow-hidden shadow-xl">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>সক্রিয় সদস্যপদ (Active Subscription)</span>
+              </span>
+              <span className="text-xs text-slate-400 font-mono">ID: SROT-FH-2026-8910</span>
+            </div>
+
+            <h3 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
+              <span>বেসিক খামার হেলথ প্যাকেজ (Basic Farm Health)</span>
+              <span className="text-sm font-semibold text-emerald-400">৳১৯৯/মাস</span>
+            </h3>
+
+            <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+              আপনার খামারের সকল ফসল ও গবাদিপশুর জন্য ডিজিটাল বিশেষজ্ঞ কেয়ার সক্রিয় রয়েছে। প্রতি মাসে ২টি ফ্রি কনসালটেশন কোটা এবং উপজেলাভিত্তিক ক্ষতিকর বালাই ও রোগ সতর্কতা নোটিফিকেশন চালু আছে।
+            </p>
+
+            <div className="flex flex-wrap items-center gap-4 pt-1 text-xs text-slate-300">
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>কোটা: <strong className="text-emerald-300">২টির মধ্যে ২টেই অবশিষ্ট</strong></span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>পরবর্তী নবায়ন: <strong className="text-slate-200">২০ নভেম্বর ২০২৬</strong> (বিকাশ অটো-রিনিউ)</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>SMS সতর্কবার্তা: <strong className="text-slate-200">সক্রিয় (বগুড়া / রাজশাহী)</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 shrink-0">
+            <a
+              href="#explore-packages"
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-xs text-center transition hover:scale-105 shadow-md shadow-emerald-500/20"
+            >
+              প্রিমিয়ামে আপগ্রেড করুন (৳৪৯৯)
+            </a>
+            <Link
+              href="/consult"
+              className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs text-center border border-white/[0.08] transition"
+            >
+              কোটা ব্যবহার করে পরামর্শ নিন
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -293,6 +350,20 @@ export default function FarmerPortalPage() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* 4. Explore & Upgrade Farm Health Subscription Plans */}
+      <div id="explore-packages" className="pt-8 border-t border-white/[0.08]">
+        <div className="mb-4">
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <Package className="w-5 h-5 text-emerald-400" />
+            <span>অন্যান্য প্যাকেজ ও সাবস্ক্রিপশন প্ল্যানসমূহ</span>
+          </h2>
+          <p className="text-xs text-slate-400">
+            খামারের বৃদ্ধির সাথে সাথে আপনার প্রয়োজনীয় প্ল্যান পরিবর্তন বা আপগ্রেড করুন।
+          </p>
+        </div>
+        <FarmHealthPackages />
       </div>
 
       {/* Invoice Modal */}

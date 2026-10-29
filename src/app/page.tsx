@@ -27,6 +27,7 @@ import { MOCK_COMMUNITY_QUESTIONS, CommunityQuestion } from "@/data/mockCommunit
 import { QuestionCard } from "@/components/community/QuestionCard";
 import { QuestionDetailModal } from "@/components/community/QuestionDetailModal";
 import { AskQuestionModal } from "@/components/community/AskQuestionModal";
+import { FarmHealthPackages } from "@/components/features/FarmHealthPackages";
 import {
   Wheat,
   Milk,
@@ -706,6 +707,9 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* ================= 11B. FARM HEALTH PACKAGES (STEP 4) ================= */}
+      <FarmHealthPackages />
 
       {/* ================= 12. VERIFIED CLIENT TESTIMONIALS ================= */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
