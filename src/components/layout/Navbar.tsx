@@ -82,6 +82,8 @@ export function Navbar() {
       ? "/admin"
       : currentRole.startsWith("expert_") || currentRole === "veterinarian"
       ? "/expert-portal"
+      : currentRole === "field_vendor"
+      ? "/services/field-visits"
       : "/farmer-portal";
 
   const portalLabel = isBn
@@ -89,15 +91,19 @@ export function Navbar() {
       ? "অ্যাডমিন"
       : currentRole.startsWith("expert_") || currentRole === "veterinarian"
       ? "ডেস্ক"
+      : currentRole === "field_vendor"
+      ? "ফিল্ড টেক"
       : currentRole === "pet_owner"
-      ? "পেট"
+      ? "পেট হাব"
       : "পোর্টাল"
     : currentRole === "admin"
     ? "Admin"
     : currentRole.startsWith("expert_") || currentRole === "veterinarian"
     ? "Desk"
+    : currentRole === "field_vendor"
+    ? "Field Tech"
     : currentRole === "pet_owner"
-    ? "Pet"
+    ? "Pet Hub"
     : "Portal";
 
   return (

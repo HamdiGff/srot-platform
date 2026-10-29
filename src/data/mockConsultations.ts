@@ -17,6 +17,24 @@ export interface PrescriptionRecord {
   prescribedAt: string;
 }
 
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderRole:
+    | "farmer"
+    | "livestock_farmer"
+    | "pet_owner"
+    | "expert_agronomist"
+    | "veterinarian"
+    | "field_vendor"
+    | "admin"
+    | "system";
+  text: string;
+  timestamp: string;
+  attachments?: string[];
+}
+
 export interface ConsultationRecord {
   id: string;
   caseNumber: string;
@@ -48,6 +66,7 @@ export interface ConsultationRecord {
   symptomsDescription: string;
   uploadedPhotos: string[];
   prescription?: PrescriptionRecord;
+  messages: ChatMessage[];
 }
 
 export const INITIAL_CONSULTATIONS: ConsultationRecord[] = [
@@ -113,7 +132,41 @@ export const INITIAL_CONSULTATIONS: ConsultationRecord[] = [
       preventiveAdvice: "For subsequent seasons, treat seeds with Carbendazim 2g/kg seed before sowing and maintain balanced N-P-K (4:2:1 ratio).",
       followUpDate: "2026-11-05",
       prescribedAt: "2026-10-27T09:42:00Z"
-    }
+    },
+    messages: [
+      {
+        id: "m-agri-1",
+        senderId: "usr-farmer-01",
+        senderName: "Tariqul Islam (Farmer)",
+        senderRole: "farmer",
+        text: "Hello Dr. Ramesh, my Boro rice crop has spindle-shaped diamond spots appearing on lower leaves after morning mist. Please check the photos attached.",
+        timestamp: "2026-10-27T09:14:00Z",
+      },
+      {
+        id: "m-agri-2",
+        senderId: "exp-dr-ramesh-patel",
+        senderName: "Dr. Ramesh Patel (Plant Pathologist)",
+        senderRole: "expert_agronomist",
+        text: "I inspected your photos, Tariqul. This is classical Pyricularia oryzae (Leaf Blast) triggered by the high humidity and heavy urea application. Stop all urea top-dressing immediately.",
+        timestamp: "2026-10-27T09:22:00Z",
+      },
+      {
+        id: "m-agri-3",
+        senderId: "usr-farmer-01",
+        senderName: "Tariqul Islam (Farmer)",
+        senderRole: "farmer",
+        text: "Understood Doctor. What fungicide should I spray and what is the exact water ratio for my 5.2 acres?",
+        timestamp: "2026-10-27T09:28:00Z",
+      },
+      {
+        id: "m-agri-4",
+        senderId: "exp-dr-ramesh-patel",
+        senderName: "Dr. Ramesh Patel (Plant Pathologist)",
+        senderRole: "expert_agronomist",
+        text: "I have calibrated the spray protocol and issued your signed digital prescription below. Spray Tricyclazole 75% WP @ 0.6g/L water in the late afternoon. Maintain shallow standing water (2-3 cm).",
+        timestamp: "2026-10-27T09:42:00Z",
+      },
+    ],
   },
 
   // 2. Animal Healthcare Completed Consultation (Dairy Bovine Mastitis)
@@ -184,7 +237,41 @@ export const INITIAL_CONSULTATIONS: ConsultationRecord[] = [
       preventiveAdvice: "Disinfect bedding stalls with hydrated lime weekly. Ensure milking machine vacuum pressure is calibrated to 42 kPa.",
       followUpDate: "2026-10-30",
       prescribedAt: "2026-10-26T15:25:00Z"
-    }
+    },
+    messages: [
+      {
+        id: "m-vet-1",
+        senderId: "usr-farmer-02",
+        senderName: "Marcus Holloway (Dairy Farmer)",
+        senderRole: "livestock_farmer",
+        text: "Dr. Ananya, my dairy cow Belle #42 has a swollen right rear quarter and yellow clots in the milk. Fever is 103.4°F.",
+        timestamp: "2026-10-26T14:30:00Z",
+      },
+      {
+        id: "m-vet-2",
+        senderId: "exp-dr-ananya-sen",
+        senderName: "Dr. Ananya Sen (Veterinary Surgeon)",
+        senderRole: "veterinarian",
+        text: "Hello Marcus. The symptoms indicate Acute Bovine Mastitis. Do not feed this milk to nursing calves. Strip out the affected quarter every 3 hours.",
+        timestamp: "2026-10-26T14:45:00Z",
+      },
+      {
+        id: "m-vet-3",
+        senderId: "usr-farmer-02",
+        senderName: "Marcus Holloway (Dairy Farmer)",
+        senderRole: "livestock_farmer",
+        text: "Can I administer Ceftiofur IM myself, and what is the milk withholding time?",
+        timestamp: "2026-10-26T15:10:00Z",
+      },
+      {
+        id: "m-vet-4",
+        senderId: "exp-dr-ananya-sen",
+        senderName: "Dr. Ananya Sen (Veterinary Surgeon)",
+        senderRole: "veterinarian",
+        text: "Yes, inject Ceftiofur Sodium 1g IM daily for 3 days. Strict 72-hour milk withholding period applies. I have signed your official BVC digital prescription below.",
+        timestamp: "2026-10-26T15:25:00Z",
+      },
+    ],
   },
 
   // 3. Companion Pet Consultation (Dog Allergic Dermatitis)
@@ -255,7 +342,41 @@ export const INITIAL_CONSULTATIONS: ConsultationRecord[] = [
       preventiveAdvice: "Switch to high Omega-3 (EPA/DHA 1500mg/day) fish oil supplement to rebuild epidermal barrier strength.",
       followUpDate: "2026-11-08",
       prescribedAt: "2026-10-28T11:40:00Z"
-    }
+    },
+    messages: [
+      {
+        id: "m-pet-1",
+        senderId: "usr-pet-01",
+        senderName: "Jessica Miller (Pet Parent)",
+        senderRole: "pet_owner",
+        text: "Dr. Elena, my Golden Retriever Max (31.5 kg) has been licking his paws raw and scratching his ears constantly since walking at the park.",
+        timestamp: "2026-10-28T11:00:00Z",
+      },
+      {
+        id: "m-pet-2",
+        senderId: "exp-dr-elena-rostova",
+        senderName: "Dr. Elena Rostova (Small Animal Vet)",
+        senderRole: "veterinarian",
+        text: "Hello Jessica! This is acute Canine Atopic Dermatitis with secondary otitis from grass pollen allergens. Has he had any vomiting or diarrhea?",
+        timestamp: "2026-10-28T11:12:00Z",
+      },
+      {
+        id: "m-pet-3",
+        senderId: "usr-pet-01",
+        senderName: "Jessica Miller (Pet Parent)",
+        senderRole: "pet_owner",
+        text: "No gastrointestinal signs, just intense itching. Can we start Apoquel?",
+        timestamp: "2026-10-28T11:22:00Z",
+      },
+      {
+        id: "m-pet-4",
+        senderId: "exp-dr-elena-rostova",
+        senderName: "Dr. Elena Rostova (Small Animal Vet)",
+        senderRole: "veterinarian",
+        text: "Yes, I have calculated Max's exact weight dosage (16mg Apoquel) with Posatex ear drops. Full prescription is attached below. Keep a cone on him for 48 hours.",
+        timestamp: "2026-10-28T11:40:00Z",
+      },
+    ],
   },
 
   // 4. Live Pending Case (Awaiting Agronomist Review)
@@ -290,6 +411,16 @@ export const INITIAL_CONSULTATIONS: ConsultationRecord[] = [
     symptomsDescription: "Lower leaves showing classic V-shaped yellowing starting from the tip and moving down the midrib. Growth seems stunted compared to adjacent field.",
     uploadedPhotos: [
       "https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&w=600&q=80"
-    ]
+    ],
+    messages: [
+      {
+        id: "m-pending-1",
+        senderId: "usr-farmer-03",
+        senderName: "Harish Chandra (Farmer)",
+        senderRole: "farmer",
+        text: "Hello Engr. Sarah, our knee-high maize crop has V-shaped chlorosis on lower leaves. We applied DAP 3 weeks ago. Please suggest a corrective foliar spray.",
+        timestamp: "2026-10-29T00:50:00Z",
+      },
+    ],
   }
 ];

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useLanguageStore } from "@/lib/store/languageStore";
+import { useUserStore } from "@/lib/store/userStore";
 import { FIELD_SERVICES_CATALOG, FieldService } from "@/data/mockFieldServices";
 import { formatCurrency } from "@/lib/utils";
 import {
@@ -35,9 +36,15 @@ type ServiceCategoryFilter = "all" | "veterinary" | "artificial_insemination" | 
 export default function FieldVisitsPage() {
   const { language } = useLanguageStore();
   const isBn = language === "bn";
+  const { currentUser, currentRole, openRoleModal } = useUserStore();
+  const isFieldVendor = currentRole === "field_vendor";
 
   const [activeCategory, setActiveCategory] = useState<ServiceCategoryFilter>("all");
   const [selectedService, setSelectedService] = useState<FieldService | null>(null);
+
+  // Technician Work Order Action State
+  const [vendorJob1Done, setVendorJob1Done] = useState(false);
+  const [vendorJob2Done, setVendorJob2Done] = useState(false);
 
   // Booking Modal State
   const [bookingStep, setBookingStep] = useState<"address" | "schedule" | "payment" | "confirmed">("address");
@@ -139,6 +146,132 @@ export default function FieldVisitsPage() {
           </div>
         </div>
       </section>
+
+      {/* ========================================================================= */}
+      {/* 1.5 TECHNICIAN / FIELD VENDOR DISPATCH HUB (WHEN LOGGED IN AS FIELD TECH) */}
+      {/* ========================================================================= */}
+      {isFieldVendor && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+          <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-950 border border-amber-500/40 shadow-2xl space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-amber-500/20">
+              <div className="flex items-center gap-3.5">
+                <img
+                  src={currentUser.avatar}
+                  alt={currentUser.name}
+                  className="w-14 h-14 rounded-2xl object-cover border-2 border-amber-500/80 shadow-lg"
+                />
+                <div>
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      Active Technician Terminal
+                    </span>
+                    <button
+                      onClick={openRoleModal}
+                      className="text-xs text-slate-400 hover:text-white underline underline-offset-2"
+                    >
+                      Switch Persona
+                    </button>
+                  </div>
+                  <h2 className="text-xl font-black text-white">{currentUser.name}</h2>
+                  <p className="text-xs text-slate-300">
+                    {currentUser.roleLabel} • Operational Zone: <strong className="text-amber-400">Sherpur & Bogura Sadar</strong>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-slate-950 border border-white/[0.08] text-right">
+                  <span className="text-[10px] text-slate-400 block">Today's Field Earnings (85% Net):</span>
+                  <span className="text-base font-black text-emerald-400 font-mono">
+                    ৳{vendorJob1Done ? (vendorJob2Done ? "২,২৯৫" : "১,০২০") : "০"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                <Truck className="w-4 h-4 text-amber-400" />
+                <span>Assigned Farm Visit Calls in your Queue (2 Active Dispatches)</span>
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Dispatch 1 */}
+                <div className="p-5 rounded-2xl bg-slate-950/80 border border-white/[0.08] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-bold text-amber-400">#SROT-FIELD-8192</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${vendorJob1Done ? "bg-emerald-500/20 text-emerald-300" : "bg-amber-500/20 text-amber-300 animate-pulse"}`}>
+                      {vendorJob1Done ? "✓ Completed" : "Urgent Priority Dispatch"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-white">Pedigree Artificial Insemination (AI)</h4>
+                    <p className="text-xs text-slate-300 mt-0.5">
+                      Farm: <strong>Valley Crest Dairy (Marcus Holloway)</strong>
+                    </p>
+                    <p className="text-xs text-slate-400">Location: Shahjadpur Dairy Corridor, Barn 2</p>
+                    <p className="text-xs text-emerald-400 mt-1 font-semibold">
+                      Target: Holstein Friesian Cow #BD-TAG-108 (Standing Heat)
+                    </p>
+                  </div>
+
+                  <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-xs">
+                    <span className="text-slate-400">Payout: <strong className="text-white">৳১,০২০</strong></span>
+                    <div className="flex items-center gap-2">
+                      <a href="tel:01712889900" className="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white">
+                        <PhoneCall className="w-3.5 h-3.5" />
+                      </a>
+                      <button
+                        onClick={() => setVendorJob1Done(!vendorJob1Done)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${vendorJob1Done ? "bg-slate-800 text-slate-400" : "bg-emerald-600 hover:bg-emerald-500 text-white"}`}
+                      >
+                        {vendorJob1Done ? "Completed" : "Mark AI Complete"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dispatch 2 */}
+                <div className="p-5 rounded-2xl bg-slate-950/80 border border-white/[0.08] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-bold text-amber-400">#SROT-FIELD-5521</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${vendorJob2Done ? "bg-emerald-500/20 text-emerald-300" : "bg-cyan-500/20 text-cyan-300"}`}>
+                      {vendorJob2Done ? "✓ Completed" : "Scheduled Today 3:30 PM"}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-bold text-white">Core Soil NPK & pH Diagnostic Audit</h4>
+                    <p className="text-xs text-slate-300 mt-0.5">
+                      Farm: <strong>Greenfield Delta (Tariqul Islam)</strong>
+                    </p>
+                    <p className="text-xs text-slate-400">Location: Sherpur Upazila, Plot B-4 (5.2 Acres)</p>
+                    <p className="text-xs text-cyan-400 mt-1 font-semibold">
+                      Scope: 5 Soil Core Samples + Digital NPK Meter Calibration
+                    </p>
+                  </div>
+
+                  <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-xs">
+                    <span className="text-slate-400">Payout: <strong className="text-white">৳১,২৭৫</strong></span>
+                    <div className="flex items-center gap-2">
+                      <a href="tel:01712889900" className="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white">
+                        <PhoneCall className="w-3.5 h-3.5" />
+                      </a>
+                      <button
+                        onClick={() => setVendorJob2Done(!vendorJob2Done)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${vendorJob2Done ? "bg-slate-800 text-slate-400" : "bg-emerald-600 hover:bg-emerald-500 text-white"}`}
+                      >
+                        {vendorJob2Done ? "Completed" : "Collect & Report"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ========================================================================= */}
       {/* 2. CATEGORY FILTER TABS */}

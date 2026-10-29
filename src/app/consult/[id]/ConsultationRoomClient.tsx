@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useConsultationStore } from "@/lib/store/consultationStore";
+import { useUserStore } from "@/lib/store/userStore";
 import { generatePrescriptionPdf } from "@/lib/prescriptionGenerator";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
@@ -23,6 +24,8 @@ import {
   Wheat,
   Milk,
   HeartHandshake,
+  Image as ImageIcon,
+  CheckCheck,
 } from "lucide-react";
 
 interface ConsultationRoomClientProps {
@@ -30,24 +33,10 @@ interface ConsultationRoomClientProps {
 }
 
 export function ConsultationRoomClient({ consultationId }: ConsultationRoomClientProps) {
-  const { getById, updateStatus, attachPrescription } = useConsultationStore();
+  const { getById, updateStatus, attachPrescription, sendMessage } = useConsultationStore();
+  const { currentUser, currentRole } = useUserStore();
   const consultation = getById(consultationId);
 
-  // Chat message simulator state
-  const [messages, setMessages] = useState<
-    { sender: "user" | "expert" | "system"; text: string; time: string }[]
-  >([
-    {
-      sender: "system",
-      text: "Consultation ticket initialized. Secure end-to-end encrypted channel established.",
-      time: "Just now",
-    },
-    {
-      sender: "expert",
-      text: "Hello! I am reviewing the photos and symptoms submitted for this case. Are there any other neighboring plants or animals showing similar signs?",
-      time: "2 mins ago",
-    },
-  ]);
   const [inputText, setInputText] = useState("");
   const [isVideoMuted, setIsVideoMuted] = useState(false);
 
@@ -73,30 +62,38 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
 
   const isAgri = consultation.category === "agri";
   const isPet = consultation.category === "pet";
+  const messages = consultation.messages || [];
+
+  const isCurrentUserExpert =
+    currentRole.startsWith("expert_") ||
+    currentRole === "veterinarian" ||
+    currentUser.id === consultation.expert.id;
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim()) return;
 
-    const newMsg = {
-      sender: "user" as const,
-      text: inputText,
-      time: "Just now",
-    };
-    setMessages((prev) => [...prev, newMsg]);
+    const text = inputText.trim();
     setInputText("");
 
-    // Automated expert simulated reply
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: "expert",
-          text: "Thank you for the additional information. I have calibrated the recommended dosage and withholding period into your digital prescription below.",
-          time: "Just now",
-        },
-      ]);
-    }, 1200);
+    sendMessage(consultation.id, {
+      text,
+      senderId: currentUser.id,
+      senderName: currentUser.name,
+      senderRole: currentUser.role,
+    });
+
+    // If the sender is the patient and currently in a demo simulation, trigger a prompt doctor acknowledgement
+    if (!isCurrentUserExpert && messages.length <= 4) {
+      setTimeout(() => {
+        sendMessage(consultation.id, {
+          text: `Thank you, ${currentUser.name}. I have noted this symptom. I am preparing your verified prescription and dosage advice now.`,
+          senderId: consultation.expert.id,
+          senderName: consultation.expert.name,
+          senderRole: isAgri ? "expert_agronomist" : "veterinarian",
+        });
+      }, 1500);
+    }
   };
 
   // Simulate expert completing the review and issuing prescription
@@ -127,7 +124,8 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
               withholdingSafetyPeriod: "0 Days (Micro-nutrient)",
             },
           ],
-          preventiveAdvice: "Maintain optimal field drainage and do not let water stagnate more than 5 cm during active tillering.",
+          preventiveAdvice:
+            "Maintain optimal field drainage and do not let water stagnate more than 5 cm during active tillering.",
           followUpDate: "2026-11-06",
           prescribedAt: new Date().toISOString(),
         }
@@ -159,19 +157,21 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
           pathogenOrCause: "Streptococcus dysgalactiae",
           severity: "Moderate" as const,
           treatmentSteps: [
-            "Strip affected quarter 4 times daily to evacuate bacterial clumps.",
-            "Apply post-milking barrier teat dip immediately after cups are removed.",
+            "Perform California Mastitis Test (CMT) strip on all four quarters.",
+            "Infuse accredited intramammary antibiotic tube after complete milking.",
+            "Apply post-milking chlorhexidine teat dip (0.5%).",
           ],
           medicationsOrSprays: [
             {
-              item: "Cefquinome Intramammary Infusion",
-              activeIngredient: "Cefquinome Sulfate 75mg",
+              item: "Cefquinome Sulfate Intramammary Infusion",
+              activeIngredient: "4th Generation Cephalosporin (75 mg)",
               dosage: "1 syringe per affected quarter",
-              frequencyAndDuration: "Every 12 hours after milking for 3 milkings",
-              withholdingSafetyPeriod: "Milk: 84 hours. Meat: 4 days",
+              frequencyAndDuration: "Every 12 hours for 3 consecutive milkings",
+              withholdingSafetyPeriod: "Milk Withholding: 96 Hours (4 Days) • Meat: 7 Days",
             },
           ],
-          preventiveAdvice: "Clean and dry cubicle stalls with hydrated lime bedding weekly.",
+          preventiveAdvice:
+            "Discard milk from treated quarters during withholding period. Maintain dry sand bedding.",
           followUpDate: "2026-11-05",
           prescribedAt: new Date().toISOString(),
         };
@@ -181,66 +181,87 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
 
   return (
     <div className="w-full srot-glow-mesh py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
-      {/* Top Header Bar */}
-      <div className="srot-glass-card rounded-2xl p-5 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <Link
-              href="/farmer-portal"
-              className="text-xs text-slate-400 hover:text-white flex items-center gap-1"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" /> Back to Dashboard
-            </Link>
-            <span className="text-slate-600">|</span>
-            <span className="font-mono text-xs font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded">
-              {consultation.caseNumber}
-            </span>
-            <span className="text-xs text-slate-400 capitalize">
-              • {consultation.serviceName}
-            </span>
+      {/* Top Navigation & Status Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+        <div className="flex items-center gap-3">
+          <Link
+            href={isCurrentUserExpert ? "/expert-portal" : "/farmer-portal"}
+            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono font-bold text-emerald-400">
+                {consultation.caseNumber}
+              </span>
+              <span className="text-slate-600">•</span>
+              <span className="text-xs text-slate-400">{formatDate(consultation.createdAt)}</span>
+              <span className="text-slate-600">•</span>
+              <span className="text-xs font-semibold text-slate-300">
+                Fee Paid: {formatCurrency(consultation.feePaid || 300)}
+              </span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2 mt-0.5">
+              <span>{consultation.serviceName}</span>
+              {consultation.category === "agri" ? (
+                <Wheat className="w-5 h-5 text-emerald-400" />
+              ) : consultation.category === "veterinary" ? (
+                <Milk className="w-5 h-5 text-cyan-400" />
+              ) : (
+                <HeartHandshake className="w-5 h-5 text-pink-400" />
+              )}
+            </h1>
           </div>
-
-          <h1 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
-            <span>Consultation Case: {consultation.farmerOrOwner.subjectName}</span>
-            <span className="text-xs font-bold text-slate-400 bg-slate-800 px-2.5 py-0.5 rounded-full">
-              {consultation.farmerOrOwner.subjectAgeOrStage}
-            </span>
-          </h1>
         </div>
 
-        {/* Status Actions */}
+        {/* Case Status Badge & CTAs */}
         <div className="flex items-center gap-3">
           {consultation.status === "completed" ? (
-            <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1 text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1.5 rounded-xl">
-                <CheckCircle className="w-4 h-4" /> Solved & Prescription Active
-              </span>
-
-              <button
-                onClick={() => generatePrescriptionPdf(consultation)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-lg shadow-emerald-950/60"
-              >
-                <Download className="w-4 h-4" />
-                <span>Download Official Rx (PDF)</span>
-              </button>
-            </div>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-bold">
+              <CheckCircle className="w-4 h-4" /> Case Resolved & Prescribed
+            </span>
           ) : (
             <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1.5 text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 px-3 py-1.5 rounded-xl animate-pulse">
-                <Clock className="w-4 h-4" /> In Specialist Review
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-bold">
+                <Clock className="w-4 h-4" /> Live in Review
               </span>
 
               {/* Expert demo simulator */}
               <button
                 onClick={handleSimulateResolve}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition shadow-md"
-                title="Simulate practitioner issuing final diagnosis & prescription"
+                title="Issue official diagnosis & verified prescription"
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Simulate Expert Issuing Rx</span>
+                <span>Issue Prescription (Rx)</span>
               </button>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* MESSAGE ROUTING & VERIFICATION BANNER */}
+      <div className="p-3.5 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-emerald-500/30 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-2.5 w-2.5 relative shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+          </span>
+          <span className="text-slate-300">
+            <strong>Active Message Channel:</strong>{" "}
+            <span className="text-white font-semibold">{consultation.farmerOrOwner.name}</span>{" "}
+            ({consultation.farmerOrOwner.location}){" "}
+            <span className="text-emerald-400 font-mono">⇄</span>{" "}
+            <span className="text-white font-semibold">{consultation.expert.name}</span>{" "}
+            ({consultation.expert.title})
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="px-2 py-0.5 rounded-md bg-white/[0.06] text-slate-300 font-mono text-[11px]">
+            Logged in: <strong className="text-emerald-400">{currentUser.name}</strong> ({currentUser.role})
+          </span>
         </div>
       </div>
 
@@ -300,7 +321,7 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
                   {/* Bottom Video Controls */}
                   <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-white">
                     <span className="bg-black/60 px-2.5 py-1 rounded-lg backdrop-blur-md">
-                      Patient/Plot: {consultation.farmerOrOwner.subjectName}
+                      Patient / Plot: {consultation.farmerOrOwner.subjectName}
                     </span>
                     <button
                       onClick={() => setIsVideoMuted(!isVideoMuted)}
@@ -314,7 +335,11 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
                 <div className="grid grid-cols-2 gap-2 p-4 w-full h-full">
                   {consultation.uploadedPhotos.map((photo, i) => (
                     <div key={i} className="relative rounded-xl overflow-hidden border border-slate-800">
-                      <img src={photo} alt="Diagnostic leaf or animal sample" className="w-full h-full object-cover" />
+                      <img
+                        src={photo}
+                        alt="Diagnostic leaf or animal sample"
+                        className="w-full h-full object-cover"
+                      />
                       <span className="absolute bottom-2 left-2 text-[10px] bg-slate-950/80 text-white px-2 py-0.5 rounded backdrop-blur-md">
                         Photo #{i + 1}
                       </span>
@@ -399,7 +424,8 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
                           {med.activeIngredient}
                         </span>
                         <span className="text-[11px] text-slate-300">
-                          Dosage: <strong className="text-emerald-400">{med.dosage}</strong> • {med.frequencyAndDuration}
+                          Dosage: <strong className="text-emerald-400">{med.dosage}</strong> •{" "}
+                          {med.frequencyAndDuration}
                         </span>
                       </div>
 
@@ -430,7 +456,7 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
           {/* Metadata Card */}
           <div className="srot-glass-card rounded-2xl p-5 border border-slate-800 space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Case Parties
+              Case Information
             </h3>
 
             {/* Specialist */}
@@ -458,52 +484,79 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
               <span className="font-bold text-white">{consultation.farmerOrOwner.name}</span>
               <p className="text-slate-400 text-[11px]">{consultation.farmerOrOwner.location}</p>
               <p className="text-slate-400 text-[11px]">{consultation.farmerOrOwner.phone}</p>
+              <p className="text-emerald-400 text-[11px] font-semibold mt-1">
+                Asset: {consultation.farmerOrOwner.subjectName} ({consultation.farmerOrOwner.subjectAgeOrStage})
+              </p>
             </div>
           </div>
 
-          {/* Interactive Chat Console */}
-          <div className="srot-glass-card rounded-2xl border border-slate-800 flex flex-col h-96">
-            <div className="p-3.5 bg-slate-900 border-b border-slate-800 flex items-center gap-2 text-xs font-bold text-white">
-              <MessageSquare className="w-4 h-4 text-emerald-400" />
-              <span>Direct Tele-Consultation Chat</span>
+          {/* Interactive Chat Console (Directly Persistent) */}
+          <div className="srot-glass-card rounded-2xl border border-slate-800 flex flex-col h-[450px]">
+            <div className="p-3.5 bg-slate-900 border-b border-slate-800 flex items-center justify-between text-xs font-bold text-white">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-emerald-400" />
+                <span>Live Case Chamber Feed</span>
+              </div>
+              <span className="text-[10px] text-slate-400 font-mono">
+                {messages.length} messages
+              </span>
             </div>
 
             {/* Message stream */}
-            <div className="flex-1 p-3.5 overflow-y-auto space-y-2.5 text-xs">
-              {messages.map((msg, i) => (
-                <div
-                  key={i}
-                  className={`flex flex-col ${
-                    msg.sender === "user"
-                      ? "items-end"
-                      : msg.sender === "expert"
-                      ? "items-start"
-                      : "items-center"
-                  }`}
-                >
-                  {msg.sender === "system" ? (
-                    <span className="text-[10px] text-slate-500 bg-slate-900 px-2 py-0.5 rounded text-center">
-                      {msg.text}
-                    </span>
-                  ) : (
-                    <div
-                      className={`max-w-[85%] p-3 rounded-2xl leading-relaxed ${
-                        msg.sender === "user"
-                          ? "bg-emerald-600 text-white rounded-tr-none"
-                          : "bg-slate-800 text-slate-200 border border-slate-700/60 rounded-tl-none"
-                      }`}
-                    >
-                      <span className="text-[10px] font-bold block mb-0.5 opacity-70">
-                        {msg.sender === "user" ? "You" : consultation.expert.name}
-                      </span>
-                      {msg.text}
-                      <span className="text-[9px] block text-right mt-1 opacity-60">
-                        {msg.time}
+            <div className="flex-1 p-3.5 overflow-y-auto space-y-3 text-xs">
+              {messages.map((msg) => {
+                const isFromCurrentUser = msg.senderId === currentUser.id;
+                const isSystem = msg.senderRole === "system" || msg.senderId === "system";
+
+                if (isSystem) {
+                  return (
+                    <div key={msg.id} className="text-center my-2">
+                      <span className="text-[10px] text-slate-400 bg-slate-950/80 px-3 py-1 rounded-full border border-white/[0.06] inline-block max-w-[90%]">
+                        {msg.text}
                       </span>
                     </div>
-                  )}
-                </div>
-              ))}
+                  );
+                }
+
+                return (
+                  <div
+                    key={msg.id}
+                    className={`flex flex-col ${isFromCurrentUser ? "items-end" : "items-start"}`}
+                  >
+                    <div
+                      className={`max-w-[85%] p-3 rounded-2xl leading-relaxed ${
+                        isFromCurrentUser
+                          ? "bg-emerald-600 text-white rounded-tr-none shadow-md shadow-emerald-950/40"
+                          : "bg-slate-800 text-slate-200 border border-slate-700/60 rounded-tl-none shadow-md"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-3 mb-1">
+                        <span className="text-[10px] font-bold opacity-80">
+                          {isFromCurrentUser ? "You" : msg.senderName}
+                        </span>
+                        <span className="text-[9px] opacity-60">
+                          {formatDate(msg.timestamp).split(",")[0] || "Just now"}
+                        </span>
+                      </div>
+
+                      <p className="text-xs whitespace-pre-wrap">{msg.text}</p>
+
+                      {msg.attachments && msg.attachments.length > 0 && (
+                        <div className="mt-2 grid grid-cols-2 gap-1.5">
+                          {msg.attachments.map((imgUrl, idx) => (
+                            <img
+                              key={idx}
+                              src={imgUrl}
+                              alt="Attachment"
+                              className="rounded-lg max-h-24 object-cover border border-white/20"
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Input box */}
@@ -512,12 +565,16 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="Ask doctor for advice, dosage..."
-                className="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500"
+                placeholder={
+                  isCurrentUserExpert
+                    ? "Type clinician instructions or questions to patient..."
+                    : "Ask doctor about symptoms, spray dosage, reaction..."
+                }
+                className="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500 placeholder:text-slate-500"
               />
               <button
                 type="submit"
-                className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition"
+                className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center justify-center shrink-0"
                 aria-label="Send message"
               >
                 <Send className="w-4 h-4" />
