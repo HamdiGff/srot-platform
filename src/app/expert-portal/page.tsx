@@ -19,12 +19,15 @@ import {
   ExternalLink,
   Camera,
   Video,
+  Wallet,
 } from "lucide-react";
+import { ExpertEarningsWallet } from "@/components/features/ExpertEarningsWallet";
 
 export default function ExpertPortalPage() {
   const { currentUser, currentRole, openRoleModal } = useUserStore();
   const { consultations, attachPrescription } = useConsultationStore();
 
+  const [activeTab, setActiveTab] = useState<"queue" | "wallet">("queue");
   const [selectedCaseId, setSelectedCaseId] = useState<string>(consultations[0]?.id || "");
   const selectedCase = consultations.find((c) => c.id === selectedCaseId) || consultations[0];
 
@@ -102,18 +105,38 @@ export default function ExpertPortalPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <span className="text-xs text-slate-400 block">Queue Status:</span>
-            <span className="text-sm font-bold text-emerald-400">
-              {consultations.filter((c) => c.status === "pending_review").length} Cases Awaiting Review
-            </span>
-          </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setActiveTab("queue")}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+              activeTab === "queue"
+                ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20"
+                : "bg-slate-900 text-slate-300 hover:text-white border border-white/[0.08]"
+            }`}
+          >
+            <Stethoscope className="w-3.5 h-3.5" />
+            <span>কেস কিউ ও প্রেসক্রিপশন ({consultations.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("wallet")}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+              activeTab === "wallet"
+                ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20"
+                : "bg-slate-900 text-slate-300 hover:text-white border border-white/[0.08]"
+            }`}
+          >
+            <Wallet className="w-3.5 h-3.5" />
+            <span>আর্নিং ওয়ালেট (৭০/৩০)</span>
+          </button>
         </div>
       </div>
 
-      {/* Main Workbench Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {activeTab === "wallet" ? (
+        <ExpertEarningsWallet />
+      ) : (
+        /* Main Workbench Grid */
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Col: Queue List */}
         <div className="space-y-4">
           <h2 className="text-base font-bold text-white flex items-center justify-between">
@@ -385,6 +408,7 @@ export default function ExpertPortalPage() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

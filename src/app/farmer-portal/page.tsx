@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useUserStore } from "@/lib/store/userStore";
 import { useConsultationStore } from "@/lib/store/consultationStore";
 import { ConsultationCard } from "@/components/cards/ConsultationCard";
+import { FarmerInvoiceModal } from "@/components/features/FarmerInvoiceModal";
+import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   Wheat,
   Milk,
@@ -17,6 +19,10 @@ import {
   Phone,
   ShieldCheck,
   ExternalLink,
+  CreditCard,
+  CheckCircle2,
+  Receipt,
+  FileText,
 } from "lucide-react";
 
 export default function FarmerPortalPage() {
@@ -24,6 +30,8 @@ export default function FarmerPortalPage() {
   const { getByUserRole } = useConsultationStore();
 
   const userConsultations = getByUserRole(currentRole);
+  const [selectedInvoiceCase, setSelectedInvoiceCase] = useState<any>(null);
+  const totalPaid = userConsultations.reduce((sum, c) => sum + (c.feePaid || 300), 0);
 
   const [entities, setEntities] = useState(currentUser.registeredEntities);
   const [isAddingEntity, setIsAddingEntity] = useState(false);
@@ -223,6 +231,76 @@ export default function FarmerPortalPage() {
           </div>
         )}
       </div>
+
+      {/* 3. Billing & Digital Invoices Section */}
+      <div className="pt-6 border-t border-white/[0.08] space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <Receipt className="w-5 h-5 text-emerald-400" />
+              <span>লেনদেন ও ডিজিটাল মানি রসিদ (Payment Receipts & Invoices)</span>
+            </h2>
+            <p className="text-xs text-slate-400">
+              বিকাশ, নগদ ও রকেটের মাধ্যমে সম্পন্ন হওয়া প্রতিটি পরামর্শের অনুমোদিত ক্যাশ মেমো ও প্রেসক্রিপশন টোকেন।
+            </p>
+          </div>
+
+          <div className="p-3 rounded-xl bg-slate-900 border border-white/[0.08] flex items-center gap-3">
+            <span className="text-xs text-slate-400">মোট পরিশোধিত:</span>
+            <span className="text-base font-black text-emerald-400 font-mono">
+              {formatCurrency(totalPaid)}
+            </span>
+          </div>
+        </div>
+
+        <div className="rounded-2xl bg-[#090f19] border border-white/[0.08] overflow-hidden">
+          <table className="w-full text-left text-xs text-slate-300">
+            <thead className="bg-slate-950 text-slate-400 text-[11px] font-bold border-b border-white/[0.06]">
+              <tr>
+                <th className="py-3 px-4">রসিদ / কেস নম্বর</th>
+                <th className="py-3 px-4">পরামর্শক চিকিৎসক</th>
+                <th className="py-3 px-4">সেবা</th>
+                <th className="py-3 px-4 text-right">পরিশোধিত ফি</th>
+                <th className="py-3 px-4 text-center">ইনভয়েস</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/[0.04]">
+              {userConsultations.map((c) => (
+                <tr key={c.id} className="hover:bg-white/[0.02] transition">
+                  <td className="py-3 px-4 font-mono font-bold text-white">
+                    {c.caseNumber}
+                  </td>
+                  <td className="py-3 px-4 font-medium text-slate-200">
+                    {c.expert.name}
+                  </td>
+                  <td className="py-3 px-4 text-slate-400">
+                    {c.serviceName}
+                  </td>
+                  <td className="py-3 px-4 text-right font-mono font-bold text-emerald-400">
+                    {formatCurrency(c.feePaid || 300)}
+                  </td>
+                  <td className="py-3 px-4 text-center">
+                    <button
+                      onClick={() => setSelectedInvoiceCase(c)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30 text-[11px] transition"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>রসিদ দেখুন</span>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Invoice Modal */}
+      <FarmerInvoiceModal
+        isOpen={!!selectedInvoiceCase}
+        onClose={() => setSelectedInvoiceCase(null)}
+        consultation={selectedInvoiceCase}
+      />
     </div>
   );
 }

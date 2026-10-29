@@ -79,6 +79,38 @@ export default function AdminModularDashboardPage() {
         </div>
       </div>
 
+      {/* Platform Revenue & Commission Overview (70/30 Split) */}
+      <div className="p-5 rounded-3xl bg-gradient-to-r from-emerald-950/40 via-[#0a1419] to-cyan-950/40 border border-emerald-500/30 space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+          <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+            <span>SROT Platform Revenue & 70/30 Commission Architecture</span>
+          </span>
+          <span className="text-[11px] font-mono text-emerald-300">
+            Phase 1 Monetization Engine Active
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-white/[0.06]">
+            <span className="text-slate-400 text-[11px] block">Total Gross GMV (Farmer Billing)</span>
+            <span className="text-2xl font-black text-white font-mono mt-0.5 block">৳৩,২৪০,০০০</span>
+            <span className="text-[10px] text-slate-400">১০,৮০০টি পেইড কনসাল্টেশন</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-emerald-950/60 border border-emerald-500/25">
+            <span className="text-emerald-300 text-[11px] block">SROT Platform Net Revenue (30%)</span>
+            <span className="text-2xl font-black text-emerald-400 font-mono mt-0.5 block">৳৯৭২,০০০</span>
+            <span className="text-[10px] text-emerald-300/80">সার্ভার, কিউআর ও প্ল্যাটফর্ম উন্নয়ন</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-cyan-950/60 border border-cyan-500/25">
+            <span className="text-cyan-300 text-[11px] block">Disbursed to Doctors & Vets (70%)</span>
+            <span className="text-2xl font-black text-cyan-400 font-mono mt-0.5 block">৳২,২৬৮,০০০</span>
+            <span className="text-[10px] text-cyan-300/80">১৪২ জন চিকিৎসকের ওয়ালেটে প্রেরিত</span>
+          </div>
+        </div>
+      </div>
+
       {/* System Telemetry Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
