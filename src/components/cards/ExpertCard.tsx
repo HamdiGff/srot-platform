@@ -62,7 +62,14 @@ export function ExpertCard({ expert }: ExpertCardProps) {
               </span>
             </div>
             <p className="text-xs text-slate-300 font-medium line-clamp-1">{expert.title}</p>
-            <p className="text-[11px] text-slate-400 mt-0.5 font-mono">{expert.registrationNumber}</p>
+            <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-400">
+              <span className="font-mono text-emerald-400">{expert.registrationNumber}</span>
+              <span>•</span>
+              <span className="flex items-center gap-0.5 text-slate-300">
+                <MapPin className="w-3 h-3 text-cyan-400" />
+                {expert.division}
+              </span>
+            </div>
           </div>
         </div>
 

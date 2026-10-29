@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useConsultationStore } from "@/lib/store/consultationStore";
 import { useUserStore } from "@/lib/store/userStore";
@@ -23,9 +23,21 @@ import {
   ArrowLeft,
   Wheat,
   Milk,
+  Egg,
+  Fish,
   HeartHandshake,
   Image as ImageIcon,
   CheckCheck,
+  Receipt,
+  X,
+  Mic,
+  MicOff,
+  VideoOff,
+  RefreshCw,
+  Activity,
+  BadgeDollarSign,
+  QrCode,
+  ShieldAlert,
 } from "lucide-react";
 
 interface ConsultationRoomClientProps {
@@ -39,6 +51,24 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
 
   const [inputText, setInputText] = useState("");
   const [isVideoMuted, setIsVideoMuted] = useState(false);
+  const [isVideoStopped, setIsVideoStopped] = useState(false);
+  const [isCameraFlipped, setIsCameraFlipped] = useState(false);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+  const [callDurationSeconds, setCallDurationSeconds] = useState(864); // 14 mins 24 secs
+
+  // Timer simulation
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCallDurationSeconds((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTimer = (totalSec: number) => {
+    const mins = Math.floor(totalSec / 60);
+    const secs = totalSec % 60;
+    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  };
 
   if (!consultation) {
     return (
@@ -62,6 +92,8 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
 
   const isAgri = consultation.category === "agri";
   const isPet = consultation.category === "pet";
+  const isPoultry = consultation.category === "poultry";
+  const isFisheries = consultation.category === "fisheries";
   const messages = consultation.messages || [];
 
   const isCurrentUserExpert =
@@ -83,11 +115,11 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
       senderRole: currentUser.role,
     });
 
-    // If the sender is the patient and currently in a demo simulation, trigger a prompt doctor acknowledgement
+    // Auto-respond if patient messages in simulator
     if (!isCurrentUserExpert && messages.length <= 4) {
       setTimeout(() => {
         sendMessage(consultation.id, {
-          text: `Thank you, ${currentUser.name}. I have noted this symptom. I am preparing your verified prescription and dosage advice now.`,
+          text: `Thank you, ${currentUser.name}. I have examined the live feed and photos. Preparing your BVC/DAE signed digital prescription with required withholding intervals now.`,
           senderId: consultation.expert.id,
           senderName: consultation.expert.name,
           senderRole: isAgri ? "expert_agronomist" : "veterinarian",
@@ -96,97 +128,145 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
     }
   };
 
-  // Simulate expert completing the review and issuing prescription
+  // Expert issues signed official prescription
   const handleSimulateResolve = () => {
     const samplePrescription = isAgri
       ? {
-          diagnosisTitle: "Early Nitrogen Chlorosis & Mild Fungal Leaf Spot",
-          pathogenOrCause: "Cercospora oryzae with trace nitrogen leaching",
+          diagnosisTitle: "Boro Rice Foliar Blast (Pyricularia oryzae)",
+          pathogenOrCause: "Fungal Blast Spores triggered by high humidity and excess urea",
           severity: "Moderate" as const,
           treatmentSteps: [
-            "Apply foliar spray of Mancozeb 75% WP @ 2.5 g/L during late afternoon.",
-            "Incorporate 15 kg/acre urea mixed with neem oil cake to prevent nitrogen leaching.",
-            "Re-check lower leaf margins in 7 days for new lesion development.",
+            "Halt all further urea top-dressing immediately to stop succulent vegetative growth.",
+            "Maintain 2-3 cm shallow standing water in paddy; avoid field drying.",
+            "Perform foliar spray during late afternoon with hollow cone nozzle covering both upper and lower leaf surfaces.",
           ],
           medicationsOrSprays: [
             {
-              item: "Mancozeb 75% WP",
-              activeIngredient: "Mancozeb (Dithiocarbamate broad-spectrum protectant)",
-              dosage: "2.5 g / Liter clean water (500 g / acre)",
+              item: "Tricyclazole 75% WP",
+              activeIngredient: "Tricyclazole (Melanin biosynthesis inhibitor)",
+              dosage: "0.6 g per Liter clean water (120 g / acre)",
               frequencyAndDuration: "Single spray; repeat after 10 days if humid mist continues",
-              withholdingSafetyPeriod: "14 Days pre-harvest interval",
+              withholdingSafetyPeriod: "21 Days pre-harvest interval",
             },
             {
-              item: "Chelated Zinc (Zn-EDTA 12%)",
-              activeIngredient: "Zinc Ethylenediaminetetraacetate",
-              dosage: "1 g / Liter foliar spray",
-              frequencyAndDuration: "Foliar booster at tillering stage",
-              withholdingSafetyPeriod: "0 Days (Micro-nutrient)",
+              item: "MOP (Muriate of Potash)",
+              activeIngredient: "Potassium Chloride (K2O 60%)",
+              dosage: "5 kg / bigha as soil application",
+              frequencyAndDuration: "One-time booster to strengthen silica layer",
+              withholdingSafetyPeriod: "0 Days (Nutritional amendment)",
             },
           ],
           preventiveAdvice:
-            "Maintain optimal field drainage and do not let water stagnate more than 5 cm during active tillering.",
+            "Treat seedbed with Carbendazim 2g/kg seed before transplanting and follow DAE 4:2:1 balanced N-P-K recommendation.",
           followUpDate: "2026-11-06",
           prescribedAt: new Date().toISOString(),
         }
       : isPet
       ? {
-          diagnosisTitle: "Acute Canine Gastrointestinal Dysbiosis",
-          pathogenOrCause: "Dietary indiscretion with mild bacterial overgrowth",
-          severity: "Mild" as const,
+          diagnosisTitle: "Canine Atopic Dermatitis with Secondary Malassezia Otitis",
+          pathogenOrCause: "Environmental seasonal pollen allergen flare with fungal ear colonization",
+          severity: "Moderate" as const,
           treatmentSteps: [
-            "Withhold food for 12 hours, ensuring constant access to fresh water with electrolytes.",
-            "Transition to bland boiled white rice and skinless chicken for 3-4 days.",
-            "Administer veterinary probiotic paste with breakfast.",
+            "Wipe paws and lower abdomen with damp hypoallergenic washcloth after every outdoor walk.",
+            "Fit soft Elizabethan cone collar for 48 hours to prevent self-mutilating skin trauma.",
+            "Flush ears gently before administering otic drops; do not use Q-tips inside ear canal.",
           ],
           medicationsOrSprays: [
             {
-              item: "Pro-Kolin Advanced Paste",
-              activeIngredient: "Probiotics (Enterococcus faecium) + Preplex prebiotics + Kaolin",
-              dosage: "3 ml orally twice daily",
-              frequencyAndDuration: "Twice daily for 3 days",
-              withholdingSafetyPeriod: "N/A",
+              item: "Oclacitinib (Apoquel) 16mg Tablets",
+              activeIngredient: "Oclacitinib Maleate (Janus Kinase JAK-1 inhibitor)",
+              dosage: "1 tablet (16mg) orally with food",
+              frequencyAndDuration: "Twice daily for 7 days, then reduce to once daily maintenance",
+              withholdingSafetyPeriod: "N/A (Companion pet approved)",
+            },
+            {
+              item: "Posatex Otic Ear Suspension",
+              activeIngredient: "Orbifloxacin + Posaconazole + Mometasone Furoate",
+              dosage: "6 drops into each affected ear canal",
+              frequencyAndDuration: "Once daily for 7 consecutive days",
+              withholdingSafetyPeriod: "N/A (Topical otic)",
             },
           ],
-          preventiveAdvice: "Avoid table scraps and introduce novel treats gradually over 7 days.",
-          followUpDate: "2026-11-04",
+          preventiveAdvice: "Switch to high Omega-3 fish oil supplement to rebuild epidermal barrier strength.",
+          followUpDate: "2026-11-08",
+          prescribedAt: new Date().toISOString(),
+        }
+      : isPoultry
+      ? {
+          diagnosisTitle: "Caecal Coccidiosis (Eimeria tenella) Outbreak",
+          pathogenOrCause: "Protozoal parasite oocysts in wet poultry litter",
+          severity: "Severe" as const,
+          treatmentSteps: [
+            "Immediately remove and replace all damp, caked litter around waterers.",
+            "Sterilize drinking lines with chlorine dioxide before adding medication.",
+            "Administer Toltrazuril solution in drinking water for 48 continuous hours.",
+          ],
+          medicationsOrSprays: [
+            {
+              item: "Toltrazuril 2.5% Oral Solution",
+              activeIngredient: "Toltrazuril 25 mg/ml",
+              dosage: "1 ml per Liter of drinking water for 8 hours daily",
+              frequencyAndDuration: "2 consecutive days",
+              withholdingSafetyPeriod: "Meat withholding: 14 Days prior to slaughter",
+            },
+            {
+              item: "Vitamin K3 + Electrolyte Powder",
+              activeIngredient: "Menadione Sodium Bisulfite",
+              dosage: "1 g per 2 Liters water",
+              frequencyAndDuration: "3 consecutive days to halt intestinal hemorrhaging",
+              withholdingSafetyPeriod: "0 Days",
+            },
+          ],
+          preventiveAdvice: "Maintain minimum 3-inch dry rice husk litter and clean nipple drinkers daily.",
+          followUpDate: "2026-11-03",
           prescribedAt: new Date().toISOString(),
         }
       : {
-          diagnosisTitle: "Subclinical Bovine Mastitis",
-          pathogenOrCause: "Streptococcus dysgalactiae",
-          severity: "Moderate" as const,
+          diagnosisTitle: "Acute Clinical Bovine Mastitis (Right Hind Quarter)",
+          pathogenOrCause: "Environmental Streptococcus uberis infection with high somatic cell count",
+          severity: "Severe" as const,
           treatmentSteps: [
-            "Perform California Mastitis Test (CMT) strip on all four quarters.",
-            "Infuse accredited intramammary antibiotic tube after complete milking.",
-            "Apply post-milking chlorhexidine teat dip (0.5%).",
+            "Completely strip out the affected quarter every 3 hours during daytime to evacuate bacterial toxins.",
+            "Apply cold water hose or ice packs on swollen quarter for 15 minutes prior to milking.",
+            "Discard all milk from this cow completely into disposal pit; strictly do NOT feed to calves.",
           ],
           medicationsOrSprays: [
             {
-              item: "Cefquinome Sulfate Intramammary Infusion",
-              activeIngredient: "4th Generation Cephalosporin (75 mg)",
-              dosage: "1 syringe per affected quarter",
-              frequencyAndDuration: "Every 12 hours for 3 consecutive milkings",
-              withholdingSafetyPeriod: "Milk Withholding: 96 Hours (4 Days) • Meat: 7 Days",
+              item: "Ceftiofur Sodium Sterile Powder",
+              activeIngredient: "Ceftiofur Sodium 1g",
+              dosage: "1.1 to 2.2 mg/kg body weight Intramuscularly",
+              frequencyAndDuration: "Once daily for 3 consecutive days",
+              withholdingSafetyPeriod: "Milk withholding: 72 hrs post final injection • Meat: 4 days",
+            },
+            {
+              item: "Meloxicam Injection 5mg/ml",
+              activeIngredient: "Meloxicam (NSAID Anti-inflammatory)",
+              dosage: "0.5 mg/kg body weight Subcutaneously",
+              frequencyAndDuration: "Single initial injection for udder pain & endotoxic fever",
+              withholdingSafetyPeriod: "Milk withholding: 120 hrs (5 days)",
             },
           ],
           preventiveAdvice:
-            "Discard milk from treated quarters during withholding period. Maintain dry sand bedding.",
-          followUpDate: "2026-11-05",
+            "Disinfect bedding stalls with hydrated lime weekly. Ensure milking machine vacuum pressure is calibrated to 42 kPa.",
+          followUpDate: "2026-10-30",
           prescribedAt: new Date().toISOString(),
         };
 
     attachPrescription(consultation.id, samplePrescription);
   };
 
+  const totalFee = consultation.feePaid || 300;
+  const expertShare = Math.round(totalFee * 0.7);
+  const srotShare = totalFee - expertShare;
+
   return (
     <div className="w-full srot-glow-mesh py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
       {/* Top Navigation & Status Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
         <div className="flex items-center gap-3">
           <Link
             href={isCurrentUserExpert ? "/expert-portal" : "/farmer-portal"}
-            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 transition"
+            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 border border-white/[0.08] transition"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
@@ -199,41 +279,54 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
               <span className="text-xs text-slate-400">{formatDate(consultation.createdAt)}</span>
               <span className="text-slate-600">•</span>
               <span className="text-xs font-semibold text-slate-300">
-                Fee Paid: {formatCurrency(consultation.feePaid || 300)}
+                Fee Paid: {formatCurrency(totalFee)}
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2 mt-0.5">
               <span>{consultation.serviceName}</span>
-              {consultation.category === "agri" ? (
+              {isAgri ? (
                 <Wheat className="w-5 h-5 text-emerald-400" />
-              ) : consultation.category === "veterinary" ? (
-                <Milk className="w-5 h-5 text-cyan-400" />
-              ) : (
+              ) : isPoultry ? (
+                <Egg className="w-5 h-5 text-amber-400" />
+              ) : isFisheries ? (
+                <Fish className="w-5 h-5 text-blue-400" />
+              ) : isPet ? (
                 <HeartHandshake className="w-5 h-5 text-pink-400" />
+              ) : (
+                <Milk className="w-5 h-5 text-cyan-400" />
               )}
             </h1>
           </div>
         </div>
 
-        {/* Case Status Badge & CTAs */}
-        <div className="flex items-center gap-3">
+        {/* Case Status Badge & Action CTAs */}
+        <div className="flex items-center gap-2.5">
+          {/* Digital Cash Memo Trigger */}
+          <button
+            onClick={() => setIsReceiptModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-white/[0.1] text-xs font-semibold transition"
+          >
+            <Receipt className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Digital Memo (রসিদ)</span>
+          </button>
+
           {consultation.status === "completed" ? (
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-bold">
-              <CheckCircle className="w-4 h-4" /> Case Resolved & Prescribed
+              <CheckCircle className="w-4 h-4" /> Case Prescribed
             </span>
           ) : (
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-bold">
-                <Clock className="w-4 h-4" /> Live in Review
+                <Clock className="w-4 h-4" /> Live in Chamber
               </span>
 
               {/* Expert demo simulator */}
               <button
                 onClick={handleSimulateResolve}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition shadow-md"
-                title="Issue official diagnosis & verified prescription"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-xs font-black transition shadow-md hover:from-emerald-400 hover:to-teal-400"
+                title="Issue official diagnosis & verified BVC/DAE prescription"
               >
-                <Sparkles className="w-3.5 h-3.5" />
+                <Sparkles className="w-3.5 h-3.5 text-slate-950" />
                 <span>Issue Prescription (Rx)</span>
               </button>
             </div>
@@ -265,13 +358,94 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
         </div>
       </div>
 
+      {/* LIVE TELEMETRY & CLINICAL HUD STRIP */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-2xl bg-slate-950/90 border border-white/[0.08]">
+        {isAgri ? (
+          <>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
+              <span className="text-[10px] text-slate-400 uppercase block font-medium">Canopy Humidity</span>
+              <span className="text-sm font-bold text-cyan-400 font-mono">92% RH (High)</span>
+            </div>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
+              <span className="text-[10px] text-slate-400 uppercase block font-medium">Leaf Surface Temp</span>
+              <span className="text-sm font-bold text-emerald-400 font-mono">24.5°C</span>
+            </div>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
+              <span className="text-[10px] text-slate-400 uppercase block font-medium">Chlorophyll SPAD</span>
+              <span className="text-sm font-bold text-amber-400 font-mono">34.2 (Sub-optimal)</span>
+            </div>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
+              <span className="text-[10px] text-slate-400 uppercase block font-medium">Spore Contagion</span>
+              <span className="text-sm font-bold text-red-400 font-mono">ELEVATED (Blast)</span>
+            </div>
+          </>
+        ) : isPet ? (
+          <>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
+              <span className="text-[10px] text-slate-400 uppercase block font-medium">Heart Rate</span>
+              <span className="text-sm font-bold text-cyan-400 font-mono">112 bpm</span>
+            </div>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
+              <span className="text-[10px] text-slate-400 uppercase block font-medium">Rectal Body Temp</span>
+              <span className="text-sm font-bold text-emerald-400 font-mono">101.4°F (Normal)</span>
+            </div>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
+              <span className="text-[10px] text-slate-400 uppercase block font-medium">Body Weight</span>
+              <span className="text-sm font-bold text-amber-400 font-mono">31.5 kg (BCS 5/9)</span>
+            </div>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
+              <span className="text-[10px] text-slate-400 uppercase block font-medium">Capillary Refill</span>
+              <span className="text-sm font-bold text-emerald-400 font-mono">&lt; 1.5s (Pink)</span>
+            </div>
+          </>
+        ) : isPoultry ? (
+          <>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
+              <span className="text-[10px] text-slate-400 uppercase block font-medium">Shed Temperature</span>
+              <span className="text-sm font-bold text-cyan-400 font-mono">32.8°C</span>
+            </div>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
+              <span className="text-[10px] text-slate-400 uppercase block font-medium">House Ammonia</span>
+              <span className="text-sm font-bold text-amber-400 font-mono">19 ppm (Warning)</span>
+            </div>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
+              <span className="text-[10px] text-slate-400 uppercase block font-medium">Morning Mortality</span>
+              <span className="text-sm font-bold text-red-400 font-mono">22 Birds (Spike)</span>
+            </div>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
+              <span className="text-[10px] text-slate-400 uppercase block font-medium">Lesion Index</span>
+              <span className="text-sm font-bold text-red-400 font-mono">Caecal Grade 3</span>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
+              <span className="text-[10px] text-slate-400 uppercase block font-medium">Rumen Motility</span>
+              <span className="text-sm font-bold text-amber-400 font-mono">2 / 2 min (Sluggish)</span>
+            </div>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
+              <span className="text-[10px] text-slate-400 uppercase block font-medium">Rectal Fever</span>
+              <span className="text-sm font-bold text-red-400 font-mono">103.4°F (Mastitis Fever)</span>
+            </div>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
+              <span className="text-[10px] text-slate-400 uppercase block font-medium">Respiration Rate</span>
+              <span className="text-sm font-bold text-cyan-400 font-mono">36 breaths/min</span>
+            </div>
+            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
+              <span className="text-[10px] text-slate-400 uppercase block font-medium">Quarter CMT Score</span>
+              <span className="text-sm font-bold text-red-400 font-mono">Positive Grade 3</span>
+            </div>
+          </>
+        )}
+      </div>
+
       {/* Main Consultation Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Cols: Media View / Live Feed & Prescription */}
         <div className="lg:col-span-2 space-y-6">
           {/* Channel Experience View */}
-          <div className="srot-glass-card rounded-2xl overflow-hidden border border-slate-800">
-            <div className="p-4 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between text-xs">
+          <div className="srot-glass-card rounded-2xl overflow-hidden border border-white/[0.08]">
+            <div className="p-3.5 bg-slate-900/90 border-b border-white/[0.08] flex items-center justify-between text-xs">
               <div className="flex items-center gap-2 font-semibold text-white">
                 {consultation.channel === "video" ? (
                   <Video className="w-4 h-4 text-cyan-400" />
@@ -289,15 +463,25 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
                 </span>
               </div>
 
-              <span className="text-[11px] text-emerald-400 font-mono flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                LIVE CHANNEL ACTIVE
-              </span>
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] text-emerald-400 font-mono flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                  {formatTimer(callDurationSeconds)}
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 font-mono border border-cyan-500/20">
+                  WebRTC HD
+                </span>
+              </div>
             </div>
 
             {/* Video / Photo Screen Simulator */}
             <div className="relative h-64 sm:h-80 bg-slate-950 flex items-center justify-center overflow-hidden">
-              {consultation.channel === "video" ? (
+              {isVideoStopped ? (
+                <div className="text-center space-y-2 p-6">
+                  <VideoOff className="w-10 h-10 text-slate-600 mx-auto" />
+                  <p className="text-xs text-slate-400 font-semibold">Patient camera feed is paused</p>
+                </div>
+              ) : consultation.channel === "video" ? (
                 <div className="relative w-full h-full">
                   <img
                     src={consultation.uploadedPhotos[0]}
@@ -313,34 +497,68 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
                       alt={consultation.expert.name}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute bottom-1 left-1.5 bg-black/70 px-1.5 py-0.5 rounded text-[9px] text-white font-semibold">
-                      {consultation.expert.name.split(" ")[0]} (Practitioner)
+                    <div className="absolute bottom-1 left-1.5 right-1.5 bg-black/80 px-1.5 py-0.5 rounded text-[9px] text-white font-semibold truncate">
+                      {consultation.expert.name.split(" ")[0]} (Clinician)
                     </div>
                   </div>
 
-                  {/* Bottom Video Controls */}
+                  {/* Live HUD Overlays */}
+                  <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-xl text-[11px] text-white border border-white/10 flex items-center gap-2">
+                    <Activity className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Focus: {consultation.farmerOrOwner.subjectName}</span>
+                  </div>
+
+                  {/* Bottom Video Hardware Controls */}
                   <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-white">
-                    <span className="bg-black/60 px-2.5 py-1 rounded-lg backdrop-blur-md">
-                      Patient / Plot: {consultation.farmerOrOwner.subjectName}
+                    <span className="bg-black/60 px-2.5 py-1 rounded-lg backdrop-blur-md text-[11px]">
+                      Plot/Tag: {consultation.farmerOrOwner.subjectAgeOrStage}
                     </span>
-                    <button
-                      onClick={() => setIsVideoMuted(!isVideoMuted)}
-                      className="px-3 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 backdrop-blur-md font-semibold"
-                    >
-                      {isVideoMuted ? "Unmute Mic" : "Mute Mic"}
-                    </button>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setIsVideoMuted(!isVideoMuted)}
+                        className={`p-2 rounded-xl backdrop-blur-md font-semibold transition ${
+                          isVideoMuted
+                            ? "bg-red-500 text-white"
+                            : "bg-slate-800/80 hover:bg-slate-700 text-slate-200"
+                        }`}
+                        title={isVideoMuted ? "Unmute Mic" : "Mute Mic"}
+                      >
+                        {isVideoMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                      </button>
+
+                      <button
+                        onClick={() => setIsVideoStopped(!isVideoStopped)}
+                        className={`p-2 rounded-xl backdrop-blur-md font-semibold transition ${
+                          isVideoStopped
+                            ? "bg-red-500 text-white"
+                            : "bg-slate-800/80 hover:bg-slate-700 text-slate-200"
+                        }`}
+                        title={isVideoStopped ? "Turn Camera On" : "Turn Camera Off"}
+                      >
+                        {isVideoStopped ? <VideoOff className="w-4 h-4" /> : <Video className="w-4 h-4" />}
+                      </button>
+
+                      <button
+                        onClick={() => setIsCameraFlipped(!isCameraFlipped)}
+                        className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 backdrop-blur-md text-slate-200 transition"
+                        title="Switch Camera Lens"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2 p-4 w-full h-full">
                   {consultation.uploadedPhotos.map((photo, i) => (
-                    <div key={i} className="relative rounded-xl overflow-hidden border border-slate-800">
+                    <div key={i} className="relative rounded-xl overflow-hidden border border-white/[0.08]">
                       <img
                         src={photo}
                         alt="Diagnostic leaf or animal sample"
                         className="w-full h-full object-cover"
                       />
-                      <span className="absolute bottom-2 left-2 text-[10px] bg-slate-950/80 text-white px-2 py-0.5 rounded backdrop-blur-md">
+                      <span className="absolute bottom-2 left-2 text-[10px] bg-slate-950/80 text-white px-2 py-0.5 rounded backdrop-blur-md font-semibold">
                         Photo #{i + 1}
                       </span>
                     </div>
@@ -354,39 +572,39 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
           {consultation.prescription && (
             <div className="srot-glass-card rounded-2xl p-6 border border-emerald-500/30 bg-emerald-950/10 space-y-5">
               <div className="flex items-center justify-between pb-3 border-b border-emerald-900/40">
-                <div className="flex items-center gap-2">
-                  <span className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
+                <div className="flex items-center gap-2.5">
+                  <span className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
                     <FileText className="w-5 h-5" />
                   </span>
                   <div>
                     <h3 className="text-base font-bold text-white">
-                      Official Advisory & Clinical Prescription
+                      Official Clinical Prescription (চিকিৎসাপত্র)
                     </h3>
-                    <p className="text-xs text-emerald-400">
-                      Verified by {consultation.expert.name} ({consultation.expert.regNumber})
+                    <p className="text-xs text-emerald-400 font-mono">
+                      Signed by {consultation.expert.name} ({consultation.expert.regNumber})
                     </p>
                   </div>
                 </div>
 
                 <button
                   onClick={() => generatePrescriptionPdf(consultation)}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-md shadow-emerald-950/60"
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-md shadow-emerald-950/60"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>Download PDF</span>
+                  <span>Download PDF Rx</span>
                 </button>
               </div>
 
               {/* Diagnosis Banner */}
-              <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div className="p-4 rounded-xl bg-slate-900/80 border border-white/[0.08]">
                 <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">
                   Primary Clinical Diagnosis
                 </span>
-                <h4 className="text-lg font-bold text-white">
+                <h4 className="text-base sm:text-lg font-bold text-white">
                   {consultation.prescription.diagnosisTitle}
                 </h4>
                 <p className="text-xs text-slate-300 mt-1">
-                  Pathogen / Cause: {consultation.prescription.pathogenOrCause}
+                  Pathogen / Vector: {consultation.prescription.pathogenOrCause}
                 </p>
               </div>
 
@@ -416,10 +634,10 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
                   {consultation.prescription.medicationsOrSprays.map((med, i) => (
                     <div
                       key={i}
-                      className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+                      className="p-3 rounded-xl bg-slate-900/70 border border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
                     >
                       <div>
-                        <span className="font-bold text-white">{med.item}</span>
+                        <span className="font-bold text-white text-xs sm:text-sm">{med.item}</span>
                         <span className="text-[11px] text-slate-400 block font-mono">
                           {med.activeIngredient}
                         </span>
@@ -429,9 +647,9 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
                         </span>
                       </div>
 
-                      <div className="sm:text-right">
-                        <span className="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 font-medium">
-                          Safety: {med.withholdingSafetyPeriod}
+                      <div className="sm:text-right shrink-0">
+                        <span className="text-[10px] text-amber-300 bg-amber-500/15 px-2.5 py-1 rounded-md border border-amber-500/30 font-semibold block sm:inline-block">
+                          Withholding: {med.withholdingSafetyPeriod}
                         </span>
                       </div>
                     </div>
@@ -440,11 +658,12 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
               </div>
 
               {/* Preventive Advice */}
-              <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800/80 text-xs">
+              <div className="p-3.5 rounded-xl bg-slate-900/60 border border-white/[0.08] text-xs">
                 <span className="font-bold text-slate-200 block mb-0.5">Preventive Advice:</span>
                 <p className="text-slate-400">{consultation.prescription.preventiveAdvice}</p>
-                <div className="mt-2 text-emerald-400 font-semibold text-[11px]">
-                  Scheduled Follow-up Review: {consultation.prescription.followUpDate}
+                <div className="mt-2 text-emerald-400 font-semibold text-[11px] flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>Scheduled Follow-up Review: {consultation.prescription.followUpDate}</span>
                 </div>
               </div>
             </div>
@@ -454,25 +673,25 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
         {/* Right Col: Live Chat & Case Metadata */}
         <div className="space-y-6">
           {/* Metadata Card */}
-          <div className="srot-glass-card rounded-2xl p-5 border border-slate-800 space-y-4">
+          <div className="srot-glass-card rounded-2xl p-5 border border-white/[0.08] space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Case Information
+              Case Verification Details
             </h3>
 
             {/* Specialist */}
-            <div className="flex items-center gap-3 pb-3 border-b border-slate-800">
+            <div className="flex items-center gap-3 pb-3 border-b border-white/[0.08]">
               <img
                 src={consultation.expert.avatar}
                 alt={consultation.expert.name}
-                className="w-12 h-12 rounded-xl object-cover border border-slate-700"
+                className="w-12 h-12 rounded-xl object-cover border border-slate-700 shrink-0"
               />
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-1">
-                  <h4 className="text-xs font-bold text-white">{consultation.expert.name}</h4>
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <h4 className="text-xs font-bold text-white truncate">{consultation.expert.name}</h4>
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 </div>
-                <p className="text-[11px] text-slate-400">{consultation.expert.title}</p>
-                <span className="text-[10px] font-mono text-emerald-400">
+                <p className="text-[11px] text-slate-400 truncate">{consultation.expert.title}</p>
+                <span className="text-[10px] font-mono text-emerald-400 block truncate">
                   {consultation.expert.regNumber}
                 </span>
               </div>
@@ -481,7 +700,7 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
             {/* Beneficiary */}
             <div className="text-xs space-y-1">
               <span className="text-slate-400 block text-[11px]">Client / Farm Producer:</span>
-              <span className="font-bold text-white">{consultation.farmerOrOwner.name}</span>
+              <span className="font-bold text-white block">{consultation.farmerOrOwner.name}</span>
               <p className="text-slate-400 text-[11px]">{consultation.farmerOrOwner.location}</p>
               <p className="text-slate-400 text-[11px]">{consultation.farmerOrOwner.phone}</p>
               <p className="text-emerald-400 text-[11px] font-semibold mt-1">
@@ -490,9 +709,9 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
             </div>
           </div>
 
-          {/* Interactive Chat Console (Directly Persistent) */}
-          <div className="srot-glass-card rounded-2xl border border-slate-800 flex flex-col h-[450px]">
-            <div className="p-3.5 bg-slate-900 border-b border-slate-800 flex items-center justify-between text-xs font-bold text-white">
+          {/* Interactive Chat Console */}
+          <div className="srot-glass-card rounded-2xl border border-white/[0.08] flex flex-col h-[460px]">
+            <div className="p-3.5 bg-slate-900 border-b border-white/[0.08] flex items-center justify-between text-xs font-bold text-white">
               <div className="flex items-center gap-2">
                 <MessageSquare className="w-4 h-4 text-emerald-400" />
                 <span>Live Case Chamber Feed</span>
@@ -540,19 +759,6 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
                       </div>
 
                       <p className="text-xs whitespace-pre-wrap">{msg.text}</p>
-
-                      {msg.attachments && msg.attachments.length > 0 && (
-                        <div className="mt-2 grid grid-cols-2 gap-1.5">
-                          {msg.attachments.map((imgUrl, idx) => (
-                            <img
-                              key={idx}
-                              src={imgUrl}
-                              alt="Attachment"
-                              className="rounded-lg max-h-24 object-cover border border-white/20"
-                            />
-                          ))}
-                        </div>
-                      )}
                     </div>
                   </div>
                 );
@@ -560,7 +766,7 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
             </div>
 
             {/* Input box */}
-            <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-800 flex gap-2">
+            <form onSubmit={handleSendMessage} className="p-3 border-t border-white/[0.08] flex gap-2">
               <input
                 type="text"
                 value={inputText}
@@ -570,7 +776,7 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
                     ? "Type clinician instructions or questions to patient..."
                     : "Ask doctor about symptoms, spray dosage, reaction..."
                 }
-                className="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-emerald-500 placeholder:text-slate-500"
+                className="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-white/[0.1] text-white text-xs focus:outline-none focus:border-emerald-500 placeholder:text-slate-500 font-medium"
               />
               <button
                 type="submit"
@@ -583,6 +789,87 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
           </div>
         </div>
       </div>
+
+      {/* DIGITAL CASH MEMO / OFFICIAL RECEIPT MODAL */}
+      {isReceiptModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">
+          <div className="w-full max-w-md srot-glass-card rounded-3xl border border-white/[0.1] p-6 shadow-2xl space-y-5 bg-gradient-to-b from-slate-900 to-slate-950 text-white">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+              <div className="flex items-center gap-2">
+                <Receipt className="w-5 h-5 text-emerald-400" />
+                <h3 className="font-black text-sm uppercase tracking-wider">
+                  SROT Official Cash Memo
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsReceiptModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="p-3 rounded-xl bg-slate-950/80 border border-white/[0.05] space-y-1.5 font-mono text-[11px]">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Invoice No:</span>
+                  <span className="text-white font-bold">{consultation.caseNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Payment Gateway:</span>
+                  <span className="text-pink-400 font-bold">bKash (TrxID: 9X4812K)</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Date & Time:</span>
+                  <span className="text-slate-300">{formatDate(consultation.createdAt)}</span>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-slate-300">
+                  <span>Beneficiary:</span>
+                  <strong className="text-white">{consultation.farmerOrOwner.name}</strong>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span>Attending Clinician:</span>
+                  <strong className="text-white">{consultation.expert.name}</strong>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span>Council Registration:</span>
+                  <strong className="text-emerald-400 font-mono">{consultation.expert.regNumber}</strong>
+                </div>
+              </div>
+
+              {/* 70/30 Commission Breakdown */}
+              <div className="pt-2 border-t border-white/[0.08] space-y-1 font-mono text-[11px]">
+                <div className="flex justify-between text-slate-400">
+                  <span>Specialist Disbursal (70%):</span>
+                  <span>{formatCurrency(expertShare)}</span>
+                </div>
+                <div className="flex justify-between text-slate-400">
+                  <span>SROT Tele-Health Operations (30%):</span>
+                  <span>{formatCurrency(srotShare)}</span>
+                </div>
+                <div className="flex justify-between text-sm font-bold text-white pt-1 border-t border-white/[0.06]">
+                  <span>Total Paid:</span>
+                  <span className="text-emerald-400">{formatCurrency(totalFee)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/20 text-[10px] text-emerald-300 text-center">
+              ✓ Tax Compliant Digital Cash Receipt • Tamper-proof QR Validated
+            </div>
+
+            <button
+              onClick={() => setIsReceiptModalOpen(false)}
+              className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition"
+            >
+              Close Memo
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

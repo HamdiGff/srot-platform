@@ -54,22 +54,32 @@ export function ConsultationBookingEngine({
   const { language } = useLanguageStore();
   const isBn = language === "bn";
 
-  const [step, setStep] = useState<number>(1);
-  const [selectedCategory, setSelectedCategory] = useState<ServiceCategory>(
-    initialCategory ||
+  const expertFromParam = initialExpertId
+    ? PLATFORM_EXPERTS.find((e) => e.id === initialExpertId)
+    : null;
+
+  const initialResolvedCategory: ServiceCategory = expertFromParam
+    ? expertFromParam.primaryCategory
+    : initialCategory ||
       (currentRole === "pet_owner"
         ? "pet"
         : currentRole === "livestock_farmer"
         ? "veterinary"
-        : "agri")
-  );
+        : "agri");
+
+  const [step, setStep] = useState<number>(1);
+  const [selectedCategory, setSelectedCategory] = useState<ServiceCategory>(initialResolvedCategory);
+  const [isEmergencyTriage, setIsEmergencyTriage] = useState<boolean>(false);
 
   // Filter services by active category
   const servicesInCategory = PLATFORM_SERVICES.filter(
-    (s) => s.category === selectedCategory
+    (s) => s.category === initialResolvedCategory
   );
   const [selectedService, setSelectedService] = useState<PlatformService>(
     PLATFORM_SERVICES.find((s) => s.id === initialServiceId) ||
+      (expertFromParam
+        ? servicesInCategory.find((s) => expertFromParam.serviceIds.includes(s.id))
+        : undefined) ||
       servicesInCategory[0] ||
       PLATFORM_SERVICES[0]
   );
@@ -297,6 +307,37 @@ export function ConsultationBookingEngine({
           </div>
         ))}
       </div>
+
+      {/* Optional Pre-Selected Specialist Header Banner */}
+      {expertFromParam && (
+        <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-emerald-950/70 via-slate-900 to-emerald-950/70 border border-emerald-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
+          <div className="flex items-center gap-3">
+            <img
+              src={expertFromParam.avatar}
+              alt={expertFromParam.name}
+              className="w-12 h-12 rounded-xl object-cover border-2 border-emerald-400 shadow-md shrink-0"
+            />
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                  {isBn ? "নির্ধারিত বিশেষজ্ঞ" : "Pre-Selected Clinician"}
+                </span>
+                <span className="text-xs font-bold text-white">{expertFromParam.name}</span>
+              </div>
+              <p className="text-[11px] text-slate-300">{expertFromParam.title}</p>
+              <p className="text-[10px] text-emerald-400 font-mono">
+                {expertFromParam.councilName} • Reg: {expertFromParam.registrationNumber}
+              </p>
+            </div>
+          </div>
+          <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 pt-2 sm:pt-0 border-white/[0.08] shrink-0">
+            <span className="text-sm font-black text-white block font-mono">
+              {formatCurrency(expertFromParam.feePerConsultation)}
+            </span>
+            <span className="text-[10px] text-slate-400">{isBn ? "সরাসরি সেশন ফি" : "Direct Advisory Fee"}</span>
+          </div>
+        </div>
+      )}
 
       {/* ================= STEP 1: 4-SECTOR SELECTION ================= */}
       {step === 1 && (

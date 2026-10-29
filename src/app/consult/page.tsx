@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import { ConsultationBookingEngine } from "@/components/consultation/ConsultationBookingEngine";
 import { ServiceCategory } from "@/data/mockServices";
+import { PLATFORM_EXPERTS } from "@/data/mockExperts";
 import { Sparkles } from "lucide-react";
 
 interface ConsultPageProps {
@@ -17,7 +18,10 @@ export default async function ConsultPage({ searchParams }: ConsultPageProps) {
   const params = await searchParams;
   const initialServiceId = params.service;
   const initialExpertId = params.expert;
-  const initialCategory = (params.category as ServiceCategory) || "agri";
+  
+  // If an expert ID is provided, automatically align category with expert's specialty
+  const matchedExpert = initialExpertId ? PLATFORM_EXPERTS.find((e) => e.id === initialExpertId) : undefined;
+  const initialCategory = (params.category as ServiceCategory) || matchedExpert?.primaryCategory || "agri";
 
   return (
     <div className="w-full srot-glow-mesh py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
