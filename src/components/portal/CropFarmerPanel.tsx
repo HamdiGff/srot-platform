@@ -8,6 +8,7 @@ import { useCommunityStore } from "@/lib/store/communityStore";
 import { useLanguageStore } from "@/lib/store/languageStore";
 import { generatePrescriptionPdf } from "@/lib/prescriptionGenerator";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { CustomerInvoicesTab } from "./CustomerInvoicesTab";
 import {
   Wheat,
   MapPin,
@@ -34,6 +35,7 @@ import {
   ArrowRight,
   Clock,
   TrendingUp,
+  Receipt,
 } from "lucide-react";
 
 export function CropFarmerPanel() {
@@ -47,7 +49,7 @@ export function CropFarmerPanel() {
   const myQuestions = getQuestionsByAuthor(currentUser.name);
 
   // Active Workspace Tab
-  const [activeTab, setActiveTab] = useState<"plots" | "calculator" | "prescriptions" | "dispatch" | "community">("plots");
+  const [activeTab, setActiveTab] = useState<"plots" | "calculator" | "prescriptions" | "dispatch" | "community" | "invoices">("plots");
 
   // Profile Edit Modal State
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -239,6 +241,7 @@ export function CropFarmerPanel() {
           { id: "calculator", label: isBn ? "সুষম সার ও এনপিকে ক্যালকুলেটর" : "Precision NPK Calculator", icon: Calculator },
           { id: "prescriptions", label: isBn ? "ডিজিটাল প্রেসক্রিপশন ও হিস্ট্রি" : "DAE Prescriptions", icon: FileText, count: consultations.length },
           { id: "dispatch", label: isBn ? "মাঠ সেবা ও মাটি টেস্ট" : "Dispatch Soil Tech", icon: Truck },
+          { id: "invoices", label: isBn ? "ইনভয়েস ও অর্ডার ইতিহাস" : "Invoices & Receipts", icon: Receipt },
           { id: "community", label: isBn ? "আমার প্রশ্ন ও উত্তর" : "My Community Q&A", icon: MessageSquare, count: myQuestions.length },
         ].map((tab) => {
           const Icon = tab.icon;
@@ -737,6 +740,11 @@ export function CropFarmerPanel() {
           )}
         </div>
       )}
+
+      {/* ========================================================================= */}
+      {/* TAB 6: INVOICES, ORDER HISTORY & CASH MEMOS */}
+      {/* ========================================================================= */}
+      {activeTab === "invoices" && <CustomerInvoicesTab role="farmer" roleLabel="Crop Farmer" />}
 
       {/* ========================================================================= */}
       {/* MODAL 1: EDIT PROFILE MODAL */}

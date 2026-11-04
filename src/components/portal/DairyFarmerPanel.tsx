@@ -8,6 +8,7 @@ import { useCommunityStore } from "@/lib/store/communityStore";
 import { useLanguageStore } from "@/lib/store/languageStore";
 import { generatePrescriptionPdf } from "@/lib/prescriptionGenerator";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { CustomerInvoicesTab } from "./CustomerInvoicesTab";
 import {
   Milk,
   MapPin,
@@ -34,6 +35,7 @@ import {
   ArrowRight,
   Flame,
   ShieldAlert,
+  Receipt,
 } from "lucide-react";
 
 interface WithholdingRecord {
@@ -57,7 +59,7 @@ export function DairyFarmerPanel() {
   const myQuestions = getQuestionsByAuthor(currentUser.name);
 
   // Active Workspace Tab
-  const [activeTab, setActiveTab] = useState<"herd" | "withholding" | "yield" | "prescriptions" | "dispatch" | "community">("herd");
+  const [activeTab, setActiveTab] = useState<"herd" | "withholding" | "yield" | "prescriptions" | "dispatch" | "community" | "invoices">("herd");
 
   // Profile Edit Modal State
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -233,6 +235,7 @@ export function DairyFarmerPanel() {
           { id: "yield", label: isBn ? "দুধের রেকর্ড ও আয় হিসাব" : "Milk Yield & Revenue", icon: TrendingUp },
           { id: "prescriptions", label: isBn ? "বিভিসি প্রেসক্রিপশন হিস্ট্রি" : "BVC Prescriptions", icon: FileText, count: consultations.length },
           { id: "dispatch", label: isBn ? "কৃত্রিম প্রজনন (AI) টেকনিশিয়ান" : "Dispatch AI Tech", icon: Truck },
+          { id: "invoices", label: isBn ? "ইনভয়েস ও অর্ডার ইতিহাস" : "Invoices & Receipts", icon: Receipt },
           { id: "community", label: isBn ? "আমার ডেইরি প্রশ্ন" : "My Questions", icon: MessageSquare, count: myQuestions.length },
         ].map((tab) => {
           const Icon = tab.icon;
@@ -794,6 +797,13 @@ export function DairyFarmerPanel() {
             </div>
           )}
         </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 7: INVOICES, ORDER HISTORY & CASH MEMOS */}
+      {/* ========================================================================= */}
+      {activeTab === "invoices" && (
+        <CustomerInvoicesTab role="livestock_farmer" roleLabel="Dairy & Bovine Producer" />
       )}
 
       {/* ========================================================================= */}

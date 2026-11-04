@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useModuleStore } from "@/lib/store/moduleStore";
 import { useUserStore } from "@/lib/store/userStore";
+import { useOrderStore, OrderRecord, PaymentStatus } from "@/lib/store/orderStore";
+import { useOutbreakStore, OutbreakAlert } from "@/lib/store/outbreakStore";
 import { useConsultationStore } from "@/lib/store/consultationStore";
 import { useCommunityStore } from "@/lib/store/communityStore";
 import { useLanguageStore } from "@/lib/store/languageStore";
@@ -40,11 +42,16 @@ import {
   Bell,
   RefreshCw,
   Cpu,
+  Check,
+  Ban,
+  RotateCcw,
 } from "lucide-react";
 
 export function AdminPanel() {
   const { modules, toggleModule, resetToDefaults } = useModuleStore();
   const { currentUser, getAllUsers, adminUpdateUser } = useUserStore();
+  const { orders, updatePaymentStatus } = useOrderStore();
+  const { outbreaks, addOutbreak, removeOutbreak } = useOutbreakStore();
   const { consultations } = useConsultationStore();
   const { questions, deleteQuestion } = useCommunityStore();
   const { language } = useLanguageStore();
@@ -53,44 +60,9 @@ export function AdminPanel() {
   const allUsers = getAllUsers();
   const [userSearch, setUserSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
-  const [activeTab, setActiveTab] = useState<"telemetry" | "modules" | "users" | "outbreaks" | "community">("telemetry");
-
-  // Regional Outbreak Broadcast State
-  const [outbreaks, setOutbreaks] = useState([
-    {
-      id: "ob-1",
-      division: "Rangpur",
-      district: "Dinajpur & Rangpur Sadar",
-      disease: "Boro Rice Foliar & Neck Blast Alert (Pyricularia oryzae)",
-      target: "Rice Paddy (BRRI Dhan-28 / 29)",
-      severity: "Critical",
-      activeSpecialists: 34,
-      broadcastDate: "Today at 08:30 AM",
-      emergencyProtocol: "Halt urea top-dressing immediately; spray Tricyclazole 75% WP @ 0.6g/L.",
-    },
-    {
-      id: "ob-2",
-      division: "Rajshahi",
-      district: "Sirajganj & Pabna Dairy Corridor",
-      disease: "Lumpy Skin Disease (LSD) Vector Surge",
-      target: "Dairy Cattle & Calves",
-      severity: "Warning",
-      activeSpecialists: 28,
-      broadcastDate: "Yesterday at 04:00 PM",
-      emergencyProtocol: "Mosquito netting around sheds; isolate febrile animals; goat pox vaccine.",
-    },
-    {
-      id: "ob-3",
-      division: "Mymensingh",
-      district: "Muktagacha & Trishal Intensive Ponds",
-      disease: "Dissolved Oxygen (DO) Crash & Pangas Hypoxia",
-      target: "Commercial Aquaculture Ponds",
-      severity: "Critical",
-      activeSpecialists: 19,
-      broadcastDate: "2 Days ago",
-      emergencyProtocol: "Deploy paddle aerators immediately; sodium percarbonate @ 250g/decimal.",
-    },
-  ]);
+  const [trxSearch, setTrxSearch] = useState("");
+  const [trxFilter, setTrxFilter] = useState<"all" | "pending_verification" | "verified" | "flagged" | "refunded">("all");
+  const [activeTab, setActiveTab] = useState<"telemetry" | "transactions" | "modules" | "users" | "outbreaks" | "community">("telemetry");
 
   // New Outbreak Modal State
   const [isNewOutbreakModalOpen, setIsNewOutbreakModalOpen] = useState(false);
@@ -98,7 +70,7 @@ export function AdminPanel() {
   const [newDistricts, setNewDistricts] = useState("");
   const [newDisease, setNewDisease] = useState("");
   const [newTarget, setNewTarget] = useState("");
-  const [newSeverity, setNewSeverity] = useState("Critical");
+  const [newSeverity, setNewSeverity] = useState<"Critical" | "Warning" | "Advisory">("Critical");
   const [newProtocol, setNewProtocol] = useState("");
 
   // Edit User Modal State
@@ -108,25 +80,23 @@ export function AdminPanel() {
   const [editLocation, setEditLocation] = useState("");
   const [editRole, setEditRole] = useState("");
 
-  // Handle Broadcast New Outbreak
+  // Handle Broadcast New Outbreak (Connected to Global Store!)
   const handleBroadcastOutbreak = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDisease.trim() || !newDistricts.trim()) return;
 
-    setOutbreaks([
-      {
-        id: `ob-${Date.now()}`,
-        division: newDivision,
-        district: newDistricts,
-        disease: newDisease,
-        target: newTarget || "Field Crops & Livestock",
-        severity: newSeverity,
-        activeSpecialists: 30,
-        broadcastDate: "Just now (Live Alert)",
-        emergencyProtocol: newProtocol || "Contact on-call SROT specialist immediately.",
-      },
-      ...outbreaks,
-    ]);
+    addOutbreak({
+      division: newDivision,
+      district: newDistricts,
+      disease: newDisease,
+      target: newTarget || "Field Crops & Livestock",
+      severity: newSeverity,
+      activeSpecialists: 30,
+      broadcastDate: "Just now (Live Alert)",
+      emergencyProtocol: newProtocol || "Contact on-call SROT specialist immediately.",
+      headlineBn: `${newDivision} বিভাগ: ${newDisease} প্রাদুর্ভাব সতর্কতা`,
+      headlineEn: `${newDivision} Division: ${newDisease} Outbreak Alert`,
+    });
 
     setNewDistricts("");
     setNewDisease("");
@@ -136,7 +106,7 @@ export function AdminPanel() {
   };
 
   const handleDeleteOutbreak = (id: string) => {
-    setOutbreaks(outbreaks.filter((o) => o.id !== id));
+    removeOutbreak(id);
   };
 
   // Open Edit User Modal
@@ -173,11 +143,26 @@ export function AdminPanel() {
     return matchesSearch && matchesRole;
   });
 
+  // Filtered Transactions
+  const filteredOrders = orders.filter((o) => {
+    const matchesSearch =
+      o.orderNumber.toLowerCase().includes(trxSearch.toLowerCase()) ||
+      o.transactionId.toLowerCase().includes(trxSearch.toLowerCase()) ||
+      o.customerName.toLowerCase().includes(trxSearch.toLowerCase()) ||
+      o.customerPhone.includes(trxSearch) ||
+      o.providerOrExpert.name.toLowerCase().includes(trxSearch.toLowerCase());
+    const matchesFilter = trxFilter === "all" || o.paymentStatus === trxFilter;
+    return matchesSearch && matchesFilter;
+  });
+
   // Financial Calculations
-  const grossConsultationGMV = consultations.reduce((sum, c) => sum + (c.feePaid || 250), 0);
-  const doctorPayout70 = Math.round(grossConsultationGMV * 0.7);
-  const srotPlatformRevenue30 = Math.round(grossConsultationGMV * 0.3);
-  const totalVerifiedPrescriptions = consultations.filter((c) => c.prescription).length;
+  const totalGrossGMV = orders.reduce((sum, o) => sum + o.amount, 0);
+  const verifiedOrders = orders.filter((o) => o.paymentStatus === "verified");
+  const verifiedGMV = verifiedOrders.reduce((sum, o) => sum + o.amount, 0);
+  const pendingOrders = orders.filter((o) => o.paymentStatus === "pending_verification");
+  const pendingGMV = pendingOrders.reduce((sum, o) => sum + o.amount, 0);
+  const doctorPayout70 = Math.round(verifiedGMV * 0.7);
+  const srotPlatformRevenue30 = Math.round(verifiedGMV * 0.3);
 
   return (
     <div className="w-full space-y-6">
@@ -241,46 +226,46 @@ export function AdminPanel() {
 
       {/* 2. PLATFORM TELEMETRY KPI METRICS */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-4 rounded-2xl bg-slate-950/80 border border-white/[0.08] text-center">
+        <div className="p-4 rounded-2xl bg-slate-950/80 border border-emerald-500/25 text-center">
           <span className="text-[11px] uppercase font-bold text-slate-400 block font-mono">
-            {isBn ? "প্ল্যাটফর্ম রাজস্ব (৩০%)" : "SROT Net Take-Rate (30%)"}
+            {isBn ? "অনুমোদিত প্ল্যাটফর্ম ফি (৩০%)" : "Verified SROT Revenue (30%)"}
           </span>
           <span className="text-xl sm:text-2xl font-black text-emerald-400 font-mono mt-0.5 block">
             {formatCurrency(srotPlatformRevenue30)}
           </span>
-          <span className="text-[10px] text-slate-400">GMV: {formatCurrency(grossConsultationGMV)}</span>
+          <span className="text-[10px] text-emerald-300/80 font-mono">Verified GMV: {formatCurrency(verifiedGMV)}</span>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-slate-950/80 border border-amber-500/25 text-center">
+          <span className="text-[11px] uppercase font-bold text-amber-300 block font-mono">
+            {isBn ? "যাচাই প্রক্রিয়াধীন লেনদেন" : "Pending TrxID Audit"}
+          </span>
+          <span className="text-xl sm:text-2xl font-black text-amber-300 font-mono mt-0.5 block">
+            {formatCurrency(pendingGMV)}
+          </span>
+          <span className="text-[10px] text-amber-300 font-medium">
+            {pendingOrders.length} Transactions Awaiting Review
+          </span>
         </div>
 
         <div className="p-4 rounded-2xl bg-slate-950/80 border border-white/[0.08] text-center">
           <span className="text-[11px] uppercase font-bold text-slate-400 block font-mono">
-            {isBn ? "মোট টেলি-কনসালটেশন" : "Total Consultations"}
-          </span>
-          <span className="text-xl sm:text-2xl font-black text-purple-300 font-mono mt-0.5 block">
-            {consultations.length} Cases
-          </span>
-          <span className="text-[10px] text-purple-400 font-medium">
-            {totalVerifiedPrescriptions} Signed Prescriptions
-          </span>
-        </div>
-
-        <div className="p-4 rounded-2xl bg-slate-950/80 border border-white/[0.08] text-center">
-          <span className="text-[11px] uppercase font-bold text-slate-400 block font-mono">
-            {isBn ? "নিবন্ধিত ব্যবহারকারী" : "Registered Personas"}
+            {isBn ? "মোট আদেশ ও লেনদেন" : "Total Platform Orders"}
           </span>
           <span className="text-xl sm:text-2xl font-black text-white font-mono mt-0.5 block">
-            {allUsers.length} Users
+            {orders.length} Orders
           </span>
-          <span className="text-[10px] text-cyan-400 font-medium">Across 7 Sector Disciplines</span>
+          <span className="text-[10px] text-cyan-400 font-medium">Gross: {formatCurrency(totalGrossGMV)}</span>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-950/80 border border-white/[0.08] text-center">
+        <div className="p-4 rounded-2xl bg-slate-950/80 border border-red-500/25 text-center">
           <span className="text-[11px] uppercase font-bold text-slate-400 block font-mono">
             {isBn ? "সক্রিয় প্রাদুর্ভাব ক্লাস্টার" : "Active Outbreaks"}
           </span>
           <span className="text-xl sm:text-2xl font-black text-rose-400 font-mono mt-0.5 block">
             {outbreaks.length} Clusters
           </span>
-          <span className="text-[10px] text-rose-300 font-medium">8-Division Radar Broadcast</span>
+          <span className="text-[10px] text-rose-300 font-medium">Global Reactive Push Active</span>
         </div>
       </div>
 
@@ -289,23 +274,31 @@ export function AdminPanel() {
         {[
           {
             id: "telemetry",
-            label: isBn ? "কমান্ড টেলিমেট্রি ও আর্থিক ইঞ্জিন" : "Command Telemetry & Financial Engine",
+            label: isBn ? "কমান্ড টেলিমেট্রি" : "Command Telemetry",
             icon: Activity,
           },
           {
+            id: "transactions",
+            label: isBn ? "পেমেন্ট লেনদেন ও TrxID যাচাই" : "Payments & TrxID Verification",
+            icon: Receipt,
+            count: pendingOrders.length,
+          },
+          {
             id: "modules",
-            label: isBn ? "সিস্টেম মডিউল সুইচবোর্ড" : "System Modules Switchboard",
+            label: isBn ? "সিস্টেম মডিউল সুইচবোর্ড" : "Modules Switchboard",
             icon: Sliders,
           },
           {
             id: "users",
-            label: isBn ? "ব্যবহারকারী ও ডাক্তার গভর্ন্যান্স" : "User & Persona Governance",
+            label: isBn ? "ব্যবহারকারী ও ডাক্তার গভর্ন্যান্স" : "User Governance",
             icon: Users,
+            count: allUsers.length,
           },
           {
             id: "outbreaks",
-            label: isBn ? "৮-বিভাগীয় রোগ প্রাদুর্ভাব ব্রডকাস্টার" : "8-Division Outbreak Broadcaster",
+            label: isBn ? "৮-বিভাগীয় রোগ প্রাদুর্ভাব ব্রডকাস্টার" : "Outbreak Broadcaster",
             icon: Radio,
+            count: outbreaks.length,
           },
           {
             id: "community",
@@ -327,6 +320,15 @@ export function AdminPanel() {
             >
               <Icon className="w-3.5 h-3.5" />
               <span>{tab.label}</span>
+              {typeof tab.count === "number" && tab.count > 0 && (
+                <span
+                  className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                    isActive ? "bg-slate-950 text-purple-300" : "bg-white/[0.08] text-slate-300"
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              )}
             </button>
           );
         })}
@@ -346,7 +348,7 @@ export function AdminPanel() {
               <p className="text-xs text-slate-400 mt-0.5">
                 {isBn
                   ? "৭টি সেবায় রাজস্ব বন্টন (৭০% ডাক্তার / ৩০% প্ল্যাটফর্ম) এবং ক্লিনিক্যাল মান নিয়ন্ত্রণ রিপোর্ট।"
-                  : "Transparent 70/30 fee distribution and national clinical response metrics."}
+                  : "Real-time fee distribution, verified revenue settlements, and national clinical quality assurance."}
               </p>
             </div>
 
@@ -362,16 +364,16 @@ export function AdminPanel() {
                 Total Platform Gross GMV
               </span>
               <span className="text-3xl font-black text-white font-mono block">
-                {formatCurrency(grossConsultationGMV)}
+                {formatCurrency(totalGrossGMV)}
               </span>
               <div className="pt-2 border-t border-white/[0.06] text-xs text-slate-400 space-y-1">
                 <div className="flex justify-between">
-                  <span>Tele-Agri & Tele-Vet:</span>
-                  <span className="text-white font-mono">{formatCurrency(Math.round(grossConsultationGMV * 0.75))}</span>
+                  <span>Verified Settlements:</span>
+                  <span className="text-emerald-400 font-mono">{formatCurrency(verifiedGMV)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>Field Doorstep Visits:</span>
-                  <span className="text-white font-mono">{formatCurrency(Math.round(grossConsultationGMV * 0.25))}</span>
+                  <span>Pending Audit Queue:</span>
+                  <span className="text-amber-400 font-mono">{formatCurrency(pendingGMV)}</span>
                 </div>
               </div>
             </div>
@@ -414,44 +416,192 @@ export function AdminPanel() {
               </div>
             </div>
           </div>
+        </div>
+      )}
 
-          {/* Clinical SLA & Quality Assurance Radar */}
-          <div className="p-5 rounded-2xl bg-slate-950/60 border border-white/[0.06] space-y-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono block">
-              National Health Quality & Service Level Agreements (SLA)
-            </span>
-
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-white/[0.06]">
-                <span className="text-slate-400 block font-mono">Average Triage-to-Doctor Wait:</span>
-                <span className="text-base font-black text-emerald-400 font-mono mt-1 block">3m 48s</span>
-                <span className="text-[10px] text-emerald-300 font-medium">96% Under 5m Target</span>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-white/[0.06]">
-                <span className="text-slate-400 block font-mono">Withholding Compliance:</span>
-                <span className="text-base font-black text-cyan-400 font-mono mt-1 block">100% Verified</span>
-                <span className="text-[10px] text-cyan-300 font-medium">Zero Residue Infraction</span>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-white/[0.06]">
-                <span className="text-slate-400 block font-mono">Farmer Satisfaction CSAT:</span>
-                <span className="text-base font-black text-amber-400 font-mono mt-1 block">4.92 / 5.0</span>
-                <span className="text-[10px] text-amber-300 font-medium">Based on 1,840 Ratings</span>
-              </div>
-
-              <div className="p-3 rounded-xl bg-slate-900/80 border border-white/[0.06]">
-                <span className="text-slate-400 block font-mono">Doorstep Paravet Dispatch:</span>
-                <span className="text-base font-black text-purple-400 font-mono mt-1 block">2h 15m Avg</span>
-                <span className="text-[10px] text-purple-300 font-medium">Bogura & Sirajganj Hubs</span>
-              </div>
+      {/* ========================================================================= */}
+      {/* TAB 2: PAYMENTS & TrxID VERIFICATION SWITCHBOARD (CRUCIAL UPDATE!) */}
+      {/* ========================================================================= */}
+      {activeTab === "transactions" && (
+        <div className="srot-glass-card rounded-2xl p-6 border border-white/[0.08] space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
+            <div>
+              <h2 className="text-sm sm:text-base font-black text-white flex items-center gap-2">
+                <Receipt className="w-4 h-4 text-emerald-400" />
+                <span>{isBn ? "পেমেন্ট লেনদেন ও TrxID নিরীক্ষা সুইচবোর্ড" : "Financial Transactions & TrxID Audit Console"}</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                {isBn
+                  ? "গ্রাহকের বিকাশ, নগদ বা রকেট লেনদেন নম্বর যাচাই করুন এবং অনুমোদন বা ফ্ল্যাগ করুন।"
+                  : "Audit customer transaction IDs against mobile wallet statements. Verify, flag, or refund payments in real-time."}
+              </p>
             </div>
+
+            <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search TrxID, order #, client..."
+                  value={trxSearch}
+                  onChange={(e) => setTrxSearch(e.target.value)}
+                  className="pl-8 pr-3 py-1.5 rounded-xl bg-slate-950 border border-white/[0.1] text-xs text-white focus:outline-none focus:border-purple-500 w-48 sm:w-60"
+                />
+              </div>
+
+              <select
+                value={trxFilter}
+                onChange={(e) => setTrxFilter(e.target.value as any)}
+                className="px-3 py-1.5 rounded-xl bg-slate-950 border border-white/[0.1] text-xs text-white focus:outline-none focus:border-purple-500"
+              >
+                <option value="all">All Statuses ({orders.length})</option>
+                <option value="pending_verification">Pending Audit ({pendingOrders.length})</option>
+                <option value="verified">Verified ({verifiedOrders.length})</option>
+                <option value="flagged">Flagged / Disputed</option>
+                <option value="refunded">Refunded</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Transactions List */}
+          <div className="space-y-3">
+            {filteredOrders.length === 0 ? (
+              <div className="p-10 text-center rounded-2xl bg-slate-950/50 border border-white/[0.05] text-slate-400 text-xs">
+                No transactions matched your audit filter.
+              </div>
+            ) : (
+              filteredOrders.map((order) => {
+                const isVerified = order.paymentStatus === "verified";
+                const isPending = order.paymentStatus === "pending_verification";
+                const isFlagged = order.paymentStatus === "flagged";
+                const isRefunded = order.paymentStatus === "refunded";
+
+                return (
+                  <div
+                    key={order.id}
+                    className="p-4 sm:p-5 rounded-2xl bg-slate-950/80 border border-white/[0.06] hover:border-purple-500/30 transition flex flex-col md:flex-row md:items-center justify-between gap-4"
+                  >
+                    <div className="space-y-1.5 min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs font-mono font-bold text-emerald-400">{order.orderNumber}</span>
+                        <span className="text-slate-600">•</span>
+                        <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-white/[0.06] text-slate-300">
+                          {order.type.replace("_", " ")}
+                        </span>
+                        <span className="text-slate-600">•</span>
+                        <span className="text-[11px] font-mono text-slate-400">{formatDate(order.createdAt)}</span>
+
+                        {/* Status Badge */}
+                        <span
+                          className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider font-mono flex items-center gap-1 ${
+                            isVerified
+                              ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
+                              : isPending
+                              ? "bg-amber-500/15 text-amber-300 border border-amber-500/30 animate-pulse"
+                              : isFlagged
+                              ? "bg-red-500/15 text-red-300 border border-red-500/30"
+                              : "bg-purple-500/15 text-purple-300 border border-purple-500/30"
+                          }`}
+                        >
+                          ● {order.paymentStatus.replace("_", " ")}
+                        </span>
+                      </div>
+
+                      <h3 className="text-sm font-bold text-white">{order.title}</h3>
+
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300">
+                        <span>
+                          Customer: <strong className="text-white">{order.customerName}</strong>
+                        </span>
+                        <span>•</span>
+                        <span className="font-mono text-cyan-300">{order.customerPhone}</span>
+                        <span>•</span>
+                        <span>Location: {order.customerLocation}</span>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                        <span>
+                          Gateway: <strong className="text-white">{order.paymentMethod}</strong>
+                        </span>
+                        <span>•</span>
+                        <span>
+                          TrxID: <strong className="text-pink-400 font-mono tracking-wider">{order.transactionId}</strong>
+                        </span>
+                        <span>•</span>
+                        <span>
+                          Provider: <strong className="text-slate-200">{order.providerOrExpert.name}</strong>
+                        </span>
+                      </div>
+
+                      {order.adminVerificationNotes && (
+                        <div className="text-[11px] text-amber-300 font-mono bg-black/40 p-2 rounded-xl border border-white/[0.04]">
+                          Admin Audit Note: &quot;{order.adminVerificationNotes}&quot;
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Admin Action Controls */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/[0.06]">
+                      <div className="text-left sm:text-right">
+                        <span className="text-base sm:text-lg font-black text-white font-mono block">
+                          {formatCurrency(order.amount)}
+                        </span>
+                        <span className="text-[10px] text-emerald-400 font-mono block">
+                          Doctor: {formatCurrency(Math.round(order.amount * 0.7))} (70%)
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {isPending && (
+                          <button
+                            onClick={() => updatePaymentStatus(order.id, "verified", "Approved by Admin on statement reconciliation")}
+                            className="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition flex items-center gap-1 shadow-md shadow-emerald-500/20"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Verify TrxID</span>
+                          </button>
+                        )}
+
+                        {!isFlagged && (
+                          <button
+                            onClick={() => {
+                              const reason = prompt("Enter reason for flagging payment:", "Mismatched bKash TrxID");
+                              if (reason) updatePaymentStatus(order.id, "flagged", reason);
+                            }}
+                            className="px-2.5 py-2 rounded-xl bg-slate-900 hover:bg-red-500/20 text-slate-400 hover:text-red-300 border border-white/[0.08] text-xs font-bold transition flex items-center gap-1"
+                            title="Flag Fraud / Disputed"
+                          >
+                            <Ban className="w-3.5 h-3.5" />
+                            <span>Flag</span>
+                          </button>
+                        )}
+
+                        {!isRefunded && (
+                          <button
+                            onClick={() => {
+                              if (confirm(`Issue full refund of ${formatCurrency(order.amount)} to ${order.customerPhone}?`)) {
+                                updatePaymentStatus(order.id, "refunded", "Refund processed via bKash/Nagad");
+                              }
+                            }}
+                            className="px-2.5 py-2 rounded-xl bg-slate-900 hover:bg-purple-500/20 text-slate-400 hover:text-purple-300 border border-white/[0.08] text-xs font-bold transition flex items-center gap-1"
+                            title="Issue Refund"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                            <span>Refund</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 2: SYSTEM MODULES SWITCHBOARD */}
+      {/* TAB 3: SYSTEM MODULES SWITCHBOARD */}
       {/* ========================================================================= */}
       {activeTab === "modules" && (
         <div className="srot-glass-card rounded-2xl p-6 border border-white/[0.08] space-y-5">
@@ -529,7 +679,7 @@ export function AdminPanel() {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 3: USER & PERSONA GOVERNANCE */}
+      {/* TAB 4: USER & PERSONA GOVERNANCE */}
       {/* ========================================================================= */}
       {activeTab === "users" && (
         <div className="srot-glass-card rounded-2xl p-6 border border-white/[0.08] space-y-5">
@@ -640,7 +790,7 @@ export function AdminPanel() {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 4: 8-DIVISION OUTBREAK BROADCASTER */}
+      {/* TAB 5: 8-DIVISION OUTBREAK BROADCASTER (CONNECTED TO GLOBAL STORE!) */}
       {/* ========================================================================= */}
       {activeTab === "outbreaks" && (
         <div className="srot-glass-card rounded-2xl p-6 border border-white/[0.08] space-y-5">
@@ -652,8 +802,8 @@ export function AdminPanel() {
               </h2>
               <p className="text-xs text-slate-400 mt-0.5">
                 {isBn
-                  ? "বাংলাদেশের যে কোনো বিভাগে জরুরি রোগ সতর্কতা জারি করুন। কৃষকদের ফোনে তাৎক্ষণিক পুশ হবে।"
-                  : "Deploy immediate emergency advisories and mobilize on-call field clinicians across divisions."}
+                  ? "যে কোনো বিভাগে জরুরি সতর্কতা জারি করুন। এটি ওয়েবসাইটের জাতীয় ব্যানার ও কৃষক পোর্টালে লাইভ প্রদর্শিত হয়।"
+                  : "Deploy immediate emergency advisories that push to the live national banner across the entire site."}
               </p>
             </div>
 
@@ -716,7 +866,7 @@ export function AdminPanel() {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 5: COMMUNITY FORUM MODERATION */}
+      {/* TAB 6: COMMUNITY FORUM MODERATION */}
       {/* ========================================================================= */}
       {activeTab === "community" && (
         <div className="srot-glass-card rounded-2xl p-6 border border-white/[0.08] space-y-5">
@@ -835,7 +985,7 @@ export function AdminPanel() {
                   <label className="text-slate-300 block mb-1 font-semibold">Severity Level:</label>
                   <select
                     value={newSeverity}
-                    onChange={(e) => setNewSeverity(e.target.value)}
+                    onChange={(e) => setNewSeverity(e.target.value as any)}
                     className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-white/[0.1] text-white focus:outline-none focus:border-red-500"
                   >
                     <option value="Critical">Critical (লাল সতর্কতা)</option>

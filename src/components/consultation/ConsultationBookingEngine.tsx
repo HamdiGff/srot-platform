@@ -10,6 +10,7 @@ import {
 } from "@/data/mockServices";
 import { PLATFORM_EXPERTS, PlatformExpert } from "@/data/mockExperts";
 import { useConsultationStore } from "@/lib/store/consultationStore";
+import { useOrderStore } from "@/lib/store/orderStore";
 import { useUserStore } from "@/lib/store/userStore";
 import { useLanguageStore } from "@/lib/store/languageStore";
 import { formatCurrency } from "@/lib/utils";
@@ -51,6 +52,7 @@ export function ConsultationBookingEngine({
   const router = useRouter();
   const { currentUser, currentRole } = useUserStore();
   const { addConsultation } = useConsultationStore();
+  const { createOrder } = useOrderStore();
   const { language } = useLanguageStore();
   const isBn = language === "bn";
 
@@ -271,6 +273,31 @@ export function ConsultationBookingEngine({
       uploadedPhotos,
       scheduledDateTime: new Date().toISOString(),
       feePaid: totalFee,
+    });
+
+    const paymentMethodFormatted = paymentMethod === "bkash" ? "bKash" : paymentMethod === "nagad" ? "Nagad" : "Rocket";
+    createOrder({
+      type: "consultation",
+      customerId: currentUser.id,
+      customerName: currentUser.name,
+      customerPhone: currentUser.phone,
+      customerRole: clientRole as any,
+      customerLocation: currentUser.location,
+      title: `${selectedService.name} (${subjectName})`,
+      serviceCategory: selectedCategory,
+      providerOrExpert: {
+        id: selectedExpert.id,
+        name: selectedExpert.name,
+        title: selectedExpert.title,
+        regNumber: selectedExpert.registrationNumber,
+        avatar: selectedExpert.avatar,
+      },
+      amount: totalFee,
+      paymentMethod: paymentMethodFormatted,
+      paymentStatus: "verified",
+      serviceStatus: "in_progress",
+      referenceId: newRecord.id,
+      notes: detailedSymptomSummary,
     });
 
     setTimeout(() => {

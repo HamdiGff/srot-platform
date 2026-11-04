@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useConsultationStore } from "@/lib/store/consultationStore";
+import { useOrderStore } from "@/lib/store/orderStore";
 import { useUserStore } from "@/lib/store/userStore";
 import { useLanguageStore } from "@/lib/store/languageStore";
 import { PlatformExpert } from "@/data/mockExperts";
@@ -44,6 +45,7 @@ export function ExpressChamberModal({
   const router = useRouter();
   const { currentUser } = useUserStore();
   const { addConsultation } = useConsultationStore();
+  const { createOrder } = useOrderStore();
   const { language } = useLanguageStore();
   const isBn = language === "bn";
 
@@ -117,6 +119,31 @@ export function ExpressChamberModal({
       uploadedPhotos: [image],
       scheduledDateTime: new Date().toISOString(),
       feePaid: consultationFee,
+    });
+
+    const paymentMethodFormatted = paymentWallet === "bkash" ? "bKash" : paymentWallet === "nagad" ? "Nagad" : "Rocket";
+    createOrder({
+      type: "consultation",
+      customerId: currentUser.id,
+      customerName: currentUser.name,
+      customerPhone: phoneNumber,
+      customerRole: clientRole as any,
+      customerLocation: currentUser.location || "Dhaka, Bangladesh",
+      title: `${symptomName} Tele-Advisory Chamber`,
+      serviceCategory: category,
+      providerOrExpert: {
+        id: doctor.id,
+        name: doctor.name,
+        title: doctor.title,
+        regNumber: doctor.registrationNumber,
+        avatar: doctor.avatar,
+      },
+      amount: consultationFee,
+      paymentMethod: paymentMethodFormatted,
+      paymentStatus: "verified",
+      serviceStatus: "in_progress",
+      referenceId: newRecord.id,
+      notes: `Express Triage intake: ${pathogen}. Protocol: ${immediateAction}`,
     });
 
     setTimeout(() => {

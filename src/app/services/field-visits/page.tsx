@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useLanguageStore } from "@/lib/store/languageStore";
 import { useUserStore } from "@/lib/store/userStore";
+import { useOrderStore } from "@/lib/store/orderStore";
 import { FIELD_SERVICES_CATALOG, FieldService } from "@/data/mockFieldServices";
 import { formatCurrency } from "@/lib/utils";
 import {
@@ -37,6 +38,7 @@ export default function FieldVisitsPage() {
   const { language } = useLanguageStore();
   const isBn = language === "bn";
   const { currentUser, currentRole, openRoleModal } = useUserStore();
+  const { createOrder } = useOrderStore();
   const isFieldVendor = currentRole === "field_vendor";
 
   const [activeCategory, setActiveCategory] = useState<ServiceCategoryFilter>("all");
@@ -87,6 +89,37 @@ export default function FieldVisitsPage() {
       setIsSubmitting(false);
       const generatedId = `SROT-FIELD-${Math.floor(1000 + Math.random() * 9000)}`;
       setBookingRefId(generatedId);
+
+      if (selectedService) {
+        const paymentMethodFormatted = paymentMethod === "cash_on_visit" ? "Cash on Delivery" : paymentMethod === "bkash" ? "bKash" : "Nagad";
+        const cat = selectedService.category === "soil_testing" ? "agri" : "veterinary";
+        const serviceTitle = isBn ? selectedService.name.bn : selectedService.name.en;
+        const totalFee = selectedService.baseFee + selectedService.travelFee;
+
+        createOrder({
+          type: "field_visit",
+          customerId: currentUser.id,
+          customerName: farmName ? `${currentUser.name} (${farmName})` : currentUser.name,
+          customerPhone: contactPhone || currentUser.phone,
+          customerRole: (currentRole === "pet_owner" ? "pet_owner" : currentRole === "livestock_farmer" ? "livestock_farmer" : "farmer") as any,
+          customerLocation: `${villageAddress ? villageAddress + ", " : ""}${upazila}, ${district}`,
+          title: serviceTitle,
+          serviceCategory: cat,
+          providerOrExpert: {
+            id: "usr-vendor-06",
+            name: "Tariqul Islam Paravet",
+            title: "DLS Certified Field Technician",
+            regNumber: "DLS-AI-2022-771",
+          },
+          amount: totalFee,
+          paymentMethod: paymentMethodFormatted,
+          paymentStatus: paymentMethod === "cash_on_visit" ? "verified" : "pending_verification",
+          serviceStatus: "scheduled",
+          referenceId: generatedId,
+          notes: `Doorstep field dispatch for ${serviceTitle}. Slot: ${preferredSlot}. Units: ${animalCountOrAcreage}.`,
+        });
+      }
+
       setBookingStep("confirmed");
     }, 1000);
   };

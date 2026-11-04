@@ -8,6 +8,7 @@ import { useCommunityStore } from "@/lib/store/communityStore";
 import { useLanguageStore } from "@/lib/store/languageStore";
 import { generatePrescriptionPdf } from "@/lib/prescriptionGenerator";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { CustomerInvoicesTab } from "./CustomerInvoicesTab";
 import {
   HeartHandshake,
   MapPin,
@@ -34,6 +35,7 @@ import {
   Syringe,
   Printer,
   QrCode,
+  Receipt,
 } from "lucide-react";
 
 interface VaccineLog {
@@ -57,7 +59,7 @@ export function PetParentPanel() {
   const myQuestions = getQuestionsByAuthor(currentUser.name);
 
   // Active Workspace Tab
-  const [activeTab, setActiveTab] = useState<"passports" | "vaccines" | "dosage" | "prescriptions" | "community">("passports");
+  const [activeTab, setActiveTab] = useState<"passports" | "vaccines" | "dosage" | "prescriptions" | "community" | "invoices">("passports");
 
   // Profile Edit Modal State
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -257,6 +259,7 @@ export function PetParentPanel() {
           { id: "vaccines", label: isBn ? "ভ্যাকসিন ও কৃমিনাশক টাইমলাইন" : "Vaccine Tracker", icon: Syringe, count: vaccines.length },
           { id: "dosage", label: isBn ? "ওজনভিত্তিক ওষুধ ক্যালকুলেটর" : "Weight Dose Calculator", icon: Scale },
           { id: "prescriptions", label: isBn ? "প্রেসক্রিপশন ও চেম্বার হিস্ট্রি" : "Prescriptions & Rx", icon: FileText, count: consultations.length },
+          { id: "invoices", label: isBn ? "ইনভয়েস ও অর্ডার ইতিহাস" : "Invoices & Receipts", icon: Receipt },
           { id: "community", label: isBn ? "আমার পোস্ট ও প্রশ্ন" : "My Pet Inquiries", icon: MessageSquare, count: myQuestions.length },
         ].map((tab) => {
           const Icon = tab.icon;
@@ -725,6 +728,13 @@ export function PetParentPanel() {
             </div>
           )}
         </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 6: INVOICES, ORDER HISTORY & CASH MEMOS */}
+      {/* ========================================================================= */}
+      {activeTab === "invoices" && (
+        <CustomerInvoicesTab role="pet_owner" roleLabel="Companion Pet Parent" />
       )}
 
       {/* ========================================================================= */}

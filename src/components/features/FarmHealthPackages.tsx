@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useLanguageStore } from "@/lib/store/languageStore";
+import { useOrderStore } from "@/lib/store/orderStore";
+import { useUserStore } from "@/lib/store/userStore";
 import { FARM_PACKAGES, HealthPackage } from "@/data/mockPackages";
 import {
   ShieldCheck,
@@ -32,6 +34,8 @@ type SectorFilter = "all" | "dairy" | "crop" | "poultry" | "fisheries";
 export function FarmHealthPackages() {
   const { language } = useLanguageStore();
   const isBn = language === "bn";
+  const { currentUser, currentRole } = useUserStore();
+  const { createOrder } = useOrderStore();
 
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
   const [selectedSector, setSelectedSector] = useState<SectorFilter>("all");
@@ -72,6 +76,37 @@ export function FarmHealthPackages() {
       setIsProcessing(false);
       const generatedId = `SROT-FH-${Math.floor(1000 + Math.random() * 9000)}`;
       setMembershipId(generatedId);
+
+      if (activePackage) {
+        const pkgFee = billingCycle === "monthly" ? activePackage.monthlyPrice : activePackage.annualPrice;
+        const paymentMethodFormatted = paymentProvider === "bkash" ? "bKash" : paymentProvider === "nagad" ? "Nagad" : "Rocket";
+        const cat = activePackage.id.includes("dairy") ? "veterinary" : "agri";
+        const pkgTitle = isBn ? activePackage.name.bn : activePackage.name.en;
+
+        createOrder({
+          type: "health_package",
+          customerId: currentUser.id,
+          customerName: farmName ? `${currentUser.name} (${farmName})` : currentUser.name,
+          customerPhone: mobileNumber,
+          customerRole: (currentRole === "pet_owner" ? "pet_owner" : currentRole === "livestock_farmer" ? "livestock_farmer" : "farmer") as any,
+          customerLocation: district || currentUser.location,
+          title: `${pkgTitle} (${billingCycle === "monthly" ? "Monthly" : "Annual"})`,
+          serviceCategory: cat,
+          providerOrExpert: {
+            id: "srot-institutional",
+            name: "SROT Health Directorate Panel",
+            title: "Integrated Care Panel",
+            regNumber: "DAE-BVC-CARE-2026",
+          },
+          amount: pkgFee,
+          paymentMethod: paymentMethodFormatted,
+          paymentStatus: "verified",
+          serviceStatus: "in_progress",
+          referenceId: generatedId,
+          notes: `Subscription to ${pkgTitle}. Farm Name: ${farmName || "Direct Farm"}. District: ${district}.`,
+        });
+      }
+
       setCheckoutStep("success");
     }, 1000);
   };

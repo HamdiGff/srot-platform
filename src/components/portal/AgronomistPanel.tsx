@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useUserStore } from "@/lib/store/userStore";
 import { useConsultationStore } from "@/lib/store/consultationStore";
+import { useOrderStore } from "@/lib/store/orderStore";
 import { useCommunityStore } from "@/lib/store/communityStore";
 import { useLanguageStore } from "@/lib/store/languageStore";
 import { generatePrescriptionPdf } from "@/lib/prescriptionGenerator";
@@ -39,6 +40,7 @@ import {
 export function AgronomistPanel() {
   const { currentUser, updateProfile } = useUserStore();
   const { consultations, attachPrescription, sendMessage } = useConsultationStore();
+  const { getOrderByReferenceId, attachPrescriptionToOrder } = useOrderStore();
   const { getQuestionsBySector, addAnswer } = useCommunityStore();
   const { language } = useLanguageStore();
   const isBn = language === "bn";
@@ -116,6 +118,11 @@ export function AgronomistPanel() {
       followUpDate: "2026-11-12",
       prescribedAt: new Date().toISOString(),
     });
+
+    const linkedOrder = getOrderByReferenceId(selectedCase.id);
+    if (linkedOrder) {
+      attachPrescriptionToOrder(linkedOrder.id, `rx-dae-${Date.now().toString().slice(-4)}`);
+    }
 
     setPrescriptionSuccess(true);
     setTimeout(() => setPrescriptionSuccess(false), 3000);

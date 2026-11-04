@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useUserStore } from "@/lib/store/userStore";
+import { useOrderStore } from "@/lib/store/orderStore";
 import { useLanguageStore } from "@/lib/store/languageStore";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
@@ -73,6 +74,7 @@ interface ReagentKit {
 
 export function FieldVendorPanel() {
   const { currentUser, updateProfile } = useUserStore();
+  const { orders: storeOrders, updateServiceStatus, updatePaymentStatus } = useOrderStore();
   const { language } = useLanguageStore();
   const isBn = language === "bn";
 
@@ -249,6 +251,12 @@ export function FieldVendorPanel() {
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: nextStatus } : o))
     );
+    if (orderId.startsWith("ord-")) {
+      updateServiceStatus(orderId, nextStatus === "Completed" ? "completed" : nextStatus === "On Site" ? "in_progress" : "scheduled");
+      if (nextStatus === "Completed") {
+        updatePaymentStatus(orderId, "verified", "Fee collected by doorstep field technician");
+      }
+    }
   };
 
   // Create New Work Order Handler
@@ -311,15 +319,35 @@ export function FieldVendorPanel() {
     }, 1200);
   };
 
+  // Synchronize store field visit orders
+  const storeFieldOrders: WorkOrder[] = storeOrders
+    .filter((o) => o.type === "field_visit")
+    .map((o) => ({
+      id: o.id,
+      orderNumber: o.orderNumber,
+      clientName: o.customerName,
+      clientPhone: o.customerPhone,
+      location: o.customerLocation,
+      serviceType: o.title,
+      category: (o.serviceCategory === "agri" ? "soil" : "ai") as any,
+      scheduledTime: formatDate(o.createdAt),
+      fee: o.amount,
+      status: o.serviceStatus === "completed" ? "Completed" : o.serviceStatus === "in_progress" ? "On Site" : "Pending",
+      notes: o.notes,
+      paymentMethod: (o.paymentMethod === "Cash on Delivery" ? "Cash on Delivery" : "bKash Digital") as any,
+    }));
+
+  const allCombinedOrders = [...orders, ...storeFieldOrders.filter((sfo) => !orders.some((o) => o.id === sfo.id))];
+
   // Calculations
-  const completedOrders = orders.filter((o) => o.status === "Completed");
+  const completedOrders = allCombinedOrders.filter((o) => o.status === "Completed");
   const totalCompletedGross = completedOrders.reduce((sum, o) => sum + o.fee, 0);
   const techEarnings75 = Math.round(totalCompletedGross * 0.75);
   const availableBalance = Math.max(0, techEarnings75 + 3200 - withdrawnTotal);
   const totalStrawCount = straws.reduce((sum, s) => sum + s.strawsCount, 0);
   const totalSoilTests = reagents.reduce((sum, r) => sum + r.testsRemaining, 0);
 
-  const filteredOrders = orders.filter((o) => {
+  const filteredOrders = allCombinedOrders.filter((o) => {
     if (orderFilter === "All") return true;
     return o.status === orderFilter;
   });
