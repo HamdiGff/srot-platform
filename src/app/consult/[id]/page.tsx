@@ -6,8 +6,6 @@ interface ConsultationPageProps {
   params: Promise<{ id: string }>;
 }
 
-export const instant = false;
-
 export function generateStaticParams() {
   return INITIAL_CONSULTATIONS.map((c) => ({ id: c.id }));
 }
