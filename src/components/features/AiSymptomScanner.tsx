@@ -483,16 +483,16 @@ export function AiSymptomScanner() {
           </div>
 
           {/* Attending Verified Doctor & One-Click Consult Bar */}
-          <div className="p-3.5 rounded-xl bg-slate-950/80 border border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3 overflow-hidden">
-            <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
+          <div className="p-3 sm:p-3.5 rounded-xl bg-slate-950/90 border border-white/[0.1] flex flex-col sm:flex-row lg:flex-col xl:flex-row items-stretch sm:items-center lg:items-stretch xl:items-center justify-between gap-3 overflow-hidden shadow-lg">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
               <img
                 src={currentSample.doctor.avatar}
                 alt={currentSample.doctor.name}
-                className="w-10 h-10 rounded-xl object-cover border border-emerald-400/40 shrink-0"
+                className="w-11 h-11 rounded-xl object-cover border border-emerald-400/40 shrink-0"
               />
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 flex-1 space-y-0.5">
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="text-xs font-bold text-white truncate">{currentSample.doctor.name}</span>
+                  <span className="text-xs sm:text-sm font-bold text-white truncate">{currentSample.doctor.name}</span>
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 </div>
                 <p className="text-[11px] text-slate-400 truncate">{currentSample.doctor.role}</p>
@@ -504,9 +504,9 @@ export function AiSymptomScanner() {
 
             <Link
               href={`/consult?expert=${currentSample.doctor.id}&category=${currentSample.category}`}
-              className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs transition shadow-md shadow-emerald-500/20 shrink-0 whitespace-nowrap self-stretch sm:self-auto"
+              className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-xs transition shadow-md shadow-emerald-500/20 shrink-0 whitespace-nowrap self-stretch sm:self-auto lg:self-stretch xl:self-auto"
             >
-              <span>{isBn ? `পরামর্শ নিন (৳${currentSample.doctor.fee})` : `Consult (৳${currentSample.doctor.fee})`}</span>
+              <span>{isBn ? `ডাক্তার প্রেসক্রিপশন নিন (৳${currentSample.doctor.fee})` : `Consult Attending Doctor (৳${currentSample.doctor.fee})`}</span>
               <ArrowRight className="w-3.5 h-3.5 text-slate-950 shrink-0" />
             </Link>
           </div>
