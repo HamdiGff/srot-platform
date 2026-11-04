@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">SROT Agricultural &amp; Veterinary Platform</string>
+    <string name="title_activity_main">SROT Agricultural &amp; Veterinary Platform</string>
+    <string name="package_name">bd.srot.platform</string>
+    <string name="custom_url_scheme">bd.srot.platform</string>
+</resources>
