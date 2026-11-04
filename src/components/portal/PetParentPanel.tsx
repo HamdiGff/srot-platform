@@ -10,6 +10,7 @@ import { generatePrescriptionPdf } from "@/lib/prescriptionGenerator";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { CustomerInvoicesTab } from "./CustomerInvoicesTab";
 import { CustomerChatHistoryModal } from "./CustomerChatHistoryModal";
+import { PrescriptionStudioManager } from "./PrescriptionStudioManager";
 import {
   HeartHandshake,
   MapPin,
@@ -575,93 +576,20 @@ export function PetParentPanel() {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 4: PRESCRIPTIONS & RX HISTORY */}
+      {/* TAB 4: PRESCRIPTIONS & CLINICAL REGIMENS STUDIO */}
       {/* ========================================================================= */}
       {activeTab === "prescriptions" && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-sm sm:text-base font-black text-white">
-                {isBn ? "সার্টিফাইড পেডিয়াট্রিক ও পেট প্রেসক্রিপশন" : "BVC Registered Pet Prescriptions"}
-              </h2>
-              <p className="text-xs text-slate-400">
-                {isBn ? "স্মল-অ্যানিমেল ভেটেরিনারি সার্জনদের স্বাক্ষরিত প্রেসক্রিপশন ও ফলো-আপ শিডিউল।" : "Digital prescriptions carry verified council credentials and drug safety instructions."}
-              </p>
-            </div>
-
-            <span className="text-xs font-mono text-pink-400 font-bold px-3 py-1 rounded-full bg-pink-500/10 border border-pink-500/30">
-              {consultations.length} Consultations
-            </span>
-          </div>
-
-          {consultations.length > 0 ? (
-            <div className="space-y-3">
-              {consultations.map((c) => (
-                <div
-                  key={c.id}
-                  className="p-4 sm:p-5 rounded-2xl bg-slate-950/80 border border-white/[0.08] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-lg hover:border-pink-500/40 transition"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded bg-pink-500/15 text-pink-300 font-mono text-[10px] font-bold border border-pink-500/30">
-                        {c.caseNumber}
-                      </span>
-                      <span className="text-slate-500">•</span>
-                      <span className="text-xs text-slate-400">{formatDate(c.createdAt)}</span>
-                      <span className="text-slate-500">•</span>
-                      <span className="text-xs text-slate-200 font-semibold">{c.serviceName}</span>
-                    </div>
-
-                    <h3 className="text-sm font-bold text-white">
-                      Attending Clinician: {c.expert.name} ({c.expert.title})
-                    </h3>
-
-                    {c.prescription && (
-                      <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.06] text-xs space-y-1 mt-2">
-                        <div className="flex items-center gap-1.5 text-pink-300 font-bold">
-                          <ShieldCheck className="w-3.5 h-3.5 text-pink-400" />
-                          <span>Diagnosis: {c.prescription.diagnosisTitle}</span>
-                        </div>
-                        <div className="text-slate-300 text-[11px]">
-                          <span>Active Medication: <strong>{c.prescription.medicationsOrSprays[0]?.item}</strong></span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
-                    <button
-                      onClick={() => setActiveChatModalCase(c)}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-pink-300 border border-pink-500/30 text-xs font-bold transition shadow-sm"
-                    >
-                      <MessageSquare className="w-3.5 h-3.5 text-pink-400" />
-                      <span>{isBn ? "চ্যাট হিস্ট্রি" : "Chat History"}</span>
-                    </button>
-
-                    <button
-                      onClick={() => generatePrescriptionPdf(c)}
-                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-white/[0.1] text-xs font-bold transition shadow-sm"
-                    >
-                      <Download className="w-3.5 h-3.5 text-pink-400" />
-                      <span>{isBn ? "পিডিএফ ডাউনলোড" : "Download PDF"}</span>
-                    </button>
-
-                    <Link
-                      href={`/consult/${c.id}`}
-                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-400 text-slate-950 font-black text-xs transition shadow-md shadow-pink-500/20"
-                    >
-                      {isBn ? "লাইভ চেম্বার →" : "Live Chamber →"}
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="p-8 text-center rounded-2xl bg-slate-950/40 border border-white/[0.04] text-slate-400 text-xs">
-              {isBn ? "এখনও কোনো প্রেসক্রিপশন নেই।" : "No companion pet consultations booked yet."}
-            </div>
-          )}
-        </div>
+        <PrescriptionStudioManager
+          council="BVC"
+          mode="customer"
+          customerUser={currentUser}
+          defaultCategory="pet"
+          specialistId="exp-dr-farhana-haque"
+          specialistName="Dr. Farhana Haque, D.V.M."
+          specialistTitle="Chief Small Animal Clinician & Feline Specialist (BVC Registered)"
+          specialistAvatar="https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80"
+          specialistRegNumber="BVC-VET-2016-9912"
+        />
       )}
 
       {/* ========================================================================= */}

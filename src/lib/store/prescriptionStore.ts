@@ -73,6 +73,7 @@ export interface UpdatePrescriptionInput {
   followUpDate?: string;
   status?: "active" | "revised" | "completed" | "cancelled";
   revisionNote?: string;
+  authorName?: string;
 }
 
 const INITIAL_PRESCRIPTIONS: PrescriptionItem[] = [
@@ -322,7 +323,7 @@ export const usePrescriptionStore = create<PrescriptionState>()(
             const newRevisionNote = {
               timestamp: now,
               note: input.revisionNote || `Prescription revised (Revision ${newRevCount}): Dosage & clinical guidance updated.`,
-              authorName: rx.specialist.name,
+              authorName: input.authorName || rx.specialist.name,
             };
 
             updatedItem = {
