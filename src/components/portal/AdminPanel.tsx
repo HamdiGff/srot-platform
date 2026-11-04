@@ -7,8 +7,10 @@ import { useUserStore } from "@/lib/store/userStore";
 import { useOrderStore, OrderRecord, PaymentStatus } from "@/lib/store/orderStore";
 import { useOutbreakStore, OutbreakAlert } from "@/lib/store/outbreakStore";
 import { useConsultationStore } from "@/lib/store/consultationStore";
+import { usePrescriptionStore } from "@/lib/store/prescriptionStore";
 import { useCommunityStore } from "@/lib/store/communityStore";
 import { useLanguageStore } from "@/lib/store/languageStore";
+import { CustomerChatHistoryModal } from "./CustomerChatHistoryModal";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   Sliders,
@@ -45,6 +47,11 @@ import {
   Check,
   Ban,
   RotateCcw,
+  MessageSquare,
+  Video,
+  FileText,
+  ExternalLink,
+  Eye,
 } from "lucide-react";
 
 export function AdminPanel() {
@@ -52,7 +59,8 @@ export function AdminPanel() {
   const { currentUser, getAllUsers, adminUpdateUser } = useUserStore();
   const { orders, updatePaymentStatus } = useOrderStore();
   const { outbreaks, addOutbreak, removeOutbreak } = useOutbreakStore();
-  const { consultations } = useConsultationStore();
+  const { consultations, sendMessage } = useConsultationStore();
+  const { prescriptions } = usePrescriptionStore();
   const { questions, deleteQuestion } = useCommunityStore();
   const { language } = useLanguageStore();
   const isBn = language === "bn";
@@ -62,7 +70,14 @@ export function AdminPanel() {
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [trxSearch, setTrxSearch] = useState("");
   const [trxFilter, setTrxFilter] = useState<"all" | "pending_verification" | "verified" | "flagged" | "refunded">("all");
-  const [activeTab, setActiveTab] = useState<"telemetry" | "transactions" | "modules" | "users" | "outbreaks" | "community">("telemetry");
+  const [activeTab, setActiveTab] = useState<"telemetry" | "transactions" | "chats" | "modules" | "users" | "outbreaks" | "community">("telemetry");
+
+  // Chat & Chamber Surveillance State
+  const [chatSearch, setChatSearch] = useState("");
+  const [chatStatusFilter, setChatStatusFilter] = useState<string>("all");
+  const [selectedChatModalCase, setSelectedChatModalCase] = useState<any | null>(null);
+  const [supervisorModalCase, setSupervisorModalCase] = useState<any | null>(null);
+  const [supervisorNoteText, setSupervisorNoteText] = useState("");
 
   // New Outbreak Modal State
   const [isNewOutbreakModalOpen, setIsNewOutbreakModalOpen] = useState(false);
@@ -163,6 +178,25 @@ export function AdminPanel() {
   const pendingGMV = pendingOrders.reduce((sum, o) => sum + o.amount, 0);
   const doctorPayout70 = Math.round(verifiedGMV * 0.7);
   const srotPlatformRevenue30 = Math.round(verifiedGMV * 0.3);
+
+  // Filtered Consultations for Surveillance
+  const filteredConsultations = consultations.filter((c) => {
+    const matchesSearch =
+      c.caseNumber.toLowerCase().includes(chatSearch.toLowerCase()) ||
+      c.serviceName.toLowerCase().includes(chatSearch.toLowerCase()) ||
+      c.farmerOrOwner.name.toLowerCase().includes(chatSearch.toLowerCase()) ||
+      c.farmerOrOwner.phone.includes(chatSearch) ||
+      c.farmerOrOwner.subjectName.toLowerCase().includes(chatSearch.toLowerCase()) ||
+      c.expert.name.toLowerCase().includes(chatSearch.toLowerCase());
+    const matchesStatus = chatStatusFilter === "all" || c.status === chatStatusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const totalMessagesAcrossPlatform = consultations.reduce(
+    (sum, c) => sum + (c.messages?.length || 0),
+    0
+  );
+  const multiRevisionRxCount = prescriptions.filter((p) => p.revisionCount > 1).length;
 
   return (
     <div className="w-full space-y-6">
@@ -282,6 +316,12 @@ export function AdminPanel() {
             label: isBn ? "পেমেন্ট লেনদেন ও TrxID যাচাই" : "Payments & TrxID Verification",
             icon: Receipt,
             count: pendingOrders.length,
+          },
+          {
+            id: "chats",
+            label: isBn ? "লাইভ চেম্বার ও চ্যাট নজরদারি" : "Chambers & Chat Surveillance",
+            icon: MessageSquare,
+            count: consultations.length,
           },
           {
             id: "modules",
@@ -601,7 +641,312 @@ export function AdminPanel() {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 3: SYSTEM MODULES SWITCHBOARD */}
+      {/* TAB 3: TELE-CHAMBERS & CHAT SURVEILLANCE RADAR */}
+      {/* ========================================================================= */}
+      {activeTab === "chats" && (
+        <div className="srot-glass-card rounded-2xl p-6 border border-white/[0.08] space-y-6 animate-fade-in">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
+            <div>
+              <h2 className="text-sm sm:text-base font-black text-white flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-purple-400" />
+                <span>
+                  {isBn
+                    ? "লাইভ টেলি-মেডিসিন চেম্বার ও কনসাল্টেশন চ্যাট অডিট"
+                    : "Live Tele-Chambers & Chat Surveillance Hub"}
+                </span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                {isBn
+                  ? "প্ল্যাটফর্মের সকল বিশেষজ্ঞ ও গ্রাহকের সরাসরি কনভারসেশন, প্রেসক্রিপশন ও মিডিয়া ফাইলের সম্পূর্ণ সুপারভাইজরি অ্যাক্সেস।"
+                  : "Supervisory surveillance radar for active video rooms, chat messages, farmer uploads, and prescription lifecycle records."}
+              </p>
+            </div>
+          </div>
+
+          {/* Radar Metrics Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-purple-500/25">
+              <span className="text-[10px] uppercase font-bold text-purple-300 block font-mono">
+                {isBn ? "সক্রিয় চেম্বার রুম" : "Active Chambers"}
+              </span>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-lg sm:text-xl font-black text-white font-mono">
+                  {consultations.length}
+                </span>
+                <span className="flex items-center gap-1 text-[10px] text-emerald-400 font-mono">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                  Live
+                </span>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-cyan-500/25">
+              <span className="text-[10px] uppercase font-bold text-cyan-300 block font-mono">
+                {isBn ? "মোট আদান-প্রদানকৃত বার্তা" : "Messages Logged"}
+              </span>
+              <span className="text-lg sm:text-xl font-black text-cyan-300 font-mono mt-0.5 block">
+                {totalMessagesAcrossPlatform}
+              </span>
+              <span className="text-[10px] text-slate-400">Encrypted Transcripts</span>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-emerald-500/25">
+              <span className="text-[10px] uppercase font-bold text-emerald-300 block font-mono">
+                {isBn ? "জারীকৃত প্রেসক্রিপশন" : "Prescriptions Tracked"}
+              </span>
+              <span className="text-lg sm:text-xl font-black text-emerald-400 font-mono mt-0.5 block">
+                {prescriptions.length}
+              </span>
+              <span className="text-[10px] text-emerald-300/80">DAE / BVC Certified</span>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-amber-500/25">
+              <span className="text-[10px] uppercase font-bold text-amber-300 block font-mono">
+                {isBn ? "হালনাগাদকৃত প্রেসক্রিপশন" : "Revised / Versioned Rx"}
+              </span>
+              <span className="text-lg sm:text-xl font-black text-amber-300 font-mono mt-0.5 block">
+                {multiRevisionRxCount}
+              </span>
+              <span className="text-[10px] text-amber-300/80">Audit Trail Preserved</span>
+            </div>
+          </div>
+
+          {/* Search & Status Filter Controls */}
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <input
+                type="text"
+                value={chatSearch}
+                onChange={(e) => setChatSearch(e.target.value)}
+                placeholder={
+                  isBn
+                    ? "কেস নম্বর, কৃষক, ডাক্তার, ফসল বা পশু দিয়ে খুঁজুন..."
+                    : "Search by Case #, Farmer, Doctor, Crop, or Animal..."
+                }
+                className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-950 border border-white/[0.1] text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+              />
+            </div>
+
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+              {[
+                { id: "all", label: isBn ? "সকল কেস" : "All Cases" },
+                { id: "pending_review", label: isBn ? "পর্যালোচনাধীন" : "Pending" },
+                { id: "in_progress", label: isBn ? "চলমান" : "In Progress" },
+                { id: "completed", label: isBn ? "সম্পন্ন" : "Completed" },
+              ].map((filter) => (
+                <button
+                  key={filter.id}
+                  onClick={() => setChatStatusFilter(filter.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition ${
+                    chatStatusFilter === filter.id
+                      ? "bg-purple-600 text-white shadow-md shadow-purple-600/30"
+                      : "bg-slate-900 text-slate-400 hover:text-white border border-white/[0.06]"
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Consultation Cards List */}
+          <div className="space-y-4">
+            {filteredConsultations.length === 0 ? (
+              <div className="p-10 text-center rounded-2xl bg-slate-950/50 border border-white/[0.04] text-slate-500 text-xs">
+                {isBn ? "কোনো কনসাল্টেশন কেস পাওয়া যায়নি।" : "No consultation chambers match your search filter."}
+              </div>
+            ) : (
+              filteredConsultations.map((c) => {
+                const linkedRx = prescriptions.find((p) => p.caseId === c.id) || (c.prescription ? {
+                  id: "RX-LINKED",
+                  diagnosisTitle: c.prescription.diagnosisTitle,
+                  revisionCount: 1,
+                  severity: c.prescription.severity,
+                  medicationsOrSprays: c.prescription.medicationsOrSprays,
+                } : null);
+
+                const lastMsg = c.messages && c.messages.length > 0
+                  ? c.messages[c.messages.length - 1]
+                  : null;
+
+                const statusColor =
+                  c.status === "completed"
+                    ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+                    : c.status === "in_progress"
+                    ? "bg-cyan-500/15 text-cyan-300 border-cyan-500/30"
+                    : "bg-amber-500/15 text-amber-300 border-amber-500/30";
+
+                return (
+                  <div
+                    key={c.id}
+                    className="p-5 rounded-2xl bg-slate-950/80 border border-white/[0.08] hover:border-purple-500/30 transition space-y-4 shadow-lg"
+                  >
+                    {/* Top Case Meta Bar */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-white/[0.06]">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="px-2.5 py-0.5 rounded-md bg-purple-500/20 text-purple-300 font-mono text-xs font-bold border border-purple-500/30">
+                          {c.caseNumber}
+                        </span>
+                        <span className="text-slate-500">•</span>
+                        <span className="text-xs text-slate-400 font-mono">{formatDate(c.createdAt)}</span>
+                        <span className="text-slate-500">•</span>
+                        <span className="text-xs font-bold text-white">{c.serviceName}</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-white/[0.06] text-slate-300">
+                          {c.category === "agri" ? "🌾 Agriculture" : c.category === "veterinary" ? "🐄 Veterinary" : "🐾 Pet Care"}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border ${statusColor}`}>
+                          {c.status.replace("_", " ")}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-slate-900 text-slate-300 border border-white/[0.08]">
+                          {c.channel === "video" ? "📹 Video Call" : c.channel === "audio" ? "📞 Voice Call" : "💬 Instant Chat"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Main Content Grid: Farmer + Doctor + Chat Snapshot */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                      {/* Column 1: Farmer & Subject */}
+                      <div className="p-3.5 rounded-xl bg-slate-900/60 border border-white/[0.04] space-y-2">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider font-mono">
+                          Client & Subject Details
+                        </span>
+                        <div>
+                          <h4 className="font-bold text-white text-sm">{c.farmerOrOwner.name}</h4>
+                          <p className="text-slate-400 text-[11px] font-mono">{c.farmerOrOwner.phone} • {c.farmerOrOwner.location}</p>
+                        </div>
+                        <div className="pt-1 border-t border-white/[0.04] space-y-1">
+                          <p className="text-slate-300 font-medium">
+                            <strong className="text-purple-300">Target:</strong> {c.farmerOrOwner.subjectName}
+                          </p>
+                          <p className="text-slate-400 text-[11px] line-clamp-2">
+                            &quot;{c.symptomsDescription}&quot;
+                          </p>
+                          {c.uploadedPhotos && c.uploadedPhotos.length > 0 && (
+                            <div className="flex items-center gap-1.5 pt-1">
+                              <span className="text-[10px] text-cyan-400 font-mono">📷 {c.uploadedPhotos.length} Photos Attached</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Column 2: Attending Specialist */}
+                      <div className="p-3.5 rounded-xl bg-slate-900/60 border border-white/[0.04] space-y-2">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider font-mono">
+                          Attending Specialist
+                        </span>
+                        <div className="flex items-center gap-2.5">
+                          <img
+                            src={c.expert.avatar}
+                            alt={c.expert.name}
+                            className="w-10 h-10 rounded-xl object-cover border border-purple-500/30"
+                          />
+                          <div>
+                            <h4 className="font-bold text-white text-sm">{c.expert.name}</h4>
+                            <p className="text-slate-400 text-[11px]">{c.expert.title}</p>
+                            <span className="text-[10px] text-purple-300 font-mono">{c.expert.regNumber}</span>
+                          </div>
+                        </div>
+                        <div className="pt-1 border-t border-white/[0.04] flex items-center justify-between text-[11px]">
+                          <span className="text-slate-400">Consultation Fee:</span>
+                          <span className="text-emerald-400 font-mono font-bold">{formatCurrency(c.feePaid)}</span>
+                        </div>
+                      </div>
+
+                      {/* Column 3: Live Surveillance & Prescription */}
+                      <div className="p-3.5 rounded-xl bg-slate-900/60 border border-white/[0.04] space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider font-mono">
+                            Chamber Transcript
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-300 text-[10px] font-mono font-bold">
+                            {c.messages?.length || 0} msgs
+                          </span>
+                        </div>
+
+                        {lastMsg ? (
+                          <div className="text-[11px] p-2 rounded-lg bg-black/40 border border-white/[0.04] space-y-0.5">
+                            <div className="flex items-center justify-between text-[10px]">
+                              <span className="font-bold text-purple-300 capitalize">{lastMsg.senderRole}: {lastMsg.senderName}</span>
+                              <span className="text-slate-500 font-mono">{formatDate(lastMsg.timestamp)}</span>
+                            </div>
+                            <p className="text-slate-300 line-clamp-2 italic">&quot;{lastMsg.text}&quot;</p>
+                          </div>
+                        ) : (
+                          <p className="text-slate-500 text-[11px] italic">No chat messages logged yet.</p>
+                        )}
+
+                        {/* Prescription Status Snippet */}
+                        <div className="pt-1 border-t border-white/[0.04]">
+                          {linkedRx ? (
+                            <div className="flex items-center justify-between text-[11px]">
+                              <span className="flex items-center gap-1 text-emerald-400 font-bold">
+                                <ShieldCheck className="w-3.5 h-3.5" />
+                                <span>Rx: {linkedRx.diagnosisTitle}</span>
+                              </span>
+                              <span className="px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold">
+                                Rev {linkedRx.revisionCount || 1}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-[11px] text-amber-400/80 italic block">
+                              ⏳ Awaiting Rx Formulation from Clinician
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Controls Bar */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-white/[0.06]">
+                      <div className="text-[11px] text-slate-400 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+                        <span>Platform Surveillance Active • Telemetry Auditing Enabled</span>
+                      </div>
+
+                      <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                        <button
+                          onClick={() => setSelectedChatModalCase(c)}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-purple-300 border border-purple-500/30 text-xs font-bold transition shadow-sm"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-purple-400" />
+                          <span>{isBn ? "চ্যাট ও মিডিয়া অডিট" : "Audit Chat & Media"}</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setSupervisorModalCase(c);
+                            setSupervisorNoteText("");
+                          }}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-purple-950/40 text-white border border-white/[0.1] text-xs font-bold transition shadow-sm"
+                        >
+                          <Send className="w-3.5 h-3.5 text-amber-400" />
+                          <span>{isBn ? "সুপারভাইজার বার্তা পাঠান" : "Inject Admin Note"}</span>
+                        </button>
+
+                        <Link
+                          href={`/consult/${c.id}`}
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-black transition shadow-md shadow-purple-600/30"
+                        >
+                          <Video className="w-3.5 h-3.5" />
+                          <span>{isBn ? "চেম্বারে প্রবেশ করুন →" : "Enter Chamber →"}</span>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 4: SYSTEM MODULES SWITCHBOARD */}
       {/* ========================================================================= */}
       {activeTab === "modules" && (
         <div className="srot-glass-card rounded-2xl p-6 border border-white/[0.08] space-y-5">
@@ -1141,6 +1486,93 @@ export function AdminPanel() {
                   className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold"
                 >
                   Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: CUSTOMER / CASE CHAT HISTORY SURVEILLANCE INSPECTOR */}
+      <CustomerChatHistoryModal
+        consultation={selectedChatModalCase}
+        isOpen={!!selectedChatModalCase}
+        onClose={() => setSelectedChatModalCase(null)}
+        onSendMessage={(text) => {
+          if (!selectedChatModalCase) return;
+          sendMessage(selectedChatModalCase.id, {
+            text: `🚨 [CHIEF ADMIN SUPERVISORY DIRECTIVE]: ${text}`,
+            senderId: currentUser.id,
+            senderName: `${currentUser.name} (Platform Director)`,
+            senderRole: "admin",
+          });
+        }}
+      />
+
+      {/* MODAL 4: SUPERVISOR DIRECTIVE INJECTION MODAL */}
+      {supervisorModalCase && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="w-full max-w-md rounded-3xl bg-[#0a0f1d] border border-purple-500/30 p-6 space-y-4 text-slate-100 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <Send className="w-4 h-4 text-purple-400" />
+                <span>Inject Supervisory Directive</span>
+              </h3>
+              <button onClick={() => setSupervisorModalCase(null)}>
+                <X className="w-4 h-4 text-slate-400 hover:text-white" />
+              </button>
+            </div>
+
+            <div className="p-3 rounded-xl bg-purple-950/20 border border-purple-500/20 text-xs space-y-1">
+              <p className="font-bold text-purple-300">
+                Target: {supervisorModalCase.caseNumber} • {supervisorModalCase.farmerOrOwner.name}
+              </p>
+              <p className="text-slate-400">
+                Attending: {supervisorModalCase.expert.name} ({supervisorModalCase.expert.title})
+              </p>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!supervisorNoteText.trim()) return;
+                sendMessage(supervisorModalCase.id, {
+                  text: `🚨 [CHIEF ADMIN SUPERVISORY DIRECTIVE]: ${supervisorNoteText.trim()}`,
+                  senderId: currentUser.id,
+                  senderName: `${currentUser.name} (Platform Director)`,
+                  senderRole: "admin",
+                });
+                setSupervisorNoteText("");
+                setSupervisorModalCase(null);
+              }}
+              className="space-y-3.5 text-xs"
+            >
+              <div>
+                <label className="text-slate-300 block mb-1 font-semibold">Directive Instructions:</label>
+                <textarea
+                  value={supervisorNoteText}
+                  onChange={(e) => setSupervisorNoteText(e.target.value)}
+                  placeholder="e.g., Mandatory QA: Verify with farmer that withholding safety period is 21 days before signing off on Tricyclazole spray."
+                  rows={4}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-white/[0.1] text-white focus:outline-none focus:border-purple-500"
+                  required
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSupervisorModalCase(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-900 text-slate-400 hover:text-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold flex items-center gap-1.5 shadow-lg shadow-purple-600/30"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Send Directive</span>
                 </button>
               </div>
             </form>

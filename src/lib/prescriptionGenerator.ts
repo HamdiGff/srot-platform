@@ -1,5 +1,6 @@
 import { jsPDF } from "jspdf";
 import { ConsultationRecord } from "@/data/mockConsultations";
+import type { PrescriptionItem } from "@/lib/store/prescriptionStore";
 
 export function generatePrescriptionPdf(consultation: ConsultationRecord) {
   const doc = new jsPDF({
@@ -338,4 +339,51 @@ export function generatePrescriptionPdf(consultation: ConsultationRecord) {
 
   // Download PDF file
   doc.save(`${consultation.caseNumber}-Prescription.pdf`);
+}
+
+export function generatePrescriptionPdfFromItem(rx: PrescriptionItem) {
+  const syntheticConsultation: ConsultationRecord = {
+    id: rx.caseId || rx.id,
+    caseNumber: rx.id,
+    category: rx.category,
+    serviceId: "srv-rx",
+    serviceName: rx.diagnosisTitle,
+    channel: "video",
+    status: "completed",
+    feePaid: 200,
+    createdAt: rx.prescribedAt,
+    scheduledDateTime: rx.prescribedAt,
+    farmerOrOwner: {
+      id: rx.patientOrFarmer.id,
+      name: rx.patientOrFarmer.name,
+      role: rx.patientOrFarmer.role,
+      phone: rx.patientOrFarmer.phone || "+880 1700-000000",
+      location: rx.patientOrFarmer.location,
+      subjectName: rx.patientOrFarmer.subjectName,
+      subjectAgeOrStage: rx.patientOrFarmer.varietyOrBreed || "Standard",
+      areaOrHerdSize: "N/A",
+    },
+    expert: {
+      id: rx.specialist.id,
+      name: rx.specialist.name,
+      title: rx.specialist.title,
+      avatar: rx.specialist.avatar,
+      regNumber: rx.specialist.regNumber,
+    },
+    symptomsDescription: rx.pathogenOrCause,
+    uploadedPhotos: [],
+    messages: [],
+    prescription: {
+      diagnosisTitle: rx.diagnosisTitle,
+      pathogenOrCause: rx.pathogenOrCause,
+      severity: rx.severity,
+      treatmentSteps: rx.treatmentSteps,
+      medicationsOrSprays: rx.medicationsOrSprays,
+      preventiveAdvice: rx.preventiveAdvice,
+      followUpDate: rx.followUpDate,
+      prescribedAt: rx.updatedAt || rx.prescribedAt,
+    },
+  };
+
+  generatePrescriptionPdf(syntheticConsultation);
 }

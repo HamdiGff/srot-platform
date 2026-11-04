@@ -9,6 +9,7 @@ import { useLanguageStore } from "@/lib/store/languageStore";
 import { generatePrescriptionPdf } from "@/lib/prescriptionGenerator";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { CustomerInvoicesTab } from "./CustomerInvoicesTab";
+import { CustomerChatHistoryModal } from "./CustomerChatHistoryModal";
 import {
   Milk,
   MapPin,
@@ -60,6 +61,7 @@ export function DairyFarmerPanel() {
 
   // Active Workspace Tab
   const [activeTab, setActiveTab] = useState<"herd" | "withholding" | "yield" | "prescriptions" | "dispatch" | "community" | "invoices">("herd");
+  const [activeChatModalCase, setActiveChatModalCase] = useState<any | null>(null);
 
   // Profile Edit Modal State
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -636,7 +638,15 @@ export function DairyFarmerPanel() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
+                    <button
+                      onClick={() => setActiveChatModalCase(c)}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-cyan-500/30 text-xs font-bold transition shadow-sm"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>{isBn ? "চ্যাট হিস্ট্রি" : "Chat History"}</span>
+                    </button>
+
                     <button
                       onClick={() => generatePrescriptionPdf(c)}
                       className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-white/[0.1] text-xs font-bold transition shadow-sm"
@@ -649,7 +659,7 @@ export function DairyFarmerPanel() {
                       href={`/consult/${c.id}`}
                       className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-teal-400 text-slate-950 font-black text-xs transition shadow-md shadow-cyan-500/20"
                     >
-                      {isBn ? "চেম্বার পাস →" : "Chamber Pass →"}
+                      {isBn ? "লাইভ চেম্বার →" : "Live Chamber →"}
                     </Link>
                   </div>
                 </div>
@@ -1108,6 +1118,13 @@ export function DairyFarmerPanel() {
           </div>
         </div>
       )}
+
+      {/* Customer Consultation Chat History Modal */}
+      <CustomerChatHistoryModal
+        consultation={activeChatModalCase}
+        isOpen={!!activeChatModalCase}
+        onClose={() => setActiveChatModalCase(null)}
+      />
     </div>
   );
 }

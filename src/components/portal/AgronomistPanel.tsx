@@ -8,6 +8,7 @@ import { useOrderStore } from "@/lib/store/orderStore";
 import { useCommunityStore } from "@/lib/store/communityStore";
 import { useLanguageStore } from "@/lib/store/languageStore";
 import { generatePrescriptionPdf } from "@/lib/prescriptionGenerator";
+import { PrescriptionStudioManager } from "@/components/portal/PrescriptionStudioManager";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   ShieldCheck,
@@ -378,112 +379,18 @@ export function AgronomistPanel() {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 2: DIGITAL PRESCRIPTION STUDIO WITH INSTANT PDF */}
+      {/* TAB 2: DIGITAL PRESCRIPTION STUDIO WITH INSTANT PDF & REVISION HUB */}
       {/* ========================================================================= */}
       {activeTab === "rx_studio" && (
-        <div className="srot-glass-card rounded-3xl p-6 sm:p-8 border border-white/[0.08] bg-slate-950/90 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/[0.08]">
-            <div>
-              <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-teal-400" />
-                <h2 className="text-base sm:text-lg font-black text-white">
-                  {isBn ? "ডিএই অফিসিয়াল প্রেসক্রিপশন ও ফর্মুলেশন স্টুডিও" : "Official DAE Digital Prescription Studio"}
-                </h2>
-              </div>
-              <p className="text-xs text-slate-400 mt-1">
-                {isBn ? "চিকিৎসাপত্র ইস্যু করুন যা ফার্মেসি ও বালাইনাশক ডিলারদের কিউআর কোড দিয়ে যাচাইযোগ্য।" : "Creates cryptographically verifiable prescription PDF with DAE accreditation seal."}
-              </p>
-            </div>
-
-            {selectedCase?.prescription && (
-              <button
-                onClick={() => generatePrescriptionPdf(selectedCase)}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-teal-300 border border-teal-500/30 text-xs font-bold transition shrink-0"
-              >
-                <Download className="w-3.5 h-3.5 text-teal-400" />
-                <span>{isBn ? "প্রেসক্রিপশন পিডিএফ ডাউনলোড" : "Download Issued PDF"}</span>
-              </button>
-            )}
-          </div>
-
-          {prescriptionSuccess && (
-            <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center gap-2 animate-in fade-in">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>Official Prescription Cryptographically Signed & Dispatched to Farmer!</span>
-            </div>
-          )}
-
-          <form onSubmit={handleIssuePrescription} className="space-y-4 text-xs">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-slate-300 font-bold block mb-1">Primary Clinical Diagnosis</label>
-                <input
-                  type="text"
-                  value={diagTitle}
-                  onChange={(e) => setDiagTitle(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/[0.1] text-white focus:outline-none focus:border-teal-500 font-bold"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-300 font-bold block mb-1">Identified Pathogen / Pest Cause</label>
-                <input
-                  type="text"
-                  value={pathogen}
-                  onChange={(e) => setPathogen(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/[0.1] text-white focus:outline-none focus:border-teal-500"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="text-slate-300 font-bold block mb-1">Active Chemical Formulation</label>
-                <input
-                  type="text"
-                  value={medItem}
-                  onChange={(e) => setMedItem(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/[0.1] text-white focus:outline-none focus:border-teal-500 font-mono"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-300 font-bold block mb-1">Application Dosage & Spraying</label>
-                <input
-                  type="text"
-                  value={medDose}
-                  onChange={(e) => setMedDose(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/[0.1] text-white focus:outline-none focus:border-teal-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-300 font-bold block mb-1">Pre-Harvest Withholding Safety</label>
-                <input
-                  type="text"
-                  value={medSafety}
-                  onChange={(e) => setMedSafety(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-300 focus:outline-none focus:border-amber-400 font-mono font-bold"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="pt-2 flex items-center gap-3">
-              <button
-                type="submit"
-                className="py-3 px-6 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-400 hover:from-teal-400 hover:to-emerald-300 text-slate-950 font-black text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-teal-500/25 transition"
-              >
-                <ShieldCheck className="w-4 h-4 text-slate-950" />
-                <span>{isBn ? "ডিএই অফিসিয়াল চিকিৎসাপত্র স্বাক্ষর ও জারি করুন" : "Sign & Issue Tamper-Proof DAE Prescription"}</span>
-              </button>
-            </div>
-          </form>
-        </div>
+        <PrescriptionStudioManager
+          council="DAE"
+          specialistId="exp-dr-ramesh-patel"
+          specialistName={currentUser.name}
+          specialistTitle={currentUser.roleLabel || "Chief Agronomist & Plant Pathologist"}
+          specialistAvatar={currentUser.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"}
+          specialistRegNumber={currentUser.licenseNumber || "DAE-AGR-2015-8891"}
+          defaultCategory="agri"
+        />
       )}
 
       {/* ========================================================================= */}

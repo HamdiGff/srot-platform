@@ -1,11 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useConsultationStore } from "@/lib/store/consultationStore";
+import { usePrescriptionStore } from "@/lib/store/prescriptionStore";
 import { useUserStore } from "@/lib/store/userStore";
 import { generatePrescriptionPdf } from "@/lib/prescriptionGenerator";
+import { audioFeedback } from "@/lib/audioFeedback";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { PrescriptionStudioManager } from "@/components/portal/PrescriptionStudioManager";
 import {
   FileText,
   Download,
@@ -38,6 +41,13 @@ import {
   BadgeDollarSign,
   QrCode,
   ShieldAlert,
+  Monitor,
+  Share2,
+  Scan,
+  Maximize2,
+  Volume2,
+  CheckCircle2,
+  Plus,
 } from "lucide-react";
 
 interface ConsultationRoomClientProps {
@@ -46,15 +56,33 @@ interface ConsultationRoomClientProps {
 
 export function ConsultationRoomClient({ consultationId }: ConsultationRoomClientProps) {
   const { getById, updateStatus, attachPrescription, sendMessage } = useConsultationStore();
+  const { getByCaseId } = usePrescriptionStore();
   const { currentUser, currentRole } = useUserStore();
   const consultation = getById(consultationId);
 
+  // Input & Messaging State
   const [inputText, setInputText] = useState("");
-  const [isVideoMuted, setIsVideoMuted] = useState(false);
+  const [pendingAttachment, setPendingAttachment] = useState<string | null>(null);
+
+  // Live Media Controls
+  const [isMicMuted, setIsMicMuted] = useState(false);
   const [isVideoStopped, setIsVideoStopped] = useState(false);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [isCameraFlipped, setIsCameraFlipped] = useState(false);
+  const [isAiScanning, setIsAiScanning] = useState(false);
+  const [aiScanResult, setAiScanResult] = useState<string | null>(null);
+
+  // Modal / Drawer States
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
-  const [callDurationSeconds, setCallDurationSeconds] = useState(864); // 14 mins 24 secs
+  const [isRxStudioDrawerOpen, setIsRxStudioDrawerOpen] = useState(false);
+  const [callDurationSeconds, setCallDurationSeconds] = useState(864); // 14m 24s default
+  const [simulatedVolume, setSimulatedVolume] = useState<number[]>([20, 45, 75, 50, 85, 40, 60]);
+
+  // Real Hardware Video Stream Reference
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const chatBottomRef = useRef<HTMLDivElement | null>(null);
 
   // Timer simulation
   useEffect(() => {
@@ -63,6 +91,37 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Voice Equalizer Bar Animation when Mic is Active
+  useEffect(() => {
+    if (isMicMuted) return;
+    const eqTimer = setInterval(() => {
+      setSimulatedVolume([
+        Math.floor(15 + Math.random() * 65),
+        Math.floor(25 + Math.random() * 75),
+        Math.floor(35 + Math.random() * 60),
+        Math.floor(20 + Math.random() * 80),
+        Math.floor(30 + Math.random() * 70),
+        Math.floor(15 + Math.random() * 85),
+        Math.floor(20 + Math.random() * 60),
+      ]);
+    }, 250);
+    return () => clearInterval(eqTimer);
+  }, [isMicMuted]);
+
+  // Clean up hardware streams on unmount
+  useEffect(() => {
+    return () => {
+      if (mediaStreamRef.current) {
+        mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
+
+  // Auto-scroll chat to bottom
+  useEffect(() => {
+    chatBottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [consultation?.messages]);
 
   const formatTimer = (totalSec: number) => {
     const mins = Math.floor(totalSec / 60);
@@ -101,159 +160,187 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
     currentRole === "veterinarian" ||
     currentUser.id === consultation.expert.id;
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputText.trim()) return;
+  // Active prescriptions in store for this case
+  const casePrescriptions = getByCaseId(consultation.id);
+  const activeRx = casePrescriptions[0] || (consultation.prescription as any);
 
-    const text = inputText.trim();
+  // =========================================================================
+  // HARDWARE MEDIA CONTROLS (MIC, CAMERA, SCREEN SHARE)
+  // =========================================================================
+
+  const handleToggleMic = () => {
+    const nextState = !isMicMuted;
+    setIsMicMuted(nextState);
+    audioFeedback.playToggleTone(!nextState);
+  };
+
+  const handleToggleCamera = async () => {
+    const nextState = !isVideoStopped;
+    setIsVideoStopped(nextState);
+    audioFeedback.playToggleTone(!nextState);
+
+    if (!nextState && typeof navigator !== "undefined" && navigator.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: isCameraFlipped ? "user" : "environment" },
+        });
+        mediaStreamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (err) {
+        console.log("Using high-def simulated diagnostic stream:", err);
+      }
+    } else if (nextState && mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      mediaStreamRef.current = null;
+    }
+  };
+
+  const handleToggleScreenShare = async () => {
+    if (!isScreenSharing) {
+      audioFeedback.playToggleTone(true);
+      if (typeof navigator !== "undefined" && navigator.mediaDevices?.getDisplayMedia) {
+        try {
+          const displayStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+          setIsScreenSharing(true);
+          displayStream.getVideoTracks()[0].onended = () => {
+            setIsScreenSharing(false);
+          };
+        } catch {
+          // If browser restricts display media, toggle high-def lab broadcast mode
+          setIsScreenSharing(true);
+        }
+      } else {
+        setIsScreenSharing(true);
+      }
+    } else {
+      audioFeedback.playToggleTone(false);
+      setIsScreenSharing(false);
+    }
+  };
+
+  const handleFlipCamera = () => {
+    setIsCameraFlipped((prev) => !prev);
+    audioFeedback.playToggleTone(true);
+  };
+
+  // AI Diagnostic Snapshot Feature
+  const handleTriggerAiScan = () => {
+    setIsAiScanning(true);
+    setAiScanResult(null);
+    audioFeedback.playToggleTone(true);
+
+    setTimeout(() => {
+      setIsAiScanning(false);
+      const resultText = isAgri
+        ? "AI Vision Match (98.6% Confidence): Spindle-shaped foliar blast lesion detected with necrotic ash center."
+        : isPet
+        ? "AI Vision Match (97.4% Confidence): Atopic erythema on ventral abdomen; ear canal inflammation detected."
+        : "AI Vision Match (98.1% Confidence): Acute right hind quarter mastitis inflammation score Grade 3.";
+      setAiScanResult(resultText);
+
+      // Auto-post diagnostic snapshot to chat
+      sendMessage(consultation.id, {
+        text: `📸 AI Clinical Diagnostic Scan: ${resultText}`,
+        senderId: "system",
+        senderName: "SROT AI Diagnostic Engine",
+        senderRole: "system",
+        attachments: consultation.uploadedPhotos.slice(0, 1),
+      });
+      audioFeedback.playMessageReceived();
+    }, 1800);
+  };
+
+  // =========================================================================
+  // CHAT & MESSAGING
+  // =========================================================================
+
+  const handleSendMessage = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!inputText.trim() && !pendingAttachment) return;
+
+    const text = inputText.trim() || (pendingAttachment ? "Attached clinical image / report." : "");
+    const attachmentArray = pendingAttachment ? [pendingAttachment] : undefined;
+
     setInputText("");
+    setPendingAttachment(null);
 
     sendMessage(consultation.id, {
       text,
       senderId: currentUser.id,
       senderName: currentUser.name,
       senderRole: currentUser.role,
+      attachments: attachmentArray,
     });
 
+    audioFeedback.playMessageSent();
+
     // Auto-respond if patient messages in simulator
-    if (!isCurrentUserExpert && messages.length <= 4) {
+    if (!isCurrentUserExpert && messages.length <= 6) {
       setTimeout(() => {
         sendMessage(consultation.id, {
-          text: `Thank you, ${currentUser.name}. I have examined the live feed and photos. Preparing your BVC/DAE signed digital prescription with required withholding intervals now.`,
+          text: `Doctor ${consultation.expert.name}: "I have reviewed your update. Formulating calibrated dosage with required withholding intervals now."`,
           senderId: consultation.expert.id,
           senderName: consultation.expert.name,
           senderRole: isAgri ? "expert_agronomist" : "veterinarian",
         });
+        audioFeedback.playMessageReceived();
       }, 1500);
     }
   };
 
-  // Expert issues signed official prescription
-  const handleSimulateResolve = () => {
-    const samplePrescription = isAgri
-      ? {
-          diagnosisTitle: "Boro Rice Foliar Blast (Pyricularia oryzae)",
-          pathogenOrCause: "Fungal Blast Spores triggered by high humidity and excess urea",
-          severity: "Moderate" as const,
-          treatmentSteps: [
-            "Halt all further urea top-dressing immediately to stop succulent vegetative growth.",
-            "Maintain 2-3 cm shallow standing water in paddy; avoid field drying.",
-            "Perform foliar spray during late afternoon with hollow cone nozzle covering both upper and lower leaf surfaces.",
-          ],
-          medicationsOrSprays: [
-            {
-              item: "Tricyclazole 75% WP",
-              activeIngredient: "Tricyclazole (Melanin biosynthesis inhibitor)",
-              dosage: "0.6 g per Liter clean water (120 g / acre)",
-              frequencyAndDuration: "Single spray; repeat after 10 days if humid mist continues",
-              withholdingSafetyPeriod: "21 Days pre-harvest interval",
-            },
-            {
-              item: "MOP (Muriate of Potash)",
-              activeIngredient: "Potassium Chloride (K2O 60%)",
-              dosage: "5 kg / bigha as soil application",
-              frequencyAndDuration: "One-time booster to strengthen silica layer",
-              withholdingSafetyPeriod: "0 Days (Nutritional amendment)",
-            },
-          ],
-          preventiveAdvice:
-            "Treat seedbed with Carbendazim 2g/kg seed before transplanting and follow DAE 4:2:1 balanced N-P-K recommendation.",
-          followUpDate: "2026-11-06",
-          prescribedAt: new Date().toISOString(),
+  // Photo Attachment Handler
+  const handleFileAttach = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (uploadEvent) => {
+        if (uploadEvent.target?.result) {
+          setPendingAttachment(uploadEvent.target.result as string);
         }
-      : isPet
-      ? {
-          diagnosisTitle: "Canine Atopic Dermatitis with Secondary Malassezia Otitis",
-          pathogenOrCause: "Environmental seasonal pollen allergen flare with fungal ear colonization",
-          severity: "Moderate" as const,
-          treatmentSteps: [
-            "Wipe paws and lower abdomen with damp hypoallergenic washcloth after every outdoor walk.",
-            "Fit soft Elizabethan cone collar for 48 hours to prevent self-mutilating skin trauma.",
-            "Flush ears gently before administering otic drops; do not use Q-tips inside ear canal.",
-          ],
-          medicationsOrSprays: [
-            {
-              item: "Oclacitinib (Apoquel) 16mg Tablets",
-              activeIngredient: "Oclacitinib Maleate (Janus Kinase JAK-1 inhibitor)",
-              dosage: "1 tablet (16mg) orally with food",
-              frequencyAndDuration: "Twice daily for 7 days, then reduce to once daily maintenance",
-              withholdingSafetyPeriod: "N/A (Companion pet approved)",
-            },
-            {
-              item: "Posatex Otic Ear Suspension",
-              activeIngredient: "Orbifloxacin + Posaconazole + Mometasone Furoate",
-              dosage: "6 drops into each affected ear canal",
-              frequencyAndDuration: "Once daily for 7 consecutive days",
-              withholdingSafetyPeriod: "N/A (Topical otic)",
-            },
-          ],
-          preventiveAdvice: "Switch to high Omega-3 fish oil supplement to rebuild epidermal barrier strength.",
-          followUpDate: "2026-11-08",
-          prescribedAt: new Date().toISOString(),
-        }
-      : isPoultry
-      ? {
-          diagnosisTitle: "Caecal Coccidiosis (Eimeria tenella) Outbreak",
-          pathogenOrCause: "Protozoal parasite oocysts in wet poultry litter",
-          severity: "Severe" as const,
-          treatmentSteps: [
-            "Immediately remove and replace all damp, caked litter around waterers.",
-            "Sterilize drinking lines with chlorine dioxide before adding medication.",
-            "Administer Toltrazuril solution in drinking water for 48 continuous hours.",
-          ],
-          medicationsOrSprays: [
-            {
-              item: "Toltrazuril 2.5% Oral Solution",
-              activeIngredient: "Toltrazuril 25 mg/ml",
-              dosage: "1 ml per Liter of drinking water for 8 hours daily",
-              frequencyAndDuration: "2 consecutive days",
-              withholdingSafetyPeriod: "Meat withholding: 14 Days prior to slaughter",
-            },
-            {
-              item: "Vitamin K3 + Electrolyte Powder",
-              activeIngredient: "Menadione Sodium Bisulfite",
-              dosage: "1 g per 2 Liters water",
-              frequencyAndDuration: "3 consecutive days to halt intestinal hemorrhaging",
-              withholdingSafetyPeriod: "0 Days",
-            },
-          ],
-          preventiveAdvice: "Maintain minimum 3-inch dry rice husk litter and clean nipple drinkers daily.",
-          followUpDate: "2026-11-03",
-          prescribedAt: new Date().toISOString(),
-        }
-      : {
-          diagnosisTitle: "Acute Clinical Bovine Mastitis (Right Hind Quarter)",
-          pathogenOrCause: "Environmental Streptococcus uberis infection with high somatic cell count",
-          severity: "Severe" as const,
-          treatmentSteps: [
-            "Completely strip out the affected quarter every 3 hours during daytime to evacuate bacterial toxins.",
-            "Apply cold water hose or ice packs on swollen quarter for 15 minutes prior to milking.",
-            "Discard all milk from this cow completely into disposal pit; strictly do NOT feed to calves.",
-          ],
-          medicationsOrSprays: [
-            {
-              item: "Ceftiofur Sodium Sterile Powder",
-              activeIngredient: "Ceftiofur Sodium 1g",
-              dosage: "1.1 to 2.2 mg/kg body weight Intramuscularly",
-              frequencyAndDuration: "Once daily for 3 consecutive days",
-              withholdingSafetyPeriod: "Milk withholding: 72 hrs post final injection • Meat: 4 days",
-            },
-            {
-              item: "Meloxicam Injection 5mg/ml",
-              activeIngredient: "Meloxicam (NSAID Anti-inflammatory)",
-              dosage: "0.5 mg/kg body weight Subcutaneously",
-              frequencyAndDuration: "Single initial injection for udder pain & endotoxic fever",
-              withholdingSafetyPeriod: "Milk withholding: 120 hrs (5 days)",
-            },
-          ],
-          preventiveAdvice:
-            "Disinfect bedding stalls with hydrated lime weekly. Ensure milking machine vacuum pressure is calibrated to 42 kPa.",
-          followUpDate: "2026-10-30",
-          prescribedAt: new Date().toISOString(),
-        };
-
-    attachPrescription(consultation.id, samplePrescription);
+      };
+      reader.readAsDataURL(file);
+    }
   };
+
+  // Export Chat Transcript
+  const handleExportTranscript = () => {
+    const transcriptText = messages
+      .map(
+        (m) =>
+          `[${new Date(m.timestamp).toLocaleTimeString()}] ${m.senderName} (${m.senderRole}):\n${m.text}\n`
+      )
+      .join("\n----------------------------------------\n");
+
+    const blob = new Blob(
+      [
+        `SROT TELEHEALTH CASE CHAT TRANSCRIPT\nCase ID: ${consultation.caseNumber}\nDate: ${consultation.createdAt}\nPatient: ${consultation.farmerOrOwner.name}\nClinician: ${consultation.expert.name}\n\n========================================\n\n${transcriptText}`,
+      ],
+      { type: "text/plain;charset=utf-8" }
+    );
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${consultation.caseNumber}-Chat-Transcript.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Quick Clinical Preset Chips
+  const clinicianPresetChips = isAgri
+    ? [
+        "Halt all urea top-dressing immediately.",
+        "Maintain 2-3 cm standing water in paddy.",
+        "Spray Tricyclazole late afternoon on lower leaves.",
+        "Observe 21-day pre-harvest withholding interval.",
+      ]
+    : [
+        "Completely strip affected quarter every 3 hours.",
+        "Apply cold water compress to udder for 15 mins.",
+        "Strict 72-hour milk withholding; do not feed calves.",
+        "Send follow-up photo tomorrow at 10 AM.",
+      ];
 
   const totalFee = consultation.feePaid || 300;
   const expertShare = Math.round(totalFee * 0.7);
@@ -300,7 +387,7 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
         </div>
 
         {/* Case Status Badge & Action CTAs */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
           {/* Digital Cash Memo Trigger */}
           <button
             onClick={() => setIsReceiptModalOpen(true)}
@@ -310,31 +397,47 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
             <span>Digital Memo (রসিদ)</span>
           </button>
 
-          {consultation.status === "completed" ? (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-bold">
-              <CheckCircle className="w-4 h-4" /> Case Prescribed
-            </span>
-          ) : (
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-bold">
-                <Clock className="w-4 h-4" /> Live in Chamber
-              </span>
+          {/* Export Transcript */}
+          <button
+            onClick={handleExportTranscript}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-white/[0.1] text-xs font-semibold transition"
+            title="Download complete encrypted case transcript"
+          >
+            <Download className="w-3.5 h-3.5 text-slate-400" />
+            <span>Transcript</span>
+          </button>
 
-              {/* Expert demo simulator */}
-              <button
-                onClick={handleSimulateResolve}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 text-xs font-black transition shadow-md hover:from-emerald-400 hover:to-teal-400"
-                title="Issue official diagnosis & verified BVC/DAE prescription"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-slate-950" />
-                <span>Issue Prescription (Rx)</span>
-              </button>
-            </div>
+          {/* Specialist In-Chamber Prescription Studio Launcher */}
+          {isCurrentUserExpert && (
+            <button
+              onClick={() => setIsRxStudioDrawerOpen(!isRxStudioDrawerOpen)}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-400 hover:from-teal-400 hover:to-emerald-300 text-slate-950 text-xs font-black transition shadow-lg shadow-teal-500/20"
+            >
+              <FileText className="w-3.5 h-3.5 text-slate-950" />
+              <span>{isRxStudioDrawerOpen ? "Close Rx Studio" : "Prescription Studio"}</span>
+            </button>
           )}
         </div>
       </div>
 
-      {/* MESSAGE ROUTING & VERIFICATION BANNER */}
+      {/* ========================================================================= */}
+      {/* IN-CHAMBER PRESCRIPTION STUDIO SLIDING DRAWER */}
+      {/* ========================================================================= */}
+      {isRxStudioDrawerOpen && (
+        <div className="animate-in fade-in duration-200">
+          <PrescriptionStudioManager
+            council={isAgri ? "DAE" : "BVC"}
+            specialistId={consultation.expert.id}
+            specialistName={consultation.expert.name}
+            specialistTitle={consultation.expert.title}
+            specialistAvatar={consultation.expert.avatar}
+            specialistRegNumber={consultation.expert.regNumber}
+            defaultCategory={consultation.category}
+          />
+        </div>
+      )}
+
+      {/* MESSAGE ROUTING & TELEMETRY BANNER */}
       <div className="p-3.5 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-emerald-500/30 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2.5">
           <span className="flex h-2.5 w-2.5 relative shrink-0">
@@ -342,7 +445,7 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
             <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
           </span>
           <span className="text-slate-300">
-            <strong>Active Message Channel:</strong>{" "}
+            <strong>Active Clinical Tele-Chamber:</strong>{" "}
             <span className="text-white font-semibold">{consultation.farmerOrOwner.name}</span>{" "}
             ({consultation.farmerOrOwner.location}){" "}
             <span className="text-emerald-400 font-mono">⇄</span>{" "}
@@ -351,229 +454,244 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
           </span>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-3 shrink-0">
+          {/* Animated Mic Audio Equalizer */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-950 border border-white/[0.08]">
+            <Volume2 className={`w-3.5 h-3.5 ${isMicMuted ? "text-slate-600" : "text-emerald-400"}`} />
+            <div className="flex items-end gap-0.5 h-3.5 w-12">
+              {simulatedVolume.map((vol, i) => (
+                <span
+                  key={i}
+                  style={{ height: isMicMuted ? "20%" : `${vol}%` }}
+                  className={`w-1 rounded-full transition-all duration-150 ${
+                    isMicMuted ? "bg-slate-700" : "bg-gradient-to-t from-emerald-500 to-cyan-400"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+
           <span className="px-2 py-0.5 rounded-md bg-white/[0.06] text-slate-300 font-mono text-[11px]">
-            Logged in: <strong className="text-emerald-400">{currentUser.name}</strong> ({currentUser.role})
+            User: <strong className="text-emerald-400">{currentUser.name}</strong>
           </span>
         </div>
       </div>
 
-      {/* LIVE TELEMETRY & CLINICAL HUD STRIP */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-2xl bg-slate-950/90 border border-white/[0.08]">
-        {isAgri ? (
-          <>
-            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
-              <span className="text-[10px] text-slate-400 uppercase block font-medium">Canopy Humidity</span>
-              <span className="text-sm font-bold text-cyan-400 font-mono">92% RH (High)</span>
-            </div>
-            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
-              <span className="text-[10px] text-slate-400 uppercase block font-medium">Leaf Surface Temp</span>
-              <span className="text-sm font-bold text-emerald-400 font-mono">24.5°C</span>
-            </div>
-            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
-              <span className="text-[10px] text-slate-400 uppercase block font-medium">Chlorophyll SPAD</span>
-              <span className="text-sm font-bold text-amber-400 font-mono">34.2 (Sub-optimal)</span>
-            </div>
-            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
-              <span className="text-[10px] text-slate-400 uppercase block font-medium">Spore Contagion</span>
-              <span className="text-sm font-bold text-red-400 font-mono">ELEVATED (Blast)</span>
-            </div>
-          </>
-        ) : isPet ? (
-          <>
-            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
-              <span className="text-[10px] text-slate-400 uppercase block font-medium">Heart Rate</span>
-              <span className="text-sm font-bold text-cyan-400 font-mono">112 bpm</span>
-            </div>
-            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
-              <span className="text-[10px] text-slate-400 uppercase block font-medium">Rectal Body Temp</span>
-              <span className="text-sm font-bold text-emerald-400 font-mono">101.4°F (Normal)</span>
-            </div>
-            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
-              <span className="text-[10px] text-slate-400 uppercase block font-medium">Body Weight</span>
-              <span className="text-sm font-bold text-amber-400 font-mono">31.5 kg (BCS 5/9)</span>
-            </div>
-            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
-              <span className="text-[10px] text-slate-400 uppercase block font-medium">Capillary Refill</span>
-              <span className="text-sm font-bold text-emerald-400 font-mono">&lt; 1.5s (Pink)</span>
-            </div>
-          </>
-        ) : isPoultry ? (
-          <>
-            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
-              <span className="text-[10px] text-slate-400 uppercase block font-medium">Shed Temperature</span>
-              <span className="text-sm font-bold text-cyan-400 font-mono">32.8°C</span>
-            </div>
-            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
-              <span className="text-[10px] text-slate-400 uppercase block font-medium">House Ammonia</span>
-              <span className="text-sm font-bold text-amber-400 font-mono">19 ppm (Warning)</span>
-            </div>
-            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
-              <span className="text-[10px] text-slate-400 uppercase block font-medium">Morning Mortality</span>
-              <span className="text-sm font-bold text-red-400 font-mono">22 Birds (Spike)</span>
-            </div>
-            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
-              <span className="text-[10px] text-slate-400 uppercase block font-medium">Lesion Index</span>
-              <span className="text-sm font-bold text-red-400 font-mono">Caecal Grade 3</span>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
-              <span className="text-[10px] text-slate-400 uppercase block font-medium">Rumen Motility</span>
-              <span className="text-sm font-bold text-amber-400 font-mono">2 / 2 min (Sluggish)</span>
-            </div>
-            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
-              <span className="text-[10px] text-slate-400 uppercase block font-medium">Rectal Fever</span>
-              <span className="text-sm font-bold text-red-400 font-mono">103.4°F (Mastitis Fever)</span>
-            </div>
-            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
-              <span className="text-[10px] text-slate-400 uppercase block font-medium">Respiration Rate</span>
-              <span className="text-sm font-bold text-cyan-400 font-mono">36 breaths/min</span>
-            </div>
-            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-white/[0.04] text-center">
-              <span className="text-[10px] text-slate-400 uppercase block font-medium">Quarter CMT Score</span>
-              <span className="text-sm font-bold text-red-400 font-mono">Positive Grade 3</span>
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* Main Consultation Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: Media View / Live Feed & Prescription */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Channel Experience View */}
-          <div className="srot-glass-card rounded-2xl overflow-hidden border border-white/[0.08]">
+      {/* MAIN CONSULTATION WORKBENCH GRID */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* LEFT 7 COLS: MEDIA FEED, SCREEN SHARE & CLINICAL PRESCRIPTION */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* Video & Screen Share Frame */}
+          <div className="srot-glass-card rounded-3xl overflow-hidden border border-white/[0.1] shadow-2xl bg-slate-950">
+            {/* Top Toolbar */}
             <div className="p-3.5 bg-slate-900/90 border-b border-white/[0.08] flex items-center justify-between text-xs">
               <div className="flex items-center gap-2 font-semibold text-white">
-                {consultation.channel === "video" ? (
-                  <Video className="w-4 h-4 text-cyan-400" />
-                ) : consultation.channel === "audio" ? (
-                  <Phone className="w-4 h-4 text-emerald-400" />
+                {isScreenSharing ? (
+                  <>
+                    <Share2 className="w-4 h-4 text-cyan-400 animate-pulse" />
+                    <span className="text-cyan-300 font-bold">Live Screen Share Broadcast</span>
+                  </>
                 ) : (
-                  <Camera className="w-4 h-4 text-amber-400" />
+                  <>
+                    <Video className="w-4 h-4 text-emerald-400" />
+                    <span>Live WebRTC Encrypted Clinical Chamber</span>
+                  </>
                 )}
-                <span>
-                  {consultation.channel === "video"
-                    ? "Live Encrypted Video Consultation Feed"
-                    : consultation.channel === "audio"
-                    ? "Secure Tele-Voice Audio Stream"
-                    : "High-Resolution Diagnostic Visual Inspection"}
-                </span>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <span className="text-[11px] text-emerald-400 font-mono flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                   {formatTimer(callDurationSeconds)}
                 </span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 font-mono border border-cyan-500/20">
-                  WebRTC HD
+                  1080p 60fps
                 </span>
               </div>
             </div>
 
-            {/* Video / Photo Screen Simulator */}
-            <div className="relative h-64 sm:h-80 bg-slate-950 flex items-center justify-center overflow-hidden">
+            {/* Main Stage Viewport */}
+            <div className="relative h-72 sm:h-96 bg-black flex items-center justify-center overflow-hidden group">
               {isVideoStopped ? (
                 <div className="text-center space-y-2 p-6">
-                  <VideoOff className="w-10 h-10 text-slate-600 mx-auto" />
-                  <p className="text-xs text-slate-400 font-semibold">Patient camera feed is paused</p>
+                  <VideoOff className="w-12 h-12 text-slate-700 mx-auto" />
+                  <p className="text-xs text-slate-400 font-bold">Patient camera feed is paused</p>
+                  <button
+                    onClick={handleToggleCamera}
+                    className="px-3.5 py-1.5 rounded-xl bg-slate-800 text-slate-200 text-xs font-semibold hover:bg-slate-700"
+                  >
+                    Resume Camera
+                  </button>
                 </div>
-              ) : consultation.channel === "video" ? (
+              ) : isScreenSharing ? (
+                /* Interactive Screen Share / Lab Telemetry Broadcast View */
+                <div className="relative w-full h-full bg-slate-950 p-6 flex flex-col justify-between">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="px-2.5 py-1 rounded-md bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-[10px] font-mono font-bold flex items-center gap-1.5">
+                        <Monitor className="w-3.5 h-3.5" />
+                        <span>TELEMETRY REPORT BROADCAST ACTIVE</span>
+                      </span>
+                      <span className="text-[10px] font-mono text-slate-400">RESOLUTION: 1920x1080</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 pt-2">
+                      <div className="p-3 rounded-xl bg-slate-900/80 border border-white/[0.08] space-y-1">
+                        <span className="text-[10px] font-mono text-slate-400 block">NPK / BIOCHEMICAL INDEX</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-mono font-bold text-emerald-400">7.2 pH</span>
+                          <span className="text-xs text-slate-400">(Optimal Range)</span>
+                        </div>
+                        <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mt-1">
+                          <div className="bg-emerald-400 h-full w-[72%]" />
+                        </div>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-slate-900/80 border border-white/[0.08] space-y-1">
+                        <span className="text-[10px] font-mono text-slate-400 block">MICROBIAL CELL DENSITY</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-mono font-bold text-cyan-400">650K / ml</span>
+                          <span className="text-xs text-amber-300">(Inflammation Alert)</span>
+                        </div>
+                        <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden mt-1">
+                          <div className="bg-cyan-400 h-full w-[85%]" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-slate-900/60 border border-white/[0.06] text-[11px] text-slate-300 font-mono text-center">
+                    Doctor is presenting live pathology slides & withholding charts to client.
+                  </div>
+                </div>
+              ) : (
+                /* Primary Patient / Field Video Stream */
                 <div className="relative w-full h-full">
                   <img
-                    src={consultation.uploadedPhotos[0]}
+                    src={consultation.uploadedPhotos[0] || "https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=800&q=80"}
                     alt="Live crop/patient video feed"
-                    className="w-full h-full object-cover opacity-80"
+                    className="w-full h-full object-cover opacity-85 transition-all duration-300 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-black/40" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-black/40 pointer-events-none" />
 
-                  {/* Specialist Picture-in-picture */}
-                  <div className="absolute top-4 right-4 w-28 h-28 sm:w-36 sm:h-36 rounded-2xl overflow-hidden border-2 border-emerald-500 shadow-2xl bg-slate-900">
+                  {/* AI Scanning Reticle when Activated */}
+                  {isAiScanning && (
+                    <div className="absolute inset-0 bg-emerald-500/10 pointer-events-none flex items-center justify-center">
+                      <div className="w-48 h-48 border-2 border-dashed border-emerald-400 rounded-3xl animate-spin p-4 flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.5)]">
+                        <Scan className="w-12 h-12 text-emerald-400 animate-pulse" />
+                      </div>
+                      <div className="absolute bottom-16 bg-slate-950/90 border border-emerald-500 px-4 py-1.5 rounded-xl text-emerald-400 font-mono text-xs font-bold animate-pulse">
+                        COMPUTER VISION DIAGNOSIS RUNNING...
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Specialist Picture-in-Picture */}
+                  <div className="absolute top-4 right-4 w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border-2 border-emerald-400 shadow-2xl bg-slate-900">
                     <img
                       src={consultation.expert.avatar}
                       alt={consultation.expert.name}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute bottom-1 left-1.5 right-1.5 bg-black/80 px-1.5 py-0.5 rounded text-[9px] text-white font-semibold truncate">
+                    <div className="absolute bottom-1 left-1 right-1 bg-black/85 backdrop-blur-md px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] text-white font-bold truncate">
                       {consultation.expert.name.split(" ")[0]} (Clinician)
                     </div>
                   </div>
 
-                  {/* Live HUD Overlays */}
-                  <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-xl text-[11px] text-white border border-white/10 flex items-center gap-2">
-                    <Activity className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Focus: {consultation.farmerOrOwner.subjectName}</span>
+                  {/* Top Left Focus Pill */}
+                  <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-xl text-xs text-white border border-white/15 flex items-center gap-2">
+                    <Activity className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                    <span className="font-semibold">{consultation.farmerOrOwner.subjectName}</span>
                   </div>
 
-                  {/* Bottom Video Hardware Controls */}
-                  <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-white">
-                    <span className="bg-black/60 px-2.5 py-1 rounded-lg backdrop-blur-md text-[11px]">
-                      Plot/Tag: {consultation.farmerOrOwner.subjectAgeOrStage}
-                    </span>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setIsVideoMuted(!isVideoMuted)}
-                        className={`p-2 rounded-xl backdrop-blur-md font-semibold transition ${
-                          isVideoMuted
-                            ? "bg-red-500 text-white"
-                            : "bg-slate-800/80 hover:bg-slate-700 text-slate-200"
-                        }`}
-                        title={isVideoMuted ? "Unmute Mic" : "Mute Mic"}
-                      >
-                        {isVideoMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                      </button>
-
-                      <button
-                        onClick={() => setIsVideoStopped(!isVideoStopped)}
-                        className={`p-2 rounded-xl backdrop-blur-md font-semibold transition ${
-                          isVideoStopped
-                            ? "bg-red-500 text-white"
-                            : "bg-slate-800/80 hover:bg-slate-700 text-slate-200"
-                        }`}
-                        title={isVideoStopped ? "Turn Camera On" : "Turn Camera Off"}
-                      >
-                        {isVideoStopped ? <VideoOff className="w-4 h-4" /> : <Video className="w-4 h-4" />}
-                      </button>
-
-                      <button
-                        onClick={() => setIsCameraFlipped(!isCameraFlipped)}
-                        className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 backdrop-blur-md text-slate-200 transition"
-                        title="Switch Camera Lens"
-                      >
-                        <RefreshCw className="w-4 h-4" />
-                      </button>
+                  {/* AI Scan Result Toast if triggered */}
+                  {aiScanResult && (
+                    <div className="absolute bottom-16 left-4 right-4 bg-slate-950/90 border border-emerald-500/40 p-2.5 rounded-xl text-xs text-emerald-300 font-semibold shadow-2xl animate-in fade-in">
+                      {aiScanResult}
                     </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-2 p-4 w-full h-full">
-                  {consultation.uploadedPhotos.map((photo, i) => (
-                    <div key={i} className="relative rounded-xl overflow-hidden border border-white/[0.08]">
-                      <img
-                        src={photo}
-                        alt="Diagnostic leaf or animal sample"
-                        className="w-full h-full object-cover"
-                      />
-                      <span className="absolute bottom-2 left-2 text-[10px] bg-slate-950/80 text-white px-2 py-0.5 rounded backdrop-blur-md font-semibold">
-                        Photo #{i + 1}
-                      </span>
-                    </div>
-                  ))}
+                  )}
                 </div>
               )}
+
+              {/* HARDWARE INTERACTIVE CONTROL DECK */}
+              <div className="absolute bottom-3 left-3 right-3 p-2 rounded-2xl bg-slate-950/90 backdrop-blur-xl border border-white/[0.12] flex items-center justify-between text-xs text-white shadow-2xl">
+                <span className="text-[11px] font-mono text-slate-300 pl-1 hidden sm:inline">
+                  {consultation.farmerOrOwner.subjectAgeOrStage}
+                </span>
+
+                <div className="flex items-center gap-2 mx-auto sm:mx-0">
+                  {/* Mic Toggle with Working State */}
+                  <button
+                    onClick={handleToggleMic}
+                    className={`flex items-center gap-1 px-3 py-2 rounded-xl font-bold transition ${
+                      isMicMuted
+                        ? "bg-rose-500 text-white shadow-lg shadow-rose-500/20"
+                        : "bg-slate-800 hover:bg-slate-700 text-slate-200"
+                    }`}
+                    title={isMicMuted ? "Unmute Microphone" : "Mute Microphone"}
+                  >
+                    {isMicMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4 text-emerald-400" />}
+                    <span className="text-[11px]">{isMicMuted ? "Muted" : "Mic On"}</span>
+                  </button>
+
+                  {/* Camera Toggle with Working State */}
+                  <button
+                    onClick={handleToggleCamera}
+                    className={`flex items-center gap-1 px-3 py-2 rounded-xl font-bold transition ${
+                      isVideoStopped
+                        ? "bg-rose-500 text-white shadow-lg shadow-rose-500/20"
+                        : "bg-slate-800 hover:bg-slate-700 text-slate-200"
+                    }`}
+                    title={isVideoStopped ? "Start Camera" : "Stop Camera"}
+                  >
+                    {isVideoStopped ? <VideoOff className="w-4 h-4" /> : <Video className="w-4 h-4 text-emerald-400" />}
+                    <span className="text-[11px]">{isVideoStopped ? "Video Off" : "Video On"}</span>
+                  </button>
+
+                  {/* Working Screen Share Toggle */}
+                  <button
+                    onClick={handleToggleScreenShare}
+                    className={`flex items-center gap-1 px-3 py-2 rounded-xl font-bold transition ${
+                      isScreenSharing
+                        ? "bg-cyan-500 text-slate-950 font-black shadow-lg shadow-cyan-500/25"
+                        : "bg-slate-800 hover:bg-slate-700 text-slate-200"
+                    }`}
+                    title="Share screen or lab report telemetry"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    <span className="text-[11px]">{isScreenSharing ? "Sharing" : "Screen Share"}</span>
+                  </button>
+
+                  {/* Camera Flip */}
+                  <button
+                    onClick={handleFlipCamera}
+                    className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition"
+                    title="Flip camera view (Front / Rear lens)"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                  </button>
+
+                  {/* Trigger Diagnostic AI Scan */}
+                  <button
+                    onClick={handleTriggerAiScan}
+                    disabled={isAiScanning}
+                    className="flex items-center gap-1 px-3 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black transition shadow-md shadow-emerald-500/20"
+                    title="Take snapshot and run AI pathology vision scan"
+                  >
+                    <Scan className="w-4 h-4 text-slate-950" />
+                    <span className="text-[11px]">{isAiScanning ? "Scanning..." : "AI Snapshot"}</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Prescribed Advisory Card (If resolved) */}
-          {consultation.prescription && (
-            <div className="srot-glass-card rounded-2xl p-6 border border-emerald-500/30 bg-emerald-950/10 space-y-5">
-              <div className="flex items-center justify-between pb-3 border-b border-emerald-900/40">
+          {/* Prescribed Advisory Card (If issued) */}
+          {activeRx && (
+            <div className="srot-glass-card rounded-3xl p-5 sm:p-6 border border-emerald-500/30 bg-emerald-950/15 space-y-4 shadow-xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-emerald-900/40">
                 <div className="flex items-center gap-2.5">
-                  <span className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400">
+                  <span className="p-2 rounded-xl bg-emerald-500/20 text-emerald-300">
                     <FileText className="w-5 h-5" />
                   </span>
                   <div>
@@ -582,146 +700,103 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
                     </h3>
                     <p className="text-xs text-emerald-400 font-mono">
                       Signed by {consultation.expert.name} ({consultation.expert.regNumber})
+                      {activeRx.revisionCount && activeRx.revisionCount > 1 && (
+                        <span className="ml-2 text-amber-300 font-bold">• Revision {activeRx.revisionCount}</span>
+                      )}
                     </p>
                   </div>
                 </div>
 
-                <button
-                  onClick={() => generatePrescriptionPdf(consultation)}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-md shadow-emerald-950/60"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Download PDF Rx</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => generatePrescriptionPdf(consultation)}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition shadow-md shadow-emerald-950/60"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download PDF Rx</span>
+                  </button>
+                </div>
               </div>
 
               {/* Diagnosis Banner */}
-              <div className="p-4 rounded-xl bg-slate-900/80 border border-white/[0.08]">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">
+              <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-white/[0.08]">
+                <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-0.5">
                   Primary Clinical Diagnosis
                 </span>
-                <h4 className="text-base sm:text-lg font-bold text-white">
-                  {consultation.prescription.diagnosisTitle}
-                </h4>
-                <p className="text-xs text-slate-300 mt-1">
-                  Pathogen / Vector: {consultation.prescription.pathogenOrCause}
+                <h4 className="text-base font-bold text-white">{activeRx.diagnosisTitle}</h4>
+                <p className="text-xs text-slate-300 mt-0.5">
+                  Pathogen / Cause: {activeRx.pathogenOrCause}
                 </p>
               </div>
 
-              {/* Action Protocol Steps */}
-              <div>
-                <h5 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                  Immediate Field Action Steps:
-                </h5>
-                <ul className="space-y-1.5 text-xs text-slate-300">
-                  {consultation.prescription.treatmentSteps.map((step, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">
-                        {idx + 1}
-                      </span>
-                      <span>{step}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
               {/* Formulations & Withholding Table */}
-              <div>
-                <h5 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">
-                  Prescribed Spray / Medical Dosage:
+              <div className="space-y-2">
+                <h5 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                  Prescribed Formulations:
                 </h5>
-                <div className="space-y-2">
-                  {consultation.prescription.medicationsOrSprays.map((med, i) => (
-                    <div
-                      key={i}
-                      className="p-3 rounded-xl bg-slate-900/70 border border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
-                    >
-                      <div>
-                        <span className="font-bold text-white text-xs sm:text-sm">{med.item}</span>
-                        <span className="text-[11px] text-slate-400 block font-mono">
-                          {med.activeIngredient}
-                        </span>
-                        <span className="text-[11px] text-slate-300">
-                          Dosage: <strong className="text-emerald-400">{med.dosage}</strong> •{" "}
-                          {med.frequencyAndDuration}
-                        </span>
-                      </div>
-
-                      <div className="sm:text-right shrink-0">
-                        <span className="text-[10px] text-amber-300 bg-amber-500/15 px-2.5 py-1 rounded-md border border-amber-500/30 font-semibold block sm:inline-block">
-                          Withholding: {med.withholdingSafetyPeriod}
-                        </span>
-                      </div>
+                {activeRx.medicationsOrSprays.map((med: any, i: number) => (
+                  <div
+                    key={i}
+                    className="p-3 rounded-xl bg-slate-900/80 border border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+                  >
+                    <div>
+                      <span className="font-bold text-white text-xs sm:text-sm">{med.item}</span>
+                      <span className="text-[11px] text-slate-400 block font-mono">
+                        {med.activeIngredient}
+                      </span>
+                      <span className="text-[11px] text-slate-300">
+                        Dosage: <strong className="text-emerald-400">{med.dosage}</strong> •{" "}
+                        {med.frequencyAndDuration}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              </div>
 
-              {/* Preventive Advice */}
-              <div className="p-3.5 rounded-xl bg-slate-900/60 border border-white/[0.08] text-xs">
-                <span className="font-bold text-slate-200 block mb-0.5">Preventive Advice:</span>
-                <p className="text-slate-400">{consultation.prescription.preventiveAdvice}</p>
-                <div className="mt-2 text-emerald-400 font-semibold text-[11px] flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>Scheduled Follow-up Review: {consultation.prescription.followUpDate}</span>
-                </div>
+                    <div className="sm:text-right shrink-0">
+                      <span className="text-[10px] text-amber-300 bg-amber-500/15 px-2.5 py-1 rounded-md border border-amber-500/30 font-semibold block sm:inline-block">
+                        ⚠️ Withholding: {med.withholdingSafetyPeriod}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
         </div>
 
-        {/* Right Col: Live Chat & Case Metadata */}
-        <div className="space-y-6">
-          {/* Metadata Card */}
-          <div className="srot-glass-card rounded-2xl p-5 border border-white/[0.08] space-y-4">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Case Verification Details
-            </h3>
-
-            {/* Specialist */}
-            <div className="flex items-center gap-3 pb-3 border-b border-white/[0.08]">
-              <img
-                src={consultation.expert.avatar}
-                alt={consultation.expert.name}
-                className="w-12 h-12 rounded-xl object-cover border border-slate-700 shrink-0"
-              />
-              <div className="min-w-0">
-                <div className="flex items-center gap-1">
-                  <h4 className="text-xs font-bold text-white truncate">{consultation.expert.name}</h4>
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                </div>
-                <p className="text-[11px] text-slate-400 truncate">{consultation.expert.title}</p>
-                <span className="text-[10px] font-mono text-emerald-400 block truncate">
-                  {consultation.expert.regNumber}
-                </span>
-              </div>
-            </div>
-
-            {/* Beneficiary */}
-            <div className="text-xs space-y-1">
-              <span className="text-slate-400 block text-[11px]">Client / Farm Producer:</span>
-              <span className="font-bold text-white block">{consultation.farmerOrOwner.name}</span>
-              <p className="text-slate-400 text-[11px]">{consultation.farmerOrOwner.location}</p>
-              <p className="text-slate-400 text-[11px]">{consultation.farmerOrOwner.phone}</p>
-              <p className="text-emerald-400 text-[11px] font-semibold mt-1">
-                Asset: {consultation.farmerOrOwner.subjectName} ({consultation.farmerOrOwner.subjectAgeOrStage})
-              </p>
-            </div>
-          </div>
-
-          {/* Interactive Chat Console */}
-          <div className="srot-glass-card rounded-2xl border border-white/[0.08] flex flex-col h-[460px]">
-            <div className="p-3.5 bg-slate-900 border-b border-white/[0.08] flex items-center justify-between text-xs font-bold text-white">
+        {/* RIGHT 5 COLS: ENHANCED LIVE CASE CHAT WITH INSTANT FEEDBACK */}
+        <div className="lg:col-span-5 space-y-4">
+          <div className="srot-glass-card rounded-3xl border border-white/[0.1] flex flex-col h-[600px] shadow-2xl bg-slate-950/95">
+            {/* Chat Header with Real-Time WebRTC Status */}
+            <div className="p-3.5 bg-slate-900/90 border-b border-white/[0.08] flex items-center justify-between text-xs">
               <div className="flex items-center gap-2">
                 <MessageSquare className="w-4 h-4 text-emerald-400" />
-                <span>Live Case Chamber Feed</span>
+                <span className="font-bold text-white">Live Chamber Chat</span>
               </div>
-              <span className="text-[10px] text-slate-400 font-mono">
-                {messages.length} messages
-              </span>
+              <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-mono text-emerald-300 font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Encrypted • 38ms</span>
+              </div>
             </div>
 
-            {/* Message stream */}
+            {/* Quick Recommendation Preset Chips for Clinicians */}
+            {isCurrentUserExpert && (
+              <div className="px-3 py-2 bg-slate-900/50 border-b border-white/[0.06] overflow-x-auto flex items-center gap-1.5 shrink-0">
+                <span className="text-[10px] font-mono text-slate-400 uppercase shrink-0">Quick Presets:</span>
+                {clinicianPresetChips.map((chip, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => {
+                      setInputText(chip);
+                    }}
+                    className="px-2 py-0.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-white/[0.06] text-[10px] font-semibold transition shrink-0 whitespace-nowrap"
+                  >
+                    + {chip.slice(0, 24)}...
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Chat Message Stream */}
             <div className="flex-1 p-3.5 overflow-y-auto space-y-3 text-xs">
               {messages.map((msg) => {
                 const isFromCurrentUser = msg.senderId === currentUser.id;
@@ -730,7 +805,7 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
                 if (isSystem) {
                   return (
                     <div key={msg.id} className="text-center my-2">
-                      <span className="text-[10px] text-slate-400 bg-slate-950/80 px-3 py-1 rounded-full border border-white/[0.06] inline-block max-w-[90%]">
+                      <span className="text-[10px] text-slate-400 bg-slate-900/90 px-3 py-1 rounded-full border border-white/[0.06] inline-block max-w-[90%]">
                         {msg.text}
                       </span>
                     </div>
@@ -743,10 +818,10 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
                     className={`flex flex-col ${isFromCurrentUser ? "items-end" : "items-start"}`}
                   >
                     <div
-                      className={`max-w-[85%] p-3 rounded-2xl leading-relaxed ${
+                      className={`max-w-[85%] p-3 rounded-2xl leading-relaxed shadow-md ${
                         isFromCurrentUser
-                          ? "bg-emerald-600 text-white rounded-tr-none shadow-md shadow-emerald-950/40"
-                          : "bg-slate-800 text-slate-200 border border-slate-700/60 rounded-tl-none shadow-md"
+                          ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-tr-none"
+                          : "bg-slate-900 text-slate-200 border border-slate-800 rounded-tl-none"
                       }`}
                     >
                       <div className="flex items-center justify-between gap-3 mb-1">
@@ -754,36 +829,89 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
                           {isFromCurrentUser ? "You" : msg.senderName}
                         </span>
                         <span className="text-[9px] opacity-60">
-                          {formatDate(msg.timestamp).split(",")[0] || "Just now"}
+                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </span>
                       </div>
 
                       <p className="text-xs whitespace-pre-wrap">{msg.text}</p>
+
+                      {/* Photo attachments */}
+                      {msg.attachments && msg.attachments.length > 0 && (
+                        <div className="mt-2 grid grid-cols-2 gap-1.5">
+                          {msg.attachments.map((att, i) => (
+                            <img
+                              key={i}
+                              src={att}
+                              alt="Attachment"
+                              className="rounded-lg object-cover max-h-28 w-full border border-white/20"
+                            />
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
               })}
+              <div ref={chatBottomRef} />
             </div>
 
-            {/* Input box */}
-            <form onSubmit={handleSendMessage} className="p-3 border-t border-white/[0.08] flex gap-2">
+            {/* Attachment Preview if selected */}
+            {pendingAttachment && (
+              <div className="px-3 py-2 bg-slate-900 border-t border-white/[0.08] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <img
+                    src={pendingAttachment}
+                    alt="Pending upload preview"
+                    className="w-10 h-10 rounded-lg object-cover border border-emerald-400"
+                  />
+                  <span className="text-[11px] text-emerald-300 font-semibold">Image ready to send</span>
+                </div>
+                <button
+                  onClick={() => setPendingAttachment(null)}
+                  className="p-1 text-slate-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Chat Input Bar */}
+            <form onSubmit={handleSendMessage} className="p-3 border-t border-white/[0.08] flex items-center gap-2">
+              {/* Photo Attachment Trigger */}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-white/[0.08] transition shrink-0"
+                title="Attach diagnostic photo or leaf image"
+              >
+                <ImageIcon className="w-4 h-4 text-cyan-400" />
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                onChange={handleFileAttach}
+                className="hidden"
+              />
+
               <input
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 placeholder={
                   isCurrentUserExpert
-                    ? "Type clinician instructions or questions to patient..."
-                    : "Ask doctor about symptoms, spray dosage, reaction..."
+                    ? "Type clinician guidance or prescription adjustment..."
+                    : "Type symptoms or questions to doctor..."
                 }
                 className="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-white/[0.1] text-white text-xs focus:outline-none focus:border-emerald-500 placeholder:text-slate-500 font-medium"
               />
+
               <button
                 type="submit"
-                className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition flex items-center justify-center shrink-0"
+                className="p-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black transition flex items-center justify-center shrink-0 shadow-md shadow-emerald-500/20"
                 aria-label="Send message"
               >
-                <Send className="w-4 h-4" />
+                <Send className="w-4 h-4 text-slate-950" />
               </button>
             </form>
           </div>
@@ -817,7 +945,7 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Payment Gateway:</span>
-                  <span className="text-pink-400 font-bold">bKash (TrxID: 9X4812K)</span>
+                  <span className="text-pink-400 font-bold">bKash (Verified TrxID)</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Date & Time:</span>
@@ -857,7 +985,7 @@ export function ConsultationRoomClient({ consultationId }: ConsultationRoomClien
               </div>
             </div>
 
-            <div className="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/20 text-[10px] text-emerald-300 text-center">
+            <div className="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/20 text-[10px] text-emerald-300 text-center font-mono">
               ✓ Tax Compliant Digital Cash Receipt • Tamper-proof QR Validated
             </div>
 

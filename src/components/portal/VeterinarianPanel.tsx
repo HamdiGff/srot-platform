@@ -8,6 +8,7 @@ import { useOrderStore } from "@/lib/store/orderStore";
 import { useCommunityStore } from "@/lib/store/communityStore";
 import { useLanguageStore } from "@/lib/store/languageStore";
 import { generatePrescriptionPdf } from "@/lib/prescriptionGenerator";
+import { PrescriptionStudioManager } from "@/components/portal/PrescriptionStudioManager";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   Stethoscope,
@@ -377,112 +378,18 @@ export function VeterinarianPanel() {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 2: BVC VETERINARY RX STUDIO WITH ENFORCED WITHHOLDING */}
+      {/* TAB 2: BVC VETERINARY RX STUDIO & REVISION HUB WITH ENFORCED WITHHOLDING */}
       {/* ========================================================================= */}
       {activeTab === "rx_studio" && (
-        <div className="srot-glass-card rounded-3xl p-6 sm:p-8 border border-white/[0.08] bg-slate-950/90 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/[0.08]">
-            <div>
-              <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-blue-400" />
-                <h2 className="text-base sm:text-lg font-black text-white">
-                  {isBn ? "বাংলাদেশ ভেটেরিনারি কাউন্সিল (BVC) ডিজিটাল প্রেসক্রিপশন স্টুডিও" : "Official BVC Veterinary Prescription Studio"}
-                </h2>
-              </div>
-              <p className="text-xs text-slate-400 mt-1">
-                {isBn ? "খাদ্য নিরাপত্তা বিধিমতে কঠোর দুধ ও মাংস উইথহোল্ডিং নির্দেশনা অন্তর্ভুক্ত করুন।" : "Enforces mandatory milk and meat withdrawal warnings to protect public health."}
-              </p>
-            </div>
-
-            {selectedCase?.prescription && (
-              <button
-                onClick={() => generatePrescriptionPdf(selectedCase)}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-cyan-500/30 text-xs font-bold transition shrink-0"
-              >
-                <Download className="w-3.5 h-3.5 text-cyan-400" />
-                <span>{isBn ? "প্রেসক্রিপশন পিডিএফ ডাউনলোড" : "Download Issued PDF"}</span>
-              </button>
-            )}
-          </div>
-
-          {prescriptionSuccess && (
-            <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center gap-2 animate-in fade-in">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              <span>Official BVC Veterinary Prescription Signed & Withholding Warnings Dispatched!</span>
-            </div>
-          )}
-
-          <form onSubmit={handleIssuePrescription} className="space-y-4 text-xs">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-slate-300 font-bold block mb-1">Veterinary Diagnosis</label>
-                <input
-                  type="text"
-                  value={diagTitle}
-                  onChange={(e) => setDiagTitle(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/[0.1] text-white focus:outline-none focus:border-blue-500 font-bold"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-300 font-bold block mb-1">Pathogen / Etiology</label>
-                <input
-                  type="text"
-                  value={pathogen}
-                  onChange={(e) => setPathogen(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/[0.1] text-white focus:outline-none focus:border-blue-500"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="text-slate-300 font-bold block mb-1">Veterinary Pharmaceuticals</label>
-                <input
-                  type="text"
-                  value={medItem}
-                  onChange={(e) => setMedItem(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/[0.1] text-white focus:outline-none focus:border-blue-500 font-mono"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-300 font-bold block mb-1">Route & Dosage Instructions</label>
-                <input
-                  type="text"
-                  value={medDose}
-                  onChange={(e) => setMedDose(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/[0.1] text-white focus:outline-none focus:border-blue-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-slate-300 font-bold block mb-1">Enforced Withdrawal Safety</label>
-                <input
-                  type="text"
-                  value={medWithholding}
-                  onChange={(e) => setMedWithholding(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-rose-500/40 text-rose-300 focus:outline-none focus:border-rose-400 font-mono font-bold"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="pt-2 flex items-center gap-3">
-              <button
-                type="submit"
-                className="py-3 px-6 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-400 hover:to-cyan-300 text-slate-950 font-black text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-blue-500/25 transition"
-              >
-                <ShieldCheck className="w-4 h-4 text-slate-950" />
-                <span>{isBn ? "বিভিসি অফিসিয়াল চিকিৎসাপত্র স্বাক্ষর ও জারি করুন" : "Sign & Issue Tamper-Proof BVC Prescription"}</span>
-              </button>
-            </div>
-          </form>
-        </div>
+        <PrescriptionStudioManager
+          council="BVC"
+          specialistId="exp-dr-ananya-sen"
+          specialistName={currentUser.name}
+          specialistTitle={currentUser.roleLabel || "Senior Veterinary Surgeon & Bovine Specialist"}
+          specialistAvatar={currentUser.avatar || "https://images.unsplash.com/photo-1594824813568-7c8fa0747185?auto=format&fit=crop&w=200&q=80"}
+          specialistRegNumber={currentUser.licenseNumber || "BVC-VET-2017-7721"}
+          defaultCategory="veterinary"
+        />
       )}
 
       {/* ========================================================================= */}
