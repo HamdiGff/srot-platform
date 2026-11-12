@@ -39,9 +39,9 @@ export function Footer() {
   const isBn = language === "bn";
 
   return (
-    <footer className="w-full bg-[#03060a] border-t border-white/[0.08] text-slate-400 text-sm relative overflow-hidden">
+    <footer className="w-full bg-black border-t border-white/[0.08] text-zinc-400 text-sm relative overflow-hidden">
       {/* Top Banner: 24/7 Helplines & Supported Mobile Gateways */}
-      <div className="border-b border-white/[0.06] bg-[#060a12]/90 py-3.5 px-4 sm:px-6 lg:px-8">
+      <div className="border-b border-white/[0.06] bg-black/90 py-3.5 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
           {/* Emergency Helplines */}
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5">

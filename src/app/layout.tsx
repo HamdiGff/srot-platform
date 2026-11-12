@@ -5,7 +5,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 
 export const viewport: Viewport = {
-  themeColor: "#05080d",
+  themeColor: "#000000",
   colorScheme: "dark",
   width: "device-width",
   initialScale: 1,
@@ -147,7 +147,8 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="min-h-screen flex flex-col bg-[#05080d] text-slate-100 antialiased selection:bg-emerald-500 selection:text-black">
+      <body className="min-h-screen flex flex-col bg-black text-[#ededed] antialiased selection:bg-white/20 selection:text-white relative">
+        <div className="vercel-beam-top" aria-hidden="true" />
         <Suspense fallback={null}>
           <Navbar />
         </Suspense>

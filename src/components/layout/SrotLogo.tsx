@@ -37,7 +37,7 @@ export function SrotLogo({ className = "", size = "md", showTagline = true }: Sr
         {/* Ambient Emerald-Cyan Glow */}
         <div className="absolute -inset-0.5 bg-gradient-to-tr from-emerald-500 to-cyan-500 rounded-xl blur-[5px] opacity-50 group-hover:opacity-90 transition-opacity duration-300" />
 
-        <div className="relative w-full h-full rounded-xl bg-gradient-to-b from-[#0e1724] to-[#070c14] border border-emerald-400/30 p-2 flex items-center justify-center shadow-md group-hover:border-emerald-400/60 transition-colors">
+        <div className="relative w-full h-full rounded-xl bg-gradient-to-b from-zinc-900 to-black border border-white/20 p-2 flex items-center justify-center shadow-md group-hover:border-emerald-400/60 transition-colors">
           <svg
             viewBox="0 0 32 32"
             fill="none"

@@ -112,7 +112,7 @@ export function Navbar() {
       <header ref={navRef} className="sticky top-0 z-40 w-full transition-all duration-300">
         {/* TIER 1: Upper Status Bar (Auto-hides smoothly when scrolling down) */}
         <div
-          className={`transition-all duration-300 ease-in-out overflow-hidden bg-[#04080e]/95 backdrop-blur-md border-b border-white/[0.05] ${
+          className={`transition-all duration-300 ease-in-out overflow-hidden bg-black/90 backdrop-blur-xl border-b border-white/[0.06] ${
             isScrolled
               ? "max-h-0 opacity-0 py-0 border-b-0 -translate-y-2 pointer-events-none"
               : "max-h-12 opacity-100 py-1.5 translate-y-0"
@@ -125,20 +125,20 @@ export function Navbar() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
-              <span className="text-slate-400 text-[11px] sm:text-xs">
+              <span className="text-zinc-400 text-[11px] sm:text-xs font-mono">
                 {isBn ? (
                   <>
-                    <strong className="text-emerald-400 font-semibold mr-1.5">
+                    <strong className="text-emerald-400 font-semibold mr-1.5 font-sans">
                       লাইভ নেটওয়ার্ক:
                     </strong>
-                    ১৪২ জন নিবন্ধিত কৃষিবিদ ও ভেটেরিনারি সার্জন সক্রিয়
+                    ১৪২ জন নিবন্ধিত কৃষিবিদ ও সার্জন সক্রিয়
                   </>
                 ) : (
                   <>
-                    <strong className="text-emerald-400 font-semibold mr-1.5">
-                      Live Network:
+                    <strong className="text-emerald-400 font-semibold mr-1.5 font-sans">
+                      NETWORK ONLINE:
                     </strong>
-                    142 Certified Agronomists & Veterinarians Online
+                    142 CLINICIANS ACTIVE
                   </>
                 )}
               </span>
@@ -146,11 +146,11 @@ export function Navbar() {
               {/* Bangladesh Government Krishi Call Center direct chip */}
               <a
                 href="tel:16123"
-                className="hidden lg:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/60 text-[10px] text-slate-300 font-medium transition"
+                className="hidden lg:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] text-[10px] text-zinc-300 font-mono transition"
                 title={isBn ? "কৃষি কল সেন্টার হটলাইন" : "Govt Krishi Call Center"}
               >
                 <PhoneCall className="w-2.5 h-2.5 text-emerald-400" />
-                <span>{isBn ? "কৃষি কল সেন্টার: ১৬১২৩" : "Krishi Hotline: 16123"}</span>
+                <span>HOTLINE: 16123</span>
               </a>
             </div>
 
@@ -158,19 +158,19 @@ export function Navbar() {
             <div className="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-xs">
               <button
                 onClick={() => setIsEmergencyModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/25 transition font-semibold"
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-500/30 transition font-mono text-[10px] uppercase tracking-wider font-semibold"
                 title={isBn ? "জরুরি হটলাইন" : "24/7 Emergency SOS"}
               >
-                <AlertTriangle className="w-3 h-3 text-amber-400" />
+                <AlertTriangle className="w-3 h-3 text-red-400" />
                 <span>{isBn ? "জরুরি হটলাইন" : "24/7 SOS"}</span>
               </button>
 
-              <span className="text-slate-700 hidden sm:inline">•</span>
+              <span className="text-zinc-700 hidden sm:inline">•</span>
 
               {/* Persona Switcher Trigger */}
               <button
                 onClick={openRoleModal}
-                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 hover:border-slate-700 transition"
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-zinc-900/90 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-white/[0.12] transition"
                 title={isBn ? "ইউজার রোল পরিবর্তন করুন" : "Switch User Persona"}
               >
                 <img
@@ -178,17 +178,17 @@ export function Navbar() {
                   alt={currentUser.name}
                   className="w-4 h-4 rounded-full object-cover border border-emerald-500/40"
                 />
-                <span className="text-slate-300 font-medium text-[11px] truncate max-w-[80px] sm:max-w-none">
+                <span className="text-zinc-200 font-medium text-[11px] truncate max-w-[80px] sm:max-w-none">
                   {currentUser.name.split(" ")[0]}
                 </span>
-                <ChevronDown className="w-3 h-3 text-slate-400" />
+                <ChevronDown className="w-3 h-3 text-zinc-400" />
               </button>
             </div>
           </div>
         </div>
 
         {/* TIER 2: Main Master Navigation Bar (Spacious, Dropdown-Organized) */}
-        <div className="w-full bg-[#070c14]/92 backdrop-blur-xl border-b border-white/[0.06] shadow-lg shadow-black/20">
+        <div className="w-full bg-black/80 backdrop-blur-2xl border-b border-white/[0.08] shadow-[0_8px_30px_rgb(0_0_0_/_50%)]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16 md:h-18">
               {/* Left: Brand Identity */}
@@ -535,25 +535,25 @@ export function Navbar() {
               <div className="hidden md:flex items-center gap-2 sm:gap-2.5">
                 {/* 1. Language Toggle */}
                 <div
-                  className="inline-flex items-center p-0.5 rounded-lg bg-slate-900 border border-white/[0.08]"
+                  className="inline-flex items-center p-0.5 rounded-lg bg-black/60 border border-white/[0.1]"
                   title={isBn ? "Switch Language" : "Toggle Language"}
                 >
                   <button
                     onClick={() => setLanguage("en")}
-                    className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all ${
+                    className={`px-2 py-1 rounded-md text-[11px] font-mono font-bold transition-all ${
                       !isBn
-                        ? "bg-emerald-500 text-slate-950 shadow-sm"
-                        : "text-slate-400 hover:text-slate-200"
+                        ? "bg-white text-black shadow-sm"
+                        : "text-zinc-400 hover:text-white"
                     }`}
                   >
                     EN
                   </button>
                   <button
                     onClick={() => setLanguage("bn")}
-                    className={`px-2 py-1 rounded-md text-[11px] font-bold transition-all ${
+                    className={`px-2 py-1 rounded-md text-[11px] font-mono font-bold transition-all ${
                       isBn
-                        ? "bg-emerald-500 text-slate-950 shadow-sm"
-                        : "text-slate-400 hover:text-slate-200"
+                        ? "bg-white text-black shadow-sm"
+                        : "text-zinc-400 hover:text-white"
                     }`}
                   >
                     বাং
@@ -563,17 +563,17 @@ export function Navbar() {
                 {/* 2. Compact Dosage Calculator Icon Button */}
                 <button
                   onClick={() => setIsCalculatorOpen(true)}
-                  className="p-2 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-white/[0.08] hover:border-emerald-500/30 text-emerald-400 transition"
+                  className="p-2 rounded-lg bg-black/60 hover:bg-zinc-900 border border-white/[0.1] hover:border-white/[0.25] text-zinc-300 hover:text-white transition"
                   title={isBn ? "ওষুধ ও সারের ডোজ ক্যালকুলেটর" : "Agro-Vet Dosage Calculator"}
                   aria-label="Dosage Calculator"
                 >
-                  <Calculator className="w-4 h-4" />
+                  <Calculator className="w-4 h-4 text-emerald-400" />
                 </button>
 
                 {/* 3. Dedicated User Role Portal */}
                 <Link
                   href={portalPath}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-white/[0.08] hover:border-emerald-500/30 text-slate-300 hover:text-white text-xs font-semibold transition"
+                  className="vercel-btn-secondary inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
                 >
                   <LayoutDashboard className="w-3.5 h-3.5 text-cyan-400" />
                   <span>{portalLabel}</span>
@@ -582,9 +582,9 @@ export function Navbar() {
                 {/* 4. Primary High-Conversion CTA */}
                 <Link
                   href="/consult"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-xs font-extrabold shadow-md shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+                  className="vercel-btn-primary inline-flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-semibold tracking-tight"
                 >
-                  <CalendarCheck className="w-3.5 h-3.5 text-slate-950" />
+                  <CalendarCheck className="w-3.5 h-3.5 text-black" />
                   <span>{isBn ? "পরামর্শ নিন" : "Book Advisory"}</span>
                 </Link>
               </div>
@@ -617,7 +617,7 @@ export function Navbar() {
 
         {/* Mobile Navigation Drawer */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-b border-white/[0.08] bg-[#070c14]/98 backdrop-blur-2xl px-4 pt-3 pb-6 space-y-3 max-h-[85vh] overflow-y-auto">
+          <div className="md:hidden border-b border-white/[0.08] bg-black/95 backdrop-blur-2xl px-4 pt-3 pb-6 space-y-3 max-h-[85vh] overflow-y-auto">
             {/* Quick Links */}
             <div className="space-y-1">
               <Link

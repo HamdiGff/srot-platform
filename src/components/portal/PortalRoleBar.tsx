@@ -94,20 +94,25 @@ export function PortalRoleBar() {
   ];
 
   return (
-    <div className="w-full bg-slate-950/80 border border-white/[0.08] rounded-2xl p-2 shadow-xl backdrop-blur-xl">
-      <div className="flex items-center justify-between pb-2 mb-2 px-3 border-b border-white/[0.06] text-xs">
+    <div className="w-full vercel-hud rounded-2xl p-2.5 shadow-2xl">
+      <div className="flex items-center justify-between pb-2 mb-2 px-3 border-b border-white/[0.08] text-xs">
         <div className="flex items-center gap-2">
           <span className="flex h-2 w-2 relative">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
           </span>
-          <span className="font-mono uppercase tracking-wider text-slate-400 font-bold text-[10px]">
-            {isBn ? "৭টি বিশেষায়িত ব্যবহারকারী পোর্টাল সুইচবার:" : "7 Specialized Persona Workspaces (Click to Switch):"}
+          <span className="font-mono uppercase tracking-wider text-zinc-400 font-semibold text-[11px]">
+            {isBn ? "৭টি বিশেষায়িত ব্যবহারকারী পোর্টাল কনসোল:" : "7 ROLE CONSOLES // INSTANT ENVIRONMENT SWITCHER:"}
           </span>
         </div>
-        <span className="text-[11px] text-emerald-400 font-semibold hidden sm:inline">
-          {isBn ? "লাইভ রোল পরিবর্তন সক্রিয়" : "Instant Persona & Dashboard Reaction"}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.1] text-[10px] font-mono text-zinc-400 hidden sm:inline">
+            ENV: PRODUCTION
+          </span>
+          <span className="text-[11px] text-emerald-400 font-mono font-medium hidden sm:inline">
+            [ READY ]
+          </span>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1.5">
@@ -120,8 +125,8 @@ export function PortalRoleBar() {
               onClick={() => switchRole(role.id)}
               className={`p-2.5 rounded-xl transition-all text-left flex flex-col justify-between relative overflow-hidden group ${
                 isActive
-                  ? "bg-slate-900 border border-emerald-500/50 shadow-md ring-1 ring-emerald-500/30"
-                  : "bg-slate-950/40 hover:bg-slate-900/60 border border-white/[0.04]"
+                  ? "bg-white/[0.09] border border-white/30 shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_8px_20px_rgba(0,0,0,0.5)] ring-1 ring-white/20"
+                  : "bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.05] hover:border-white/[0.15]"
               }`}
             >
               {isActive && (
@@ -131,23 +136,23 @@ export function PortalRoleBar() {
               )}
               <div className="flex items-center gap-2 mb-1.5">
                 <span
-                  className={`p-1.5 rounded-lg shrink-0 ${
+                  className={`p-1.5 rounded-lg shrink-0 transition-colors ${
                     isActive
-                      ? "bg-emerald-500 text-slate-950 font-bold"
-                      : "bg-white/[0.06] text-slate-400 group-hover:text-white"
+                      ? "bg-white text-black font-bold shadow-sm"
+                      : "bg-white/[0.06] text-zinc-400 group-hover:text-white"
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
                 </span>
                 <span
-                  className={`text-xs font-bold truncate ${
-                    isActive ? "text-white" : "text-slate-300 group-hover:text-white"
+                  className={`text-xs font-semibold truncate ${
+                    isActive ? "text-white" : "text-zinc-300 group-hover:text-white"
                   }`}
                 >
                   {isBn ? role.nameBn : role.nameEn}
                 </span>
               </div>
-              <span className="text-[10px] text-slate-400 font-mono block truncate">
+              <span className="text-[10px] text-zinc-400 font-mono block truncate">
                 {isBn ? role.subBn : role.subEn}
               </span>
             </button>

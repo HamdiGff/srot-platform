@@ -19,20 +19,23 @@ export default function UnifiedPortalPage() {
   const isBn = language === "bn";
 
   return (
-    <div className="w-full srot-glow-mesh py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6">
-      {/* 1. Universal Role Persona Switcher (Allows instant testing of all 7 portals) */}
-      <PortalRoleBar />
+    <div className="w-full min-h-screen bg-black text-[#ededed] py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-6 relative">
+      <div className="vercel-spotlight absolute inset-0 pointer-events-none -top-24" />
+      <div className="relative z-10 space-y-6">
+        {/* 1. Universal Role Persona Switcher (Allows instant testing of all 7 portals) */}
+        <PortalRoleBar />
 
-      {/* 2. Dynamically Rendered Dedicated Portal for the Active Persona */}
-      <main className="w-full transition-all duration-300">
-        {currentRole === "farmer" && <CropFarmerPanel />}
-        {currentRole === "livestock_farmer" && <DairyFarmerPanel />}
-        {currentRole === "pet_owner" && <PetParentPanel />}
-        {currentRole === "expert_agronomist" && <AgronomistPanel />}
-        {currentRole === "veterinarian" && <VeterinarianPanel />}
-        {currentRole === "field_vendor" && <FieldVendorPanel />}
-        {currentRole === "admin" && <AdminPanel />}
-      </main>
+        {/* 2. Dynamically Rendered Dedicated Portal for the Active Persona */}
+        <main className="w-full transition-all duration-300">
+          {currentRole === "farmer" && <CropFarmerPanel />}
+          {currentRole === "livestock_farmer" && <DairyFarmerPanel />}
+          {currentRole === "pet_owner" && <PetParentPanel />}
+          {currentRole === "expert_agronomist" && <AgronomistPanel />}
+          {currentRole === "veterinarian" && <VeterinarianPanel />}
+          {currentRole === "field_vendor" && <FieldVendorPanel />}
+          {currentRole === "admin" && <AdminPanel />}
+        </main>
+      </div>
     </div>
   );
 }

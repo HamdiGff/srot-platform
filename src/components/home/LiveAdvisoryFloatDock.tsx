@@ -57,7 +57,7 @@ export function LiveAdvisoryFloatDock({ onOpenExpressTriage }: LiveAdvisoryFloat
           : "opacity-0 translate-y-6 pointer-events-none"
       }`}
     >
-      <div className="p-2.5 sm:p-3 rounded-2xl bg-[#070e18]/95 border border-emerald-500/40 shadow-2xl backdrop-blur-2xl text-slate-100 flex items-center justify-between gap-3 sm:gap-4 ring-1 ring-white/10">
+      <div className="p-2.5 sm:p-3 rounded-2xl vercel-hud shadow-2xl text-[#ededed] flex items-center justify-between gap-3 sm:gap-4">
         {/* Left: Active Specialist Status */}
         <div className="flex items-center gap-2.5 min-w-0">
           {/* Avatar stack */}
@@ -65,12 +65,12 @@ export function LiveAdvisoryFloatDock({ onOpenExpressTriage }: LiveAdvisoryFloat
             <img
               src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80"
               alt="Dr. Tanvir"
-              className="w-7 h-7 rounded-full object-cover border-2 border-slate-900"
+              className="w-7 h-7 rounded-full object-cover border-2 border-black"
             />
             <img
               src="https://images.unsplash.com/photo-1594824813568-7c8fa0747185?auto=format&fit=crop&w=100&q=80"
               alt="Dr. Mahfuz"
-              className="w-7 h-7 rounded-full object-cover border-2 border-slate-900"
+              className="w-7 h-7 rounded-full object-cover border-2 border-black"
             />
           </div>
 
@@ -80,7 +80,7 @@ export function LiveAdvisoryFloatDock({ onOpenExpressTriage }: LiveAdvisoryFloat
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
-              <span className="text-xs font-black text-white truncate">
+              <span className="text-xs font-bold text-white truncate">
                 {isBn ? "১৪২ জন ডাক্তার অন-ডিউটি" : "142 Specialists Online"}
               </span>
             </div>
@@ -95,9 +95,9 @@ export function LiveAdvisoryFloatDock({ onOpenExpressTriage }: LiveAdvisoryFloat
           <button
             type="button"
             onClick={scrollToHero}
-            className="py-1.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-xs flex items-center gap-1.5 shadow-md shadow-emerald-500/20 transition hover:-translate-y-0.5"
+            className="vercel-btn-primary py-1.5 px-3.5 rounded-xl text-black font-semibold text-xs flex items-center gap-1.5 shadow-md transition"
           >
-            <Sparkles className="w-3.5 h-3.5 text-slate-950" />
+            <Sparkles className="w-3.5 h-3.5 text-black" />
             <span className="hidden sm:inline">{isBn ? "লাইভ ট্রায়াজ" : "Instant Triage"}</span>
             <span className="sm:hidden">{isBn ? "পরামর্শ" : "Triage"}</span>
           </button>

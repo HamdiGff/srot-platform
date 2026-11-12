@@ -29,7 +29,7 @@ export function OutbreakAlertBanner() {
   return (
     <div
       role="alert"
-      className={`w-full bg-gradient-to-r from-red-950/80 via-[#180a0e] to-red-950/80 border-b border-red-500/30 px-4 text-xs transition-all duration-300 ease-in-out overflow-hidden ${
+      className={`w-full bg-black/95 backdrop-blur-xl border-b border-red-500/30 px-4 text-xs transition-all duration-300 ease-in-out overflow-hidden ${
         isScrolled
           ? "max-h-0 opacity-0 py-0 border-b-0 -translate-y-2 pointer-events-none"
           : "max-h-16 opacity-100 py-2 translate-y-0"
