@@ -1,8 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Suspense } from "react";
 import "./globals.css";
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
+import { SiteShell } from "@/components/layout/SiteShell";
 
 export const viewport: Viewport = {
   themeColor: "#000000",
@@ -134,7 +132,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" className="dark">
+    <html lang="bn" className="dark">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -148,14 +146,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen flex flex-col bg-black text-[#ededed] antialiased selection:bg-white/20 selection:text-white relative">
-        <div className="vercel-beam-top" aria-hidden="true" />
-        <Suspense fallback={null}>
-          <Navbar />
-        </Suspense>
-        <main className="flex-1 w-full">{children}</main>
-        <Suspense fallback={null}>
-          <Footer />
-        </Suspense>
+        <SiteShell>{children}</SiteShell>
       </body>
     </html>
   );

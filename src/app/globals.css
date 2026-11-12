@@ -1,5 +1,98 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   SROT light theme (homepage v2)
+   Tokens for the new light, Bangla-first design. Other pages still use the
+   dark styles further down until they are migrated.
+   ========================================================================== */
+@font-face {
+  font-family: "Anek Bangla";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url("/fonts/anek-bangla-bengali-wght-normal.woff2") format("woff2");
+  unicode-range: U+0951-0952, U+0964-0965, U+0980-09FE, U+1CD0, U+1CD2, U+1CD5-1CD6, U+1CD8, U+1CE1, U+1CEA, U+1CED, U+1CF2, U+1CF5-1CF7, U+200C-200D, U+20B9, U+25CC, U+A8F1;
+}
+
+@font-face {
+  font-family: "Anek Bangla";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url("/fonts/anek-bangla-latin-wght-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@theme {
+  /* Land colours: sack-white paper, paddy green, young seedling, mustard flower, pond, straw */
+  --color-paper: #f5f8ef;
+  --color-ink: #12261b;
+  --color-ink-soft: #4b5f52;
+  --color-paddy: #0c7a43;
+  --color-paddy-dark: #095f34;
+  --color-paddy-deep: #0b3d26;
+  --color-seedling: #cfe8a9;
+  --color-seedling-soft: #e6f2d3;
+  --color-mustard: #f4c430;
+  --color-pond: #bee3da;
+  --color-straw: #eadfb8;
+  --color-bund: #d5dfc6;
+  --font-srot: "Anek Bangla", "Hind Siliguri", "Noto Sans Bengali", system-ui, sans-serif;
+}
+
+/* The homepage paints the whole viewport light, including overscroll areas */
+body:has(.srot-home) {
+  background-color: #f5f8ef;
+}
+
+.srot-home {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-srot);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+  color-scheme: light;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.srot-home ::selection {
+  background-color: var(--color-mustard);
+  color: var(--color-ink);
+}
+
+.srot-home :focus-visible {
+  outline: 3px solid var(--color-ink);
+  outline-offset: 3px;
+}
+
+.srot-home .srot-on-dark :focus-visible {
+  outline-color: #ffffff;
+}
+
+/* FAQ disclosure: hide the native marker, the plus icon shows state */
+.srot-home summary {
+  list-style: none;
+}
+.srot-home summary::-webkit-details-marker {
+  display: none;
+}
+.srot-home details[open] .srot-faq-plus {
+  transform: rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .srot-home *,
+  .srot-home *::before,
+  .srot-home *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ==========================================================================
+   Existing dark styles (all other pages)
+   ========================================================================== */
+
 :root {
   --background: #000000;
   --foreground: #ededed;

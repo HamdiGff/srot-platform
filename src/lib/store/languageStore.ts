@@ -9,7 +9,7 @@ interface LanguageState {
 }
 
 export const useLanguageStore = create<LanguageState>((set) => ({
-  language: "en", // Default to English, Bangla is secondary
+  language: "bn", // Bangla first; visitors can switch to English
   setLanguage: (language) => set({ language }),
   toggleLanguage: () =>
     set((state) => ({ language: state.language === "en" ? "bn" : "en" })),
